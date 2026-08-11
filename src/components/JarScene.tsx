@@ -59,7 +59,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
       group.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
     }
     if (lid.current) {
-      const targetY = open ? 1.55 : 0.95;
+      const targetY = open ? 1.45 : 0.95;
       const targetTilt = open ? 0.35 : 0;
       lid.current.position.y = THREE.MathUtils.damp(lid.current.position.y, targetY, 5, delta);
       lid.current.rotation.z = THREE.MathUtils.damp(lid.current.rotation.z, targetTilt, 5, delta);
@@ -96,8 +96,8 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
       </mesh>
       {/* rosca do gargalo */}
       <mesh position={[0, 0.94, 0]}>
-        <cylinderGeometry args={[0.5, 0.56, 0.22, 48]} />
-        <meshStandardMaterial color={jarColor} roughness={0.5} />
+        <cylinderGeometry args={[0.5, 0.56, 0.22, 48, 1, true]} />
+        <meshStandardMaterial color={jarColor} roughness={0.5} side={THREE.DoubleSide} />
       </mesh>
 
       <Capsules color={capsuleColor} count={capsuleCount} />
@@ -119,7 +119,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0.9, 3.4], fov: 40 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.5, 4.6], fov: 38 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 2]} intensity={1.6} castShadow />
       <directionalLight position={[-3, 2, -2]} intensity={0.5} />
@@ -129,7 +129,7 @@ export default function JarScene(props: Props) {
       <OrbitControls
         enablePan={false}
         enableZoom={false}
-        minPolarAngle={Math.PI / 3.2}
+        minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 1.9}
       />
     </Canvas>
