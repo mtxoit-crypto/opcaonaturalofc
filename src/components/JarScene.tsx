@@ -74,15 +74,17 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
   return (
     <group ref={group} position={[0, -0.35, 0]} scale={0.85}>
-      {/* corpo do pote */}
+      {/* corpo do pote (vidro translúcido) */}
       <mesh castShadow receiveShadow position={[0, 0.1, 0]}>
         <cylinderGeometry args={[0.62, 0.62, 1.6, 64, 1, true]} />
         <meshPhysicalMaterial
           color={jarColor}
-          roughness={0.25}
-          metalness={0.05}
-          transmission={0.15}
-          thickness={0.4}
+          roughness={0.15}
+          metalness={0}
+          transparent
+          opacity={0.42}
+          transmission={0.55}
+          thickness={0.35}
           side={THREE.DoubleSide}
         />
       </mesh>
