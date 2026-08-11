@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Leaf, LogOut, ShieldCheck } from "lucide-react";
+import { Leaf, LogOut, ShieldCheck, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
