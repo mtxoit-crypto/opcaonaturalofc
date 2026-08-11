@@ -62,7 +62,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
         4,
         delta,
       );
-      group.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
+      group.current.position.y = -0.35 + Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
     }
     if (lid.current) {
       const targetY = open ? 1.35 : 0.95;
