@@ -14,7 +14,12 @@ export function SiteHeader() {
           <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Leaf className="size-4" />
           </span>
-          <span className="text-display text-lg">Opção Natural</span>
+          <span className="leading-none">
+            <span className="text-display block text-lg">Opção Natural</span>
+            <span className="block text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              Suplementos naturais
+            </span>
+          </span>
         </Link>
 
         <nav className="flex items-center gap-1 text-sm">
