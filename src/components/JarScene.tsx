@@ -25,7 +25,7 @@ function Capsules({ color, count }: { color: string; count: number }) {
       return {
         position: [
           Math.cos(angle) * radius,
-          -0.55 + layer * 0.16 + rng(i + 13) * 0.05,
+          -0.45 + layer * 0.2 + rng(i + 13) * 0.05,
           Math.sin(angle) * radius,
         ] as [number, number, number],
         rotation: [
@@ -59,7 +59,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
       group.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
     }
     if (lid.current) {
-      const targetY = open ? 1.45 : 0.95;
+      const targetY = open ? 1.35 : 0.95;
       const targetTilt = open ? 0.35 : 0;
       lid.current.position.y = THREE.MathUtils.damp(lid.current.position.y, targetY, 5, delta);
       lid.current.rotation.z = THREE.MathUtils.damp(lid.current.rotation.z, targetTilt, 5, delta);
@@ -119,10 +119,11 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.2, 4.4], fov: 38 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.9, 4.2], fov: 38 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 2]} intensity={1.6} castShadow />
       <directionalLight position={[-3, 2, -2]} intensity={0.5} />
+      <pointLight position={[0, 1.1, 0]} intensity={2.5} distance={2.5} />
       <Jar {...props} />
       <ContactShadows position={[0, -1.05, 0]} opacity={0.35} scale={6} blur={2.6} far={3} />
       <Environment preset="sunset" />
