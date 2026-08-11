@@ -54,22 +54,35 @@ function AdminPage() {
 
   const save = useMutation({
     mutationFn: async (values: Partial<Product>) => {
+      const slug =
+        values.slug ||
+        (values.name ?? "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
       const payload = {
-        ...values,
-        slug:
-          values.slug ||
-          (values.name ?? "")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)/g, ""),
+        slug,
+        name: values.name ?? "",
+        subtitle: values.subtitle ?? null,
+        description: values.description ?? null,
+        benefits: values.benefits ?? [],
+        dosage: values.dosage ?? null,
+        capsule_count: values.capsule_count ?? 60,
+        price: values.price ?? null,
+        capsule_color: values.capsule_color ?? "#E8B54A",
+        jar_color: values.jar_color ?? "#2A3A2C",
+        lid_color: values.lid_color ?? "#C98A3C",
+        is_active: values.is_active ?? true,
+        sort_order: values.sort_order ?? 99,
       };
       const { error } = values.id
         ? await supabase.from("products").update(payload).eq("id", values.id)
         : await supabase.from("products").insert(payload);
       if (error) throw error;
     },
+
     onSuccess: () => {
       toast.success("Produto salvo");
       setForm(empty);
