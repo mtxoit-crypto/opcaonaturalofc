@@ -25,7 +25,7 @@ function Capsules({ color, count }: { color: string; count: number }) {
       return {
         position: [
           Math.cos(angle) * radius,
-          -0.45 + layer * 0.2 + rng(i + 13) * 0.05,
+          -0.3 + layer * 0.22 + rng(i + 13) * 0.05,
           Math.sin(angle) * radius,
         ] as [number, number, number],
         rotation: [
