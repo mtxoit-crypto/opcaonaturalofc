@@ -67,7 +67,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
   });
 
   return (
-    <group ref={group} position={[0, -0.2, 0]}>
+    <group ref={group} position={[0, -0.35, 0]} scale={0.85}>
       {/* corpo do pote */}
       <mesh castShadow receiveShadow position={[0, 0.1, 0]}>
         <cylinderGeometry args={[0.62, 0.62, 1.6, 64, 1, true]} />
@@ -119,14 +119,14 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.5, 4.6], fov: 38 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.2, 4.4], fov: 38 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 2]} intensity={1.6} castShadow />
       <directionalLight position={[-3, 2, -2]} intensity={0.5} />
       <Jar {...props} />
       <ContactShadows position={[0, -1.05, 0]} opacity={0.35} scale={6} blur={2.6} far={3} />
       <Environment preset="sunset" />
-      <OrbitControls
+      <OrbitControls target={[0, 0.05, 0]}
         enablePan={false}
         enableZoom={false}
         minPolarAngle={Math.PI / 4}
