@@ -55,7 +55,13 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
   useFrame((state, delta) => {
     if (group.current) {
-      group.current.rotation.y += delta * 0.18;
+      group.current.rotation.y += delta * (open ? 0.1 : 0.18);
+      group.current.rotation.x = THREE.MathUtils.damp(
+        group.current.rotation.x,
+        open ? -0.5 : 0,
+        4,
+        delta,
+      );
       group.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
     }
     if (lid.current) {
