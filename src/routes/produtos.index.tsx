@@ -5,13 +5,13 @@ import { productsQuery, formatPrice } from "@/lib/products";
 export const Route = createFileRoute("/produtos/")({
   head: () => ({
     meta: [
-      { title: "Produtos · Naturalis vitaminas naturais" },
+      { title: "Produtos · Opção Natural vitaminas naturais" },
       {
         name: "description",
         content:
-          "Catálogo completo de vitaminas naturais Naturalis: D3, C, complexo B e multivitamínico em cápsulas veganas.",
+          "Catálogo completo de vitaminas naturais Opção Natural: D3, C, complexo B e multivitamínico em cápsulas veganas.",
       },
-      { property: "og:title", content: "Produtos · Naturalis vitaminas naturais" },
+      { property: "og:title", content: "Produtos · Opção Natural vitaminas naturais" },
       {
         property: "og:description",
         content: "Vitaminas naturais em cápsulas veganas, com pote 3D interativo em cada produto.",

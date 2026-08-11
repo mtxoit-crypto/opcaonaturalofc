@@ -7,13 +7,13 @@ import { JarViewer } from "@/components/JarViewer";
 export const Route = createFileRoute("/produtos/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug.replace(/-/g, " ")} · Naturalis` },
+      { title: `${params.slug.replace(/-/g, " ")} · Opção Natural` },
       {
         name: "description",
         content:
           "Veja este suplemento natural em 3D: gire o pote, abra a tampa e conheça as cápsulas, benefícios e dosagem.",
       },
-      { property: "og:title", content: `Naturalis · ${params.slug.replace(/-/g, " ")}` },
+      { property: "og:title", content: `Opção Natural · ${params.slug.replace(/-/g, " ")}` },
       {
         property: "og:description",
         content: "Gire o pote em 3D, abra a tampa e conheça as cápsulas deste suplemento natural.",

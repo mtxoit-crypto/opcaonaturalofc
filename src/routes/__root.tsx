@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Naturalis · Vitaminas naturais em cápsulas" },
+      { title: "Opção Natural · Vitaminas naturais em cápsulas" },
       {
         name: "description",
         content:
