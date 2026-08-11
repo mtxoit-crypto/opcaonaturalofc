@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar · Naturalis" },
-      { name: "description", content: "Acesse o painel administrativo do catálogo Naturalis." },
-      { property: "og:title", content: "Entrar · Naturalis" },
+      { title: "Entrar · Opção Natural" },
+      { name: "description", content: "Acesse o painel administrativo do catálogo Opção Natural." },
+      { property: "og:title", content: "Entrar · Opção Natural" },
       { property: "og:description", content: "Acesso ao painel administrativo do catálogo." },
       { name: "robots", content: "noindex" },
     ],

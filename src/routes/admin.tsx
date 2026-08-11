@@ -15,9 +15,9 @@ import { Switch } from "@/components/ui/switch";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Painel do catálogo · Naturalis" },
-      { name: "description", content: "Gerencie os produtos naturais do catálogo Naturalis." },
-      { property: "og:title", content: "Painel do catálogo · Naturalis" },
+      { title: "Painel do catálogo · Opção Natural" },
+      { name: "description", content: "Gerencie os produtos naturais do catálogo Opção Natural." },
+      { property: "og:title", content: "Painel do catálogo · Opção Natural" },
       { property: "og:description", content: "Gerencie os produtos do catálogo." },
       { name: "robots", content: "noindex" },
     ],

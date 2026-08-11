@@ -14,7 +14,7 @@ export function SiteHeader() {
           <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Leaf className="size-4" />
           </span>
-          <span className="text-display text-lg">Naturalis</span>
+          <span className="text-display text-lg">Opção Natural</span>
         </Link>
 
         <nav className="flex items-center gap-1 text-sm">
@@ -71,7 +71,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border/60 bg-sand">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-display text-base text-foreground">Naturalis · Vitaminas naturais</p>
+        <p className="text-display text-base text-foreground">Opção Natural · Vitaminas naturais</p>
         <p>Suplementos não substituem uma alimentação equilibrada.</p>
       </div>
     </footer>

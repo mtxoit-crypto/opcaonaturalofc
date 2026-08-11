@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Naturalis · Vitaminas naturais com pote 3D interativo" },
+      { title: "Opção Natural · Vitaminas naturais com pote 3D interativo" },
       {
         name: "description",
         content:
           "Conheça nossas vitaminas naturais em cápsulas. Gire o pote em 3D, abra a tampa e veja as cápsulas por dentro.",
       },
-      { property: "og:title", content: "Naturalis · Vitaminas naturais com pote 3D interativo" },
+      { property: "og:title", content: "Opção Natural · Vitaminas naturais com pote 3D interativo" },
       {
         property: "og:description",
         content: "Gire o pote em 3D, abra a tampa e conheça as cápsulas das nossas vitaminas.",
