@@ -58,7 +58,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
       group.current.rotation.y += delta * (open ? 0.1 : 0.18);
       group.current.rotation.x = THREE.MathUtils.damp(
         group.current.rotation.x,
-        open ? -0.5 : 0,
+        open ? -0.85 : 0,
         4,
         delta,
       );
@@ -125,7 +125,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount }: Props) {
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.9, 4.2], fov: 38 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 2.6, 4.0], fov: 38 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 2]} intensity={1.6} castShadow />
       <directionalLight position={[-3, 2, -2]} intensity={0.5} />
@@ -133,7 +133,7 @@ export default function JarScene(props: Props) {
       <Jar {...props} />
       <ContactShadows position={[0, -1.05, 0]} opacity={0.35} scale={6} blur={2.6} far={3} />
       <Environment preset="sunset" />
-      <OrbitControls target={[0, 0.05, 0]}
+      <OrbitControls target={[0, 0.1, 0]}
         enablePan={false}
         enableZoom={false}
         minPolarAngle={Math.PI / 4}
