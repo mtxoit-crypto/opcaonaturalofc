@@ -75,9 +75,30 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border/60 bg-sand">
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-display text-base text-foreground">Opção Natural · Vitaminas naturais</p>
-        <p>Suplementos não substituem uma alimentação equilibrada.</p>
+      <div className="mx-auto grid max-w-6xl gap-4 px-5 py-8 text-sm sm:grid-cols-3">
+        {[
+          { icon: Leaf, t: "Produtos naturais", d: "de qualidade" },
+          { icon: ShieldCheck, t: "Fórmulas eficazes", d: "e seguras" },
+          { icon: Truck, t: "Envio para", d: "todo o Brasil" },
+        ].map(({ icon: Icon, t, d }) => (
+          <div key={t} className="flex items-center gap-3">
+            <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Icon className="size-4" />
+            </span>
+            <span>
+              <span className="block text-foreground">{t}</span>
+              <span className="block text-muted-foreground">{d}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-border/60">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-display text-base text-foreground">
+            Opção Natural · Suplementos naturais
+          </p>
+          <p>Suplementos não substituem uma alimentação equilibrada.</p>
+        </div>
       </div>
     </footer>
   );
