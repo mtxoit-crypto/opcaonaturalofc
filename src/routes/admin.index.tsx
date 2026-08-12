@@ -145,10 +145,58 @@ function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-14">
-      <h1 className="text-4xl">Painel do catálogo</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-4xl">Painel do catálogo</h1>
+        <Button asChild variant="outline">
+          <Link to="/admin/pedidos">Ver pedidos</Link>
+        </Button>
+      </div>
       <p className="mt-2 text-muted-foreground">Crie, edite e remova os produtos do site.</p>
 
+      {store ? (
+        <form
+          className="surface-card mt-8 grid gap-3 p-6 sm:grid-cols-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveSettings.mutate(store);
+          }}
+        >
+          <Field label="WhatsApp (556199...)">
+            <Input
+              value={store.whatsapp_number}
+              onChange={(e) => setStore({ ...store, whatsapp_number: e.target.value })}
+            />
+          </Field>
+          <Field label="Chave Pix">
+            <Input
+              value={store.pix_key ?? ""}
+              onChange={(e) => setStore({ ...store, pix_key: e.target.value })}
+            />
+          </Field>
+          <Field label="Frete (R$)">
+            <Input
+              type="number"
+              step="0.01"
+              value={store.shipping_fee}
+              onChange={(e) => setStore({ ...store, shipping_fee: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Frete grátis acima de (R$)">
+            <Input
+              type="number"
+              step="0.01"
+              value={store.free_shipping_min}
+              onChange={(e) => setStore({ ...store, free_shipping_min: Number(e.target.value) })}
+            />
+          </Field>
+          <Button type="submit" className="sm:col-span-4" variant="secondary">
+            Salvar configurações da loja
+          </Button>
+        </form>
+      ) : null}
+
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+
         <div className="space-y-3">
           {(products ?? []).map((p) => (
             <div key={p.id} className="surface-card flex items-center gap-4 p-4">
