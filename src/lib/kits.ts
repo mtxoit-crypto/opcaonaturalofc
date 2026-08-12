@@ -29,7 +29,7 @@ export const kitsQuery = {
       .order("sort_order", { ascending: true });
     if (error) throw error;
     return (data ?? []).map((k: Record<string, unknown>) => {
-      const items = (k.kit_items ?? []) as { sort_order: number; products: Product | null }[];
+      const items = (k["kit_items"] ?? []) as { sort_order: number; products: Product | null }[];
       return {
         ...(k as unknown as Omit<Kit, "products">),
         products: items
