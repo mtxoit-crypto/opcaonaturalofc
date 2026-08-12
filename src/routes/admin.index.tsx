@@ -217,6 +217,8 @@ function AdminPage() {
 
       <AdminMembers />
 
+      <AdminKits />
+
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
 
