@@ -95,6 +95,40 @@ function OrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { data: auditLog } = useQuery({
+    queryKey: ["order-audit-log"],
+    queryFn: async (): Promise<AuditEntry[]> => {
+      const { data, error } = await supabase
+        .from("order_audit_log")
+        .select("id,order_code,customer_name,total,status,actor_email,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as AuditEntry[];
+    },
+    enabled: isAdmin,
+  });
+
+  const testOrders = (orders ?? []).filter((o) => o.status === "teste");
+
+  const removeTestOrders = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .in("order_id", ids);
+      if (itemsError) throw itemsError;
+      const { error } = await supabase.from("orders").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Pedidos de teste excluídos");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order-audit-log"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading) return <div className="mx-auto max-w-6xl px-5 py-20">Carregando…</div>;
   if (!isAdmin)
     return (
