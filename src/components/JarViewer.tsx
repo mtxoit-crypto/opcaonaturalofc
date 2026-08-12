@@ -9,6 +9,8 @@ type Props = {
   lidColor: string;
   capsuleColor: string;
   capsuleCount: number;
+  name?: string;
+  dosage?: string;
   className?: string;
 };
 
