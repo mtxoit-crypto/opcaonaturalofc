@@ -35,6 +35,90 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_items: {
+        Row: {
+          created_at: string
+          id: string
+          kit_id: string
+          product_id: string
+          quantity: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kit_id: string
+          product_id: string
+          quantity?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kit_id?: string
+          product_id?: string
+          quantity?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kits: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number | null
+          slug: string
+          sort_order: number
+          subtitle: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price?: number | null
+          slug: string
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          slug?: string
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
