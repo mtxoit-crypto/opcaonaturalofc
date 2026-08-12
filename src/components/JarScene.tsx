@@ -340,8 +340,8 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
       {/* corpo do frasco (plástico branco fosco) com rótulo aplicado */}
       <mesh geometry={bottle} castShadow receiveShadow>
         <meshStandardMaterial
-          color={jarColor}
-          map={label}
+          color={bodyColor}
+          map={label?.texture ?? null}
           roughness={0.62}
           metalness={0}
           side={THREE.DoubleSide}
@@ -354,19 +354,20 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
       <group ref={lid} position={[0, 1.05, 0]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.6, 0.6, 0.36, 72]} />
-          <meshStandardMaterial color={lidColor} roughness={0.4} metalness={0.05} />
+          <meshStandardMaterial color={capColor} roughness={0.4} metalness={0.05} />
         </mesh>
-        <LidRibs color={lidColor} />
+        <LidRibs color={capColor} />
         <mesh position={[0, 0.2, 0]}>
           <cylinderGeometry args={[0.6, 0.6, 0.05, 72]} />
-          <meshStandardMaterial color={lidColor} roughness={0.3} />
+          <meshStandardMaterial color={capColor} roughness={0.3} />
         </mesh>
         {/* saia inferior mais larga, como no frasco real */}
         <mesh position={[0, -0.21, 0]}>
           <cylinderGeometry args={[0.615, 0.6, 0.09, 72]} />
-          <meshStandardMaterial color={lidColor} roughness={0.5} />
+          <meshStandardMaterial color={capColor} roughness={0.5} />
         </mesh>
       </group>
+
     </group>
   );
 }
