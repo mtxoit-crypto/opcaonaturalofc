@@ -14,7 +14,7 @@ export function AIChatbot() {
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { data: products } = useQuery(productsQuery);
-  const { addItem } = useCart();
+  const { addToCart, isLoading: cartLoading } = useAddToCart();
 
   useEffect(() => {
     if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
