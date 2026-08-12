@@ -193,7 +193,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
       <mesh geometry={bottle} castShadow receiveShadow>
         <meshStandardMaterial
           color={jarColor}
-          map={label ?? undefined}
+          map={label}
           roughness={0.62}
           metalness={0}
           side={THREE.DoubleSide}
