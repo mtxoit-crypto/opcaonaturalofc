@@ -333,8 +333,8 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
       {/* rótulo curvo colado na frente, com a arte real do produto */}
       {label ? (
-        <mesh position={[0, -0.16, 0]} rotation={[0, Math.PI * 0.72, 0]}>
-          <cylinderGeometry args={[0.593, 0.593, 1.12, 96, 1, true, 0, Math.PI * 1.45]} />
+        <mesh position={[0, -0.1, 0]} rotation={[0, -Math.PI * 0.33, 0]}>
+          <cylinderGeometry args={[0.592, 0.592, 1.0, 96, 1, true, 0, 2.1]} />
           <meshStandardMaterial
             map={label.texture}
             roughness={0.55}
@@ -345,6 +345,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
           />
         </mesh>
       ) : null}
+
 
 
       <Capsules color={capsuleColor} count={capsuleCount} />
