@@ -168,7 +168,7 @@ function buildLabel(
   ctx.textBaseline = "alphabetic";
 
   const title = (name ?? "Opção Natural").trim();
-  const titleSize = fitText(ctx, title, inner, "700", 190);
+  const titleSize = fitText(ctx, title, inner, "700", 230);
   let y = H * 0.30;
   ctx.fillText(title, W / 2, y);
 
@@ -180,22 +180,22 @@ function buildLabel(
     .slice(0, 2);
 
   y += H * 0.10;
-  ctx.fillStyle = "#151515";
+  ctx.fillStyle = "#0A0A0A";
   for (const line of lines) {
-    const s = fitText(ctx, line, inner, "400", 90);
+    const s = fitText(ctx, line, inner, "500", 120);
     ctx.fillText(line, W / 2, y);
     y += s * 1.28;
   }
 
   const contains = `Contém ${capsuleCount ?? 60} cápsulas`;
-  const cs = fitText(ctx, contains, inner, "400", 92);
+  const cs = fitText(ctx, contains, inner, "500", 122);
   ctx.fillText(contains, W / 2, y + cs * 0.5);
 
   // gramagem no canto inferior direito
   const mg = (subtitle ?? "").match(/(\d+[.,]?\d*)\s*(mg|mcg|g)\b/i);
   if (mg) {
     ctx.textAlign = "right";
-    ctx.font = `500 96px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
+    ctx.font = `600 118px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
     ctx.fillText(`${mg[1]}${mg[2]?.toLowerCase()}`, W - padX, H * 0.90);
   }
 
