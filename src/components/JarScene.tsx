@@ -126,25 +126,20 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
 /** Rótulo gerado em canvas quando não há foto do produto. */
 function buildFallback(name?: string, dosage?: string, capsuleCount?: number): LabelData | null {
   const canvas = document.createElement("canvas");
-  canvas.width = TEX_W;
-  canvas.height = TEX_H;
+  canvas.width = 1400;
+  canvas.height = 900;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  ctx.fillStyle = "#F3F2EF";
-  ctx.fillRect(0, 0, TEX_W, TEX_H);
-
-  const lx = TEX_W * LABEL_X;
-  const lw = TEX_W * LABEL_W;
-  const ly = TEX_H * 0.1;
-  const lh = TEX_H * 0.8;
+  const lx = 0;
+  const lw = canvas.width;
+  const ly = 0;
+  const lh = canvas.height;
   ctx.fillStyle = "#FBFBF9";
   ctx.fillRect(lx, ly, lw, lh);
-  ctx.strokeStyle = "rgba(0,0,0,0.06)";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(lx, ly, lw, lh);
 
   const cx = lx + lw / 2;
+
   ctx.fillStyle = "#111111";
   ctx.textAlign = "center";
 
