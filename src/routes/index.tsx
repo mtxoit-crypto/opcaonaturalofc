@@ -19,6 +19,29 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Gire o pote em 3D, abra a tampa e conheça as cápsulas das nossas vitaminas.",
       },
+      { property: "og:url", content: "https://opcaonaturalofc.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://opcaonaturalofc.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify([
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Opção Natural",
+            url: "https://opcaonaturalofc.lovable.app",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Opção Natural",
+            url: "https://opcaonaturalofc.lovable.app",
+            description:
+              "Vitaminas e suplementos naturais em cápsulas, com pote 3D interativo e entrega para todo o Brasil.",
+          },
+        ]),
+      },
     ],
   }),
   component: Index,
