@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Leaf, LogOut, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
+import { Leaf, LogOut, ShieldCheck, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useCart } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { CartDrawer } from "@/components/CartDrawer";
+import { useCartSync } from "@/hooks/useCartSync";
 
 export function SiteHeader() {
   const { user, isAdmin } = useAuth();
-  const { count } = useCart();
+  useCartSync();
+
+
 
 
   return (
