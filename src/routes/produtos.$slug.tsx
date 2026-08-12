@@ -110,8 +110,10 @@ function ProductPage() {
               capsuleCount={p.capsule_count}
               name={p.name}
               dosage={p.dosage ?? undefined}
+              subtitle={p.subtitle ?? undefined}
               imageUrl={p.image_url ?? undefined}
             />
+
           )}
           {gallery.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">

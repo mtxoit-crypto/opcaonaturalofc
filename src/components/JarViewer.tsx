@@ -11,9 +11,11 @@ type Props = {
   capsuleCount: number;
   name?: string | undefined;
   dosage?: string | undefined;
+  subtitle?: string | undefined;
   imageUrl?: string | undefined;
   className?: string;
 };
+
 
 
 function Placeholder() {
