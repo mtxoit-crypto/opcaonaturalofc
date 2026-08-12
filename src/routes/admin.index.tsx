@@ -200,10 +200,19 @@ function AdminPage() {
         <div className="space-y-3">
           {(products ?? []).map((p) => (
             <div key={p.id} className="surface-card flex items-center gap-4 p-4">
-              <div
-                className="size-12 shrink-0 rounded-lg"
-                style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
-              />
+              {p.image_url ? (
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  className="size-12 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <div
+                  className="size-12 shrink-0 rounded-lg"
+                  style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
+                />
+              )}
+
               <div className="min-w-0 flex-1">
                 <p className="truncate text-lg">{p.name}</p>
                 <p className="truncate text-sm text-muted-foreground">
