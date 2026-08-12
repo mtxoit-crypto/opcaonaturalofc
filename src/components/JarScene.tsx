@@ -302,7 +302,8 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
   useFrame((state, delta) => {
     if (group.current) {
-      group.current.rotation.y += delta * (open ? 0.1 : 0.16);
+      // balanço suave mantendo o rótulo sempre virado para a frente
+      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.45) * 0.28;
       group.current.rotation.x = THREE.MathUtils.damp(
         group.current.rotation.x,
         open ? -0.7 : 0,
