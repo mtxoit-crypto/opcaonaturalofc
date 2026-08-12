@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot, X, Send, MessageCircle, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { productsQuery, formatPrice } from "@/lib/products";
-import { answerWithAssistant, getWelcomeMessage, type ChatMessage } from "@/lib/ai-assistant";
+import {
+  answerWithAssistant,
+  detectGoals,
+  getWelcomeMessage,
+  type ChatMessage,
+} from "@/lib/ai-assistant";
 import { useAddToCart } from "@/hooks/useAddToCart";
 
 export function AIChatbot() {
