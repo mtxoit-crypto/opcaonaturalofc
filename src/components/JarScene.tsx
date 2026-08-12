@@ -104,35 +104,24 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
   const bodyColor = sample(0.245, 0.02);
 
   // recorte do rótulo: do ombro até quase a base
-  const lx = minX + bw * 0.06;
-  const lw = bw * 0.88;
-  const ly = minY + bh * 0.3;
-  const lh = bh * 0.62;
+  const lx = Math.round(minX + bw * 0.05);
+  const lw = Math.round(bw * 0.9);
+  const ly = Math.round(minY + bh * 0.3);
+  const lh = Math.round(bh * 0.6);
 
   const out = document.createElement("canvas");
-  out.width = TEX_W;
-  out.height = TEX_H;
+  out.width = 1400;
+  out.height = Math.round((1400 * lh) / lw);
   const ctx = out.getContext("2d");
   if (!ctx) return null;
-  ctx.fillStyle = bodyColor ?? "#F3F2EF";
-  ctx.fillRect(0, 0, TEX_W, TEX_H);
-  ctx.drawImage(
-    src,
-    lx,
-    ly,
-    lw,
-    lh,
-    TEX_W * LABEL_X,
-    TEX_H * 0.16,
-    TEX_W * LABEL_W,
-    TEX_H * 0.68,
-  );
+  ctx.drawImage(src, lx, ly, lw, lh, 0, 0, out.width, out.height);
 
   const tex = new THREE.CanvasTexture(out);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
   return { texture: tex, bodyColor, lidColor };
 }
+
 
 /** Rótulo gerado em canvas quando não há foto do produto. */
 function buildFallback(name?: string, dosage?: string, capsuleCount?: number): LabelData | null {
