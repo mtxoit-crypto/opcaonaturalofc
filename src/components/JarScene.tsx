@@ -321,16 +321,31 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
   return (
     <group ref={group} position={[0, -0.25, 0]} scale={0.95}>
-      {/* corpo do frasco (plástico branco fosco) com rótulo aplicado */}
+      {/* corpo do frasco */}
       <mesh geometry={bottle} castShadow receiveShadow>
         <meshStandardMaterial
           color={bodyColor}
-          map={label?.texture ?? null}
           roughness={0.62}
           metalness={0}
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      {/* rótulo curvo colado na frente, com a arte real do produto */}
+      {label ? (
+        <mesh position={[0, -0.16, 0]} rotation={[0, Math.PI * 0.72, 0]}>
+          <cylinderGeometry args={[0.593, 0.593, 1.12, 96, 1, true, 0, Math.PI * 1.45]} />
+          <meshStandardMaterial
+            map={label.texture}
+            roughness={0.55}
+            metalness={0}
+            side={THREE.DoubleSide}
+            polygonOffset
+            polygonOffsetFactor={-2}
+          />
+        </mesh>
+      ) : null}
+
 
       <Capsules color={capsuleColor} count={capsuleCount} />
 
