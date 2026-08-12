@@ -320,7 +320,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
   });
 
   return (
-    <group ref={group} position={[0, -0.25, 0]} scale={0.95}>
+    <group ref={group} position={[0, -0.25, 0]} scale={0.86}>
       {/* corpo do frasco */}
       <mesh geometry={bottle} castShadow receiveShadow>
         <meshStandardMaterial
@@ -333,8 +333,8 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
       {/* rótulo curvo colado na frente, com a arte real do produto */}
       {label ? (
-        <mesh position={[0, -0.1, 0]} rotation={[0, -Math.PI * 0.33, 0]}>
-          <cylinderGeometry args={[0.592, 0.592, 1.0, 96, 1, true, 0, 2.1]} />
+        <mesh position={[0, -0.05, 0]} rotation={[0, -0.35, 0]}>
+          <cylinderGeometry args={[0.592, 0.592, 1.05, 96, 1, true, 0, 1.6]} />
           <meshStandardMaterial
             map={label.texture}
             roughness={0.55}
@@ -374,7 +374,7 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.5, 4.2], fov: 34 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.3, 4.6], fov: 34 }}>
       <ambientLight intensity={0.75} />
       <directionalLight position={[3, 5, 3]} intensity={1.5} castShadow />
       <directionalLight position={[-3, 2, -2]} intensity={0.45} />
