@@ -39,6 +39,8 @@ const empty: Partial<Product> = {
   capsule_color: "#E8B54A",
   jar_color: "#2A3A2C",
   lid_color: "#C98A3C",
+  image_url: null,
+  in_stock: true,
   is_active: true,
   sort_order: 99,
 };
@@ -48,11 +50,30 @@ function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: products } = useQuery(productsQuery);
+  const { data: settings } = useQuery(storeSettingsQuery);
   const [form, setForm] = useState<Partial<Product>>(empty);
+  const [store, setStore] = useState<StoreSettings | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (settings && !store) setStore(settings);
+  }, [settings, store]);
+
+  const saveSettings = useMutation({
+    mutationFn: async (values: StoreSettings) => {
+      const { error } = await supabase.from("store_settings").update(values).neq("id", "");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Configurações salvas");
+      qc.invalidateQueries({ queryKey: ["store-settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const save = useMutation({
     mutationFn: async (values: Partial<Product>) => {
