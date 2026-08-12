@@ -136,6 +136,7 @@ function RootComponent() {
         <SiteFooter />
       </div>
       <Toaster />
+      <AIChatbot />
     </QueryClientProvider>
 
 
