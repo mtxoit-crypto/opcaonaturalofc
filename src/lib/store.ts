@@ -75,32 +75,35 @@ export async function createOrder(
   subtotal: number,
   shipping_fee: number,
 ) {
-  const { data, error } = await supabase
-    .from("orders")
-    .insert({
-      customer_name: address.customer_name,
-      customer_phone: address.customer_phone,
-      customer_email: address.customer_email || null,
-      zip_code: address.zip_code,
-      street: address.street,
-      number: address.number,
-      complement: address.complement || null,
-      district: address.district,
-      city: address.city,
-      state: address.state,
-      notes: address.notes || null,
-      payment_method: "pix",
-      subtotal,
-      shipping_fee,
-      total: subtotal + shipping_fee,
-    })
-    .select("id,code")
-    .single();
+  const id =
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+  const code = `OP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+  const { error } = await supabase.from("orders").insert({
+    id,
+    code,
+    customer_name: address.customer_name,
+    customer_phone: address.customer_phone,
+    customer_email: address.customer_email || null,
+    zip_code: address.zip_code,
+    street: address.street,
+    number: address.number,
+    complement: address.complement || null,
+    district: address.district,
+    city: address.city,
+    state: address.state,
+    notes: address.notes || null,
+    payment_method: "pix",
+    subtotal,
+    shipping_fee,
+    total: subtotal + shipping_fee,
+  });
   if (error) throw error;
 
   const { error: itemsError } = await supabase.from("order_items").insert(
     items.map((i) => ({
-      order_id: data.id,
+      order_id: id,
       product_id: i.id,
       product_name: i.name,
       unit_price: i.price,
@@ -109,7 +112,7 @@ export async function createOrder(
   );
   if (itemsError) throw itemsError;
 
-  return data as { id: string; code: string };
+  return { id, code };
 }
 
 export function whatsappLink(
