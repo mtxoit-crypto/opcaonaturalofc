@@ -119,6 +119,45 @@ export type Database = {
         }
         Relationships: []
       }
+      order_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          customer_name: string | null
+          id: string
+          order_code: string
+          order_id: string
+          status: string | null
+          total: number
+        }
+        Insert: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          order_code: string
+          order_id: string
+          status?: string | null
+          total?: number
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          order_code?: string
+          order_id?: string
+          status?: string | null
+          total?: number
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
