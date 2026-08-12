@@ -44,6 +44,13 @@ export function SiteHeader() {
           >
             Produtos
           </Link>
+          <Link
+            to="/kits"
+            className="rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            activeProps={{ className: "bg-secondary text-foreground" }}
+          >
+            Kits
+          </Link>
           {isAdmin ? (
             <Link
               to="/admin"
