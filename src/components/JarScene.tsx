@@ -23,7 +23,7 @@ type LabelData = {
 };
 
 /** arco (rad) ocupado pelo rótulo na frente do frasco */
-const LABEL_ARC = 2.35;
+const LABEL_ARC = 2.6;
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -140,7 +140,7 @@ function buildLabel(
   subtitle?: string,
 ): LabelData | null {
   const W = 2200;
-  const H = 1100;
+  const H = 1250;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -382,11 +382,9 @@ function Jar({
       {label ? (
         <mesh position={[0, -0.1, 0]} rotation={[0, -LABEL_ARC / 2, 0]}>
           <cylinderGeometry args={[0.594, 0.594, labelHeight, 128, 1, true, 0, LABEL_ARC]} />
-          <meshPhysicalMaterial
+          <meshStandardMaterial
             map={label.texture}
-            roughness={0.42}
-            clearcoat={0.5}
-            clearcoatRoughness={0.35}
+            roughness={0.7}
             metalness={0}
             side={THREE.DoubleSide}
             polygonOffset
@@ -421,15 +419,15 @@ function Jar({
 export default function JarScene(props: Props) {
   return (
     <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.05, 4.1], fov: 32 }}>
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.55} />
       {/* luz principal em softbox de estúdio */}
-      <directionalLight position={[3, 5, 4]} intensity={1.6} castShadow />
+      <directionalLight position={[3, 5, 4]} intensity={1.15} castShadow />
       <directionalLight position={[-4, 2.5, 2]} intensity={0.6} />
       <directionalLight position={[0, 2, -4]} intensity={0.5} />
       <pointLight position={[0, 1.2, 0]} intensity={2} distance={2.5} />
       <Jar {...props} />
       <ContactShadows position={[0, -1.12, 0]} opacity={0.4} scale={6} blur={2.4} far={3} />
-      <Environment preset="studio" />
+      <Environment preset="city" />
       <OrbitControls
         target={[0, 0.05, 0]}
         enablePan={false}
