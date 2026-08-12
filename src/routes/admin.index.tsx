@@ -64,7 +64,7 @@ function AdminPage() {
 
   const saveSettings = useMutation({
     mutationFn: async (values: StoreSettings) => {
-      const { error } = await supabase.from("store_settings").update(values).neq("id", "");
+      const { error } = await supabase.from("store_settings").update(values).not("id", "is", null);
       if (error) throw error;
     },
     onSuccess: () => {
