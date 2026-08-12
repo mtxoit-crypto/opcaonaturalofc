@@ -9,8 +9,8 @@ type Props = {
   lidColor: string;
   capsuleColor: string;
   capsuleCount: number;
-  name?: string;
-  dosage?: string;
+  name?: string | undefined;
+  dosage?: string | undefined;
 };
 
 /** Rótulo branco com o texto do produto, gerado em canvas (igual às fotos). */
