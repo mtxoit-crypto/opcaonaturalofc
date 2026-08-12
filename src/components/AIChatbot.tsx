@@ -115,7 +115,8 @@ export function AIChatbot() {
                             size="icon"
                             variant="outline"
                             className="h-8 w-8"
-                            onClick={() => addItem(p)}
+                            disabled={cartLoading}
+                            onClick={() => addToCart(p.slug, p.name, 1)}
                             aria-label={`Adicionar ${p.name} ao carrinho`}
                           >
                             <ShoppingCart className="size-3.5" />
