@@ -108,6 +108,8 @@ function ProductPage() {
               lidColor={p.lid_color}
               capsuleColor={p.capsule_color}
               capsuleCount={p.capsule_count}
+              name={p.name}
+              dosage={p.dosage ?? undefined}
             />
           )}
           {gallery.length > 0 ? (
