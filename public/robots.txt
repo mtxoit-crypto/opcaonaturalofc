@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://opcaonaturalofc.lovable.app/sitemap.xml

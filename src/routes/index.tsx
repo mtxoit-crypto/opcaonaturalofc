@@ -19,6 +19,29 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Gire o pote em 3D, abra a tampa e conheça as cápsulas das nossas vitaminas.",
       },
+      { property: "og:url", content: "https://opcaonaturalofc.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://opcaonaturalofc.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify([
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Opção Natural",
+            url: "https://opcaonaturalofc.lovable.app",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Opção Natural",
+            url: "https://opcaonaturalofc.lovable.app",
+            description:
+              "Vitaminas e suplementos naturais em cápsulas, com pote 3D interativo e entrega para todo o Brasil.",
+          },
+        ]),
+      },
     ],
   }),
   component: Index,
@@ -37,7 +60,7 @@ function Index() {
               <Leaf className="size-3.5" /> Suplementos naturais
             </span>
             <h1 className="mt-5 text-5xl leading-[1.05] md:text-6xl">
-              Mais disposição
+              Vitaminas e suplementos naturais
               <span className="text-accent"> para o seu dia</span>
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
@@ -107,7 +130,8 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <h2 className="text-3xl">Diferenciais da Opção Natural</h2>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
           {[
             { icon: Sparkles, t: "Fórmulas limpas", d: "Sem corantes nem excipientes dispensáveis." },
             { icon: ShieldCheck, t: "Testado em lote", d: "Cada lote com laudo de pureza e potência." },

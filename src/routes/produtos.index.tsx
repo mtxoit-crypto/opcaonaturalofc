@@ -23,9 +23,27 @@ export const Route = createFileRoute("/produtos/")({
         content: "Suplementos naturais em cápsulas, com pote 3D interativo e checkout seguro.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://natural-pot-showcase.lovable.app/produtos" },
+      { property: "og:url", content: "https://opcaonaturalofc.lovable.app/produtos" },
     ],
-    links: [{ rel: "canonical", href: "https://natural-pot-showcase.lovable.app/produtos" }],
+    links: [{ rel: "canonical", href: "https://opcaonaturalofc.lovable.app/produtos" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Vitaminas e Suplementos Naturais",
+          description:
+            "Catálogo de vitaminas e suplementos naturais em cápsulas da Opção Natural.",
+          url: "https://opcaonaturalofc.lovable.app/produtos",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Opção Natural",
+            url: "https://opcaonaturalofc.lovable.app",
+          },
+        }),
+      },
+    ],
   }),
   component: ProductsPage,
 });
@@ -50,7 +68,7 @@ function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-14">
-      <h1 className="text-4xl">Produtos</h1>
+      <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
         Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro — cartão, Pix ou
         boleto.
