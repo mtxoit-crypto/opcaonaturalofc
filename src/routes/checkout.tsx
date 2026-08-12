@@ -75,8 +75,15 @@ function CheckoutPage() {
     if (!settings || items.length === 0) return;
     setSending(true);
     try {
-      const order = await createOrder(address, items, subtotal, shipping);
-      const url = whatsappLink(settings, order.code, address, items, subtotal, shipping);
+      const order = await createOrder(address, items);
+      const url = whatsappLink(
+        settings,
+        order.code,
+        address,
+        items,
+        order.subtotal,
+        order.shipping_fee,
+      );
       clear();
       toast.success(`Pedido ${order.code} criado! Confirme o Pix no WhatsApp.`);
       window.open(url, "_blank", "noopener");
@@ -204,11 +211,9 @@ function CheckoutPage() {
             <MessageCircle className="size-4" />
             {sending ? "Enviando…" : "Finalizar no WhatsApp (Pix)"}
           </Button>
-          {settings?.pix_key ? (
-            <p className="text-center text-xs text-muted-foreground">
-              Chave Pix: {settings.pix_key}
-            </p>
-          ) : null}
+          <p className="text-center text-xs text-muted-foreground">
+            Enviamos a chave Pix e o valor final pelo WhatsApp após a confirmação do pedido.
+          </p>
         </form>
 
         <aside className="surface-card h-fit space-y-4 p-6">
