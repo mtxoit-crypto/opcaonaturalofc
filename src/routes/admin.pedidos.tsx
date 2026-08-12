@@ -91,6 +91,7 @@ function OrdersPage() {
     onSuccess: () => {
       toast.success("Pedido excluído");
       qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order-audit-log"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
