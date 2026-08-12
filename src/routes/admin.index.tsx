@@ -313,6 +313,21 @@ function AdminPage() {
               />
             </Field>
           </div>
+          <Field label="URL da imagem do produto">
+            <Input
+              value={form.image_url ?? ""}
+              placeholder="/__l5e/assets-v1/..."
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+            />
+          </Field>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="stock">Em estoque</Label>
+            <Switch
+              id="stock"
+              checked={form.in_stock ?? true}
+              onCheckedChange={(v) => setForm({ ...form, in_stock: v })}
+            />
+          </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="active">Visível no site</Label>
             <Switch
@@ -321,6 +336,7 @@ function AdminPage() {
               onCheckedChange={(v) => setForm({ ...form, is_active: v })}
             />
           </div>
+
           <Button type="submit" className="w-full" disabled={save.isPending}>
             Salvar produto
           </Button>
