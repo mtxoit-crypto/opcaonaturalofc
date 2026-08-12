@@ -11,6 +11,7 @@ type Props = {
   capsuleCount: number;
   name?: string | undefined;
   dosage?: string | undefined;
+  subtitle?: string | undefined;
   imageUrl?: string | undefined;
 };
 
@@ -21,12 +22,8 @@ type LabelData = {
   aspect: number;
 };
 
-const TEX_W = 2048;
-const LABEL_ARC = 3.1;
-const TEX_H = 1024;
-/** faixa horizontal da textura ocupada pelo rótulo (frente do frasco) */
-const LABEL_X = 0.06;
-const LABEL_W = 0.42;
+/** arco (rad) ocupado pelo rótulo na frente do frasco */
+const LABEL_ARC = 2.35;
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -38,23 +35,22 @@ function loadImage(src: string) {
   });
 }
 
-/** Recorta a foto real do produto e usa o rótulo da frente como textura. */
-function buildFromPhoto(img: HTMLImageElement): LabelData | null {
+/** Amostra as cores reais (corpo e tampa) da foto do produto. */
+function samplePhotoColors(img: HTMLImageElement): { body: string | null; lid: string | null } {
   const src = document.createElement("canvas");
   src.width = img.naturalWidth;
   src.height = img.naturalHeight;
-  const sctx = src.getContext("2d", { willReadFrequently: true });
-  if (!sctx) return null;
-  sctx.drawImage(img, 0, 0);
+  const ctx = src.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return { body: null, lid: null };
+  ctx.drawImage(img, 0, 0);
 
   let data: ImageData;
   try {
-    data = sctx.getImageData(0, 0, src.width, src.height);
+    data = ctx.getImageData(0, 0, src.width, src.height);
   } catch {
-    return null;
+    return { body: null, lid: null };
   }
 
-  // bounding box do produto (pixels visíveis)
   let minX = src.width;
   let minY = src.height;
   let maxX = 0;
@@ -62,12 +58,7 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
   for (let y = 0; y < src.height; y += 2) {
     for (let x = 0; x < src.width; x += 2) {
       const i = (y * src.width + x) * 4;
-      const a = data.data[i + 3] ?? 0;
-      const r = data.data[i] ?? 255;
-      const g = data.data[i + 1] ?? 255;
-      const b = data.data[i + 2] ?? 255;
-      const visible = a > 40 && !(r > 246 && g > 246 && b > 246);
-      if (visible) {
+      if ((data.data[i + 3] ?? 0) > 60) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
@@ -75,12 +66,12 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
       }
     }
   }
-  if (maxX <= minX || maxY <= minY) return null;
+  if (maxX <= minX || maxY <= minY) return { body: null, lid: null };
 
   const bw = maxX - minX;
   const bh = maxY - minY;
 
-  const sample = (fy: number, spread = 0.03) => {
+  const sample = (fy: number, spread: number) => {
     let r = 0;
     let g = 0;
     let b = 0;
@@ -88,9 +79,9 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
     const y0 = Math.round(minY + bh * (fy - spread));
     const y1 = Math.round(minY + bh * (fy + spread));
     for (let y = y0; y <= y1; y += 1) {
-      for (let x = Math.round(minX + bw * 0.35); x <= Math.round(minX + bw * 0.65); x += 1) {
+      for (let x = Math.round(minX + bw * 0.38); x <= Math.round(minX + bw * 0.62); x += 1) {
         const i = (y * src.width + x) * 4;
-        if ((data.data[i + 3] ?? 0) < 120) continue;
+        if ((data.data[i + 3] ?? 0) < 150) continue;
         r += data.data[i] ?? 0;
         g += data.data[i + 1] ?? 0;
         b += data.data[i + 2] ?? 0;
@@ -98,94 +89,120 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
       }
     }
     if (!n) return null;
-    const hex = (v: number) => Math.round(v / n).toString(16).padStart(2, "0");
+    const hex = (v: number) =>
+      Math.min(255, Math.round(v / n))
+        .toString(16)
+        .padStart(2, "0");
     return `#${hex(r)}${hex(g)}${hex(b)}`;
   };
 
-  const lidColor = sample(0.07);
-  const bodyColor = sample(0.245, 0.02);
-
-  // recorte do rótulo: do ombro até quase a base
-  const lx = Math.round(minX + bw * 0.05);
-  const lw = Math.round(bw * 0.9);
-  const ly = Math.round(minY + bh * 0.3);
-  const lh = Math.round(bh * 0.6);
-
-  const artW = 1400;
-  const artH = Math.round((artW * lh) / lw);
-  const pad = Math.round(artW * 0.62);
-  const out = document.createElement("canvas");
-  out.width = artW + pad * 2;
-  out.height = artH;
-  const ctx = out.getContext("2d");
-  if (!ctx) return null;
-  ctx.fillStyle = bodyColor ?? "#ffffff";
-  ctx.fillRect(0, 0, out.width, out.height);
-  ctx.drawImage(src, lx, ly, lw, lh, pad, 0, artW, artH);
-
-  const tex = new THREE.CanvasTexture(out);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
-  return { texture: tex, bodyColor, lidColor, aspect: out.width / out.height };
+  return { lid: sample(0.09, 0.03), body: sample(0.32, 0.02) };
 }
 
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
 
-/** Rótulo gerado em canvas quando não há foto do produto. */
-function buildFallback(name?: string, dosage?: string, capsuleCount?: number): LabelData | null {
+function fitText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  weight: string,
+  startSize: number,
+) {
+  let size = startSize;
+  for (;;) {
+    ctx.font = `${weight} ${size}px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
+    if (ctx.measureText(text).width <= maxWidth || size <= 20) break;
+    size -= 2;
+  }
+  return size;
+}
+
+/** Rótulo tipográfico nítido, no mesmo layout das embalagens reais. */
+function buildLabel(
+  name?: string,
+  dosage?: string,
+  capsuleCount?: number,
+  subtitle?: string,
+): LabelData | null {
+  const W = 2200;
+  const H = 1100;
   const canvas = document.createElement("canvas");
-  canvas.width = 1400;
-  canvas.height = 900;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  const lx = 0;
-  const lw = canvas.width;
-  const ly = 0;
-  const lh = canvas.height;
-  ctx.fillStyle = "#FBFBF9";
-  ctx.fillRect(lx, ly, lw, lh);
+  // papel do rótulo com leve gradiente (parece impresso, não chapado)
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, "#FFFFFF");
+  grad.addColorStop(0.5, "#F7F6F1");
+  grad.addColorStop(1, "#EFEDE6");
+  ctx.fillStyle = grad;
+  roundRect(ctx, 0, 0, W, H, 46);
+  ctx.fill();
 
-  const cx = lx + lw / 2;
+  ctx.strokeStyle = "rgba(0,0,0,0.06)";
+  ctx.lineWidth = 4;
+  roundRect(ctx, 2, 2, W - 4, H - 4, 46);
+  ctx.stroke();
 
-  ctx.fillStyle = "#111111";
+  const padX = W * 0.09;
+  const inner = W - padX * 2;
+  ctx.fillStyle = "#0B0B0B";
   ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
 
   const title = (name ?? "Opção Natural").trim();
-  const words = title.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > 12 && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = next;
-    }
-  }
-  if (current) lines.push(current);
+  const titleSize = fitText(ctx, title, inner, "700", 190);
+  let y = H * 0.30;
+  ctx.fillText(title, W / 2, y);
 
-  const titleSize = lines.length > 2 ? 92 : 118;
-  ctx.font = `600 ${titleSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
-  let y = ly + lh * 0.28;
+  // linhas de posologia (quebra em "e" / vírgula, como no rótulo)
+  const lines = (dosage ?? "")
+    .split(/\s+e\s+|,\s*/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  y += H * 0.10;
+  ctx.fillStyle = "#151515";
   for (const line of lines) {
-    ctx.fillText(line, cx, y);
-    y += titleSize * 1.05;
+    const s = fitText(ctx, line, inner, "400", 90);
+    ctx.fillText(line, W / 2, y);
+    y += s * 1.28;
   }
 
-  ctx.font = "400 62px system-ui, -apple-system, Segoe UI, sans-serif";
-  ctx.fillStyle = "#1B1B1B";
-  y += 26;
-  for (const line of (dosage ?? "").split(/ e |, /).filter(Boolean).slice(0, 2)) {
-    ctx.fillText(line, cx, y);
-    y += 78;
+  const contains = `Contém ${capsuleCount ?? 60} cápsulas`;
+  const cs = fitText(ctx, contains, inner, "400", 92);
+  ctx.fillText(contains, W / 2, y + cs * 0.5);
+
+  // gramagem no canto inferior direito
+  const mg = (subtitle ?? "").match(/(\d+[.,]?\d*)\s*(mg|mcg|g)\b/i);
+  if (mg) {
+    ctx.textAlign = "right";
+    ctx.font = `500 96px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
+    ctx.fillText(`${mg[1]}${mg[2]?.toLowerCase()}`, W - padX, H * 0.90);
   }
-  ctx.fillText(`Contém ${capsuleCount ?? 60} cápsulas`, cx, y);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
-  return { texture: tex, bodyColor: null, lidColor: null, aspect: canvas.width / canvas.height };
+  tex.anisotropy = 16;
+  return { texture: tex, bodyColor: null, lidColor: null, aspect: W / H };
 }
 
 function useLabel(
@@ -193,6 +210,7 @@ function useLabel(
   name?: string,
   dosage?: string,
   capsuleCount?: number,
+  subtitle?: string,
 ): LabelData | null {
   const [data, setData] = useState<LabelData | null>(null);
 
@@ -209,22 +227,29 @@ function useLabel(
       setData(next);
     };
 
-    if (imageUrl) {
+    const base = buildLabel(name, dosage, capsuleCount, subtitle);
+
+    if (imageUrl && base) {
       loadImage(imageUrl)
-        .then((img) => apply(buildFromPhoto(img) ?? buildFallback(name, dosage, capsuleCount)))
-        .catch(() => apply(buildFallback(name, dosage, capsuleCount)));
+        .then((img) => {
+          const colors = samplePhotoColors(img);
+          apply({ ...base, bodyColor: colors.body, lidColor: colors.lid });
+        })
+        .catch(() => apply(base));
     } else {
-      apply(buildFallback(name, dosage, capsuleCount));
+      apply(base);
     }
 
     return () => {
       cancelled = true;
       created?.texture.dispose();
     };
-  }, [imageUrl, name, dosage, capsuleCount]);
+  }, [imageUrl, name, dosage, capsuleCount, subtitle]);
 
   return data;
 }
+
+
 
 
 function Capsules({ color, count }: { color: string; count: number }) {
