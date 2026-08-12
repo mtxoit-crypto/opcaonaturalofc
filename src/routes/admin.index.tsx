@@ -346,6 +346,17 @@ function AdminPage() {
               onChange={(e) => setForm({ ...form, image_url: e.target.value })}
             />
           </Field>
+          {form.id ? (
+            <div className="space-y-2">
+              <Label>Fotos e vídeos do produto</Label>
+              <ProductMediaManager productId={form.id} />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Salve o produto para liberar o envio de fotos e vídeos.
+            </p>
+          )}
+
           <div className="flex items-center justify-between">
             <Label htmlFor="stock">Em estoque</Label>
             <Switch
