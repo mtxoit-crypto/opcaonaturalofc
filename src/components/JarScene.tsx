@@ -11,85 +11,230 @@ type Props = {
   capsuleCount: number;
   name?: string | undefined;
   dosage?: string | undefined;
+  imageUrl?: string | undefined;
 };
 
-/** Rótulo branco com o texto do produto, gerado em canvas (igual às fotos). */
-function useLabelTexture(name?: string, dosage?: string, capsuleCount?: number) {
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+type LabelData = {
+  texture: THREE.CanvasTexture;
+  bodyColor: string | null;
+  lidColor: string | null;
+};
 
-  useEffect(() => {
-    const w = 2048;
-    const h = 1024;
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+const TEX_W = 2048;
+const TEX_H = 1024;
+/** faixa horizontal da textura ocupada pelo rótulo (frente do frasco) */
+const LABEL_X = 0.06;
+const LABEL_W = 0.42;
 
-    // corpo plástico branco
-    ctx.fillStyle = "#F3F2EF";
-    ctx.fillRect(0, 0, w, h);
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
 
-    // etiqueta de papel colada na frente (só numa faixa da circunferência)
-    const lx = w * 0.06;
-    const lw = w * 0.42;
-    const ly = h * 0.1;
-    const lh = h * 0.8;
-    ctx.fillStyle = "#FBFBF9";
-    ctx.fillRect(lx, ly, lw, lh);
-    ctx.strokeStyle = "rgba(0,0,0,0.06)";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(lx, ly, lw, lh);
+/** Recorta a foto real do produto e usa o rótulo da frente como textura. */
+function buildFromPhoto(img: HTMLImageElement): LabelData | null {
+  const src = document.createElement("canvas");
+  src.width = img.naturalWidth;
+  src.height = img.naturalHeight;
+  const sctx = src.getContext("2d", { willReadFrequently: true });
+  if (!sctx) return null;
+  sctx.drawImage(img, 0, 0);
 
-    const cx = lx + lw / 2;
-    ctx.fillStyle = "#111111";
-    ctx.textAlign = "center";
+  let data: ImageData;
+  try {
+    data = sctx.getImageData(0, 0, src.width, src.height);
+  } catch {
+    return null;
+  }
 
-    const title = (name ?? "Opção Natural").trim();
-    const words = title.split(" ");
-    const lines: string[] = [];
-    let current = "";
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word;
-      if (next.length > 12 && current) {
-        lines.push(current);
-        current = word;
-      } else {
-        current = next;
+  // bounding box do produto (pixels visíveis)
+  let minX = src.width;
+  let minY = src.height;
+  let maxX = 0;
+  let maxY = 0;
+  for (let y = 0; y < src.height; y += 2) {
+    for (let x = 0; x < src.width; x += 2) {
+      const i = (y * src.width + x) * 4;
+      const a = data.data[i + 3] ?? 0;
+      const r = data.data[i] ?? 255;
+      const g = data.data[i + 1] ?? 255;
+      const b = data.data[i + 2] ?? 255;
+      const visible = a > 40 && !(r > 246 && g > 246 && b > 246);
+      if (visible) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
       }
     }
-    if (current) lines.push(current);
+  }
+  if (maxX <= minX || maxY <= minY) return null;
 
-    const titleSize = lines.length > 2 ? 92 : 118;
-    ctx.font = `600 ${titleSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
-    let y = ly + lh * 0.28;
-    for (const line of lines) {
-      ctx.fillText(line, cx, y);
-      y += titleSize * 1.05;
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+
+  const sample = (fy: number, spread = 0.03) => {
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let n = 0;
+    const y0 = Math.round(minY + bh * (fy - spread));
+    const y1 = Math.round(minY + bh * (fy + spread));
+    for (let y = y0; y <= y1; y += 1) {
+      for (let x = Math.round(minX + bw * 0.35); x <= Math.round(minX + bw * 0.65); x += 1) {
+        const i = (y * src.width + x) * 4;
+        if ((data.data[i + 3] ?? 0) < 120) continue;
+        r += data.data[i] ?? 0;
+        g += data.data[i + 1] ?? 0;
+        b += data.data[i + 2] ?? 0;
+        n += 1;
+      }
     }
+    if (!n) return null;
+    const hex = (v: number) => Math.round(v / n).toString(16).padStart(2, "0");
+    return `#${hex(r)}${hex(g)}${hex(b)}`;
+  };
 
-    ctx.font = "400 62px system-ui, -apple-system, Segoe UI, sans-serif";
-    ctx.fillStyle = "#1B1B1B";
-    y += 26;
-    for (const line of (dosage ?? "").split(/ e |, /).filter(Boolean).slice(0, 2)) {
-      ctx.fillText(line, cx, y);
-      y += 78;
-    }
-    ctx.fillText(`Contém ${capsuleCount ?? 60} cápsulas`, cx, y);
+  const lidColor = sample(0.07);
+  const bodyColor = sample(0.245, 0.02);
 
-    ctx.textAlign = "left";
-    ctx.font = "400 52px system-ui, -apple-system, Segoe UI, sans-serif";
-    ctx.fillText("500mg", lx + 30, ly + lh - 40);
+  // recorte do rótulo: do ombro até quase a base
+  const lx = minX + bw * 0.06;
+  const lw = bw * 0.88;
+  const ly = minY + bh * 0.3;
+  const lh = bh * 0.62;
 
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 8;
-    setTexture(tex);
-    return () => tex.dispose();
-  }, [name, dosage, capsuleCount]);
+  const out = document.createElement("canvas");
+  out.width = TEX_W;
+  out.height = TEX_H;
+  const ctx = out.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = bodyColor ?? "#F3F2EF";
+  ctx.fillRect(0, 0, TEX_W, TEX_H);
+  ctx.drawImage(
+    src,
+    lx,
+    ly,
+    lw,
+    lh,
+    TEX_W * LABEL_X,
+    TEX_H * 0.16,
+    TEX_W * LABEL_W,
+    TEX_H * 0.68,
+  );
 
-  return texture;
+  const tex = new THREE.CanvasTexture(out);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return { texture: tex, bodyColor, lidColor };
 }
+
+/** Rótulo gerado em canvas quando não há foto do produto. */
+function buildFallback(name?: string, dosage?: string, capsuleCount?: number): LabelData | null {
+  const canvas = document.createElement("canvas");
+  canvas.width = TEX_W;
+  canvas.height = TEX_H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.fillStyle = "#F3F2EF";
+  ctx.fillRect(0, 0, TEX_W, TEX_H);
+
+  const lx = TEX_W * LABEL_X;
+  const lw = TEX_W * LABEL_W;
+  const ly = TEX_H * 0.1;
+  const lh = TEX_H * 0.8;
+  ctx.fillStyle = "#FBFBF9";
+  ctx.fillRect(lx, ly, lw, lh);
+  ctx.strokeStyle = "rgba(0,0,0,0.06)";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(lx, ly, lw, lh);
+
+  const cx = lx + lw / 2;
+  ctx.fillStyle = "#111111";
+  ctx.textAlign = "center";
+
+  const title = (name ?? "Opção Natural").trim();
+  const words = title.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > 12 && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+
+  const titleSize = lines.length > 2 ? 92 : 118;
+  ctx.font = `600 ${titleSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
+  let y = ly + lh * 0.28;
+  for (const line of lines) {
+    ctx.fillText(line, cx, y);
+    y += titleSize * 1.05;
+  }
+
+  ctx.font = "400 62px system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.fillStyle = "#1B1B1B";
+  y += 26;
+  for (const line of (dosage ?? "").split(/ e |, /).filter(Boolean).slice(0, 2)) {
+    ctx.fillText(line, cx, y);
+    y += 78;
+  }
+  ctx.fillText(`Contém ${capsuleCount ?? 60} cápsulas`, cx, y);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return { texture: tex, bodyColor: null, lidColor: null };
+}
+
+function useLabel(
+  imageUrl?: string,
+  name?: string,
+  dosage?: string,
+  capsuleCount?: number,
+): LabelData | null {
+  const [data, setData] = useState<LabelData | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let created: LabelData | null = null;
+
+    const apply = (next: LabelData | null) => {
+      if (cancelled) {
+        next?.texture.dispose();
+        return;
+      }
+      created = next;
+      setData(next);
+    };
+
+    if (imageUrl) {
+      loadImage(imageUrl)
+        .then((img) => apply(buildFromPhoto(img) ?? buildFallback(name, dosage, capsuleCount)))
+        .catch(() => apply(buildFallback(name, dosage, capsuleCount)));
+    } else {
+      apply(buildFallback(name, dosage, capsuleCount));
+    }
+
+    return () => {
+      cancelled = true;
+      created?.texture.dispose();
+    };
+  }, [imageUrl, name, dosage, capsuleCount]);
+
+  return data;
+}
+
 
 function Capsules({ color, count }: { color: string; count: number }) {
   const items = useMemo(() => {
