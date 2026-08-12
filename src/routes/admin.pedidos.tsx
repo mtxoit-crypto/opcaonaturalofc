@@ -131,7 +131,7 @@ function OrdersPage() {
               ))}
             </ul>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               {STATUSES.map((s) => (
                 <Button
                   key={s}
@@ -142,6 +142,18 @@ function OrdersPage() {
                   {s}
                 </Button>
               ))}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-auto text-destructive hover:text-destructive"
+                disabled={removeOrder.isPending}
+                onClick={() => {
+                  if (window.confirm(`Excluir o pedido ${o.code}? Essa ação não pode ser desfeita.`))
+                    removeOrder.mutate(o.id);
+                }}
+              >
+                <Trash2 className="size-4" /> Excluir
+              </Button>
             </div>
           </div>
         ))}
