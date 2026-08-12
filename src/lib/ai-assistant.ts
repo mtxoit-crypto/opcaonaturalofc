@@ -98,7 +98,7 @@ function scoreProducts(products: Product[], query: string): Product[] {
     .map((s) => s.product);
 }
 
-function detectGoals(query: string): string[] {
+export function detectGoals(query: string): string[] {
   const q = normalize(query);
   const matched: string[] = [];
   for (const [goal, keywords] of Object.entries(GOALS)) {
