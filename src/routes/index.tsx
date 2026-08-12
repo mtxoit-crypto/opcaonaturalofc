@@ -130,7 +130,8 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <h2 className="text-3xl">Diferenciais da Opção Natural</h2>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
           {[
             { icon: Sparkles, t: "Fórmulas limpas", d: "Sem corantes nem excipientes dispensáveis." },
             { icon: ShieldCheck, t: "Testado em lote", d: "Cada lote com laudo de pureza e potência." },
