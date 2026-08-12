@@ -18,6 +18,7 @@ type LabelData = {
   texture: THREE.CanvasTexture;
   bodyColor: string | null;
   lidColor: string | null;
+  aspect: number;
 };
 
 const TEX_W = 2048;
@@ -109,17 +110,22 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
   const ly = Math.round(minY + bh * 0.3);
   const lh = Math.round(bh * 0.6);
 
+  const artW = 1400;
+  const artH = Math.round((artW * lh) / lw);
+  const pad = Math.round(artW * 0.26);
   const out = document.createElement("canvas");
-  out.width = 1400;
-  out.height = Math.round((1400 * lh) / lw);
+  out.width = artW + pad * 2;
+  out.height = artH;
   const ctx = out.getContext("2d");
   if (!ctx) return null;
-  ctx.drawImage(src, lx, ly, lw, lh, 0, 0, out.width, out.height);
+  ctx.fillStyle = bodyColor ?? "#ffffff";
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(src, lx, ly, lw, lh, pad, 0, artW, artH);
 
   const tex = new THREE.CanvasTexture(out);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
-  return { texture: tex, bodyColor, lidColor };
+  return { texture: tex, bodyColor, lidColor, aspect: out.width / out.height };
 }
 
 
