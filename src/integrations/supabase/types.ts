@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -383,7 +404,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_member: { Args: { _email: string }; Returns: string }
       admin_get_pix_key: { Args: never; Returns: string }
+      admin_list_members: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          is_owner: boolean
+          status: string
+          user_id: string
+        }[]
+      }
+      admin_remove_member: {
+        Args: { _email: string; _user_id: string }
+        Returns: undefined
+      }
       create_order: {
         Args: {
           _city: string

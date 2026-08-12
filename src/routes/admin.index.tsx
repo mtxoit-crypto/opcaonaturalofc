@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ProductMediaManager } from "@/components/ProductMediaManager";
+import { AdminMembers } from "@/components/AdminMembers";
 
 
 export const Route = createFileRoute("/admin/")({
@@ -212,6 +213,9 @@ function AdminPage() {
           </Button>
         </form>
       ) : null}
+
+      <AdminMembers />
+
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
 
