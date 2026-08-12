@@ -25,7 +25,17 @@ type Order = {
   order_items: OrderItem[];
 };
 
-const STATUSES = ["pendente", "pago", "enviado", "entregue", "cancelado"];
+const STATUSES = ["pendente", "pago", "enviado", "entregue", "cancelado", "teste"];
+
+type AuditEntry = {
+  id: string;
+  order_code: string;
+  customer_name: string | null;
+  total: number;
+  status: string | null;
+  actor_email: string | null;
+  created_at: string;
+};
 
 export const Route = createFileRoute("/admin/pedidos")({
   head: () => ({
@@ -81,6 +91,41 @@ function OrdersPage() {
     onSuccess: () => {
       toast.success("Pedido excluído");
       qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order-audit-log"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const { data: auditLog } = useQuery({
+    queryKey: ["order-audit-log"],
+    queryFn: async (): Promise<AuditEntry[]> => {
+      const { data, error } = await supabase
+        .from("order_audit_log")
+        .select("id,order_code,customer_name,total,status,actor_email,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as AuditEntry[];
+    },
+    enabled: isAdmin,
+  });
+
+  const testOrders = (orders ?? []).filter((o) => o.status === "teste");
+
+  const removeTestOrders = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .in("order_id", ids);
+      if (itemsError) throw itemsError;
+      const { error } = await supabase.from("orders").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Pedidos de teste excluídos");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["order-audit-log"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -97,9 +142,26 @@ function OrdersPage() {
     <div className="mx-auto max-w-6xl px-5 py-14">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-4xl">Pedidos</h1>
-        <Button asChild variant="outline">
-          <Link to="/admin">Catálogo</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            disabled={testOrders.length === 0 || removeTestOrders.isPending}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Excluir ${testOrders.length} pedido(s) com status "teste"? Essa ação não pode ser desfeita.`,
+                )
+              )
+                removeTestOrders.mutate(testOrders.map((o) => o.id));
+            }}
+          >
+            <Trash2 className="size-4" /> Excluir testes ({testOrders.length})
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/admin">Catálogo</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8 space-y-4">
@@ -159,6 +221,35 @@ function OrdersPage() {
           </div>
         ))}
       </div>
+
+      <section className="mt-14">
+        <h2 className="text-2xl">Log de exclusões</h2>
+        <p className="text-sm text-muted-foreground">
+          Registro de quem excluiu cada pedido e quando.
+        </p>
+        <div className="mt-4 space-y-2">
+          {(auditLog ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma exclusão registrada.</p>
+          ) : null}
+          {(auditLog ?? []).map((entry) => (
+            <div
+              key={entry.id}
+              className="surface-card flex flex-wrap items-center justify-between gap-2 p-4 text-sm"
+            >
+              <span>
+                <strong>{entry.order_code}</strong>
+                {entry.customer_name ? ` · ${entry.customer_name}` : ""} ·{" "}
+                {formatPrice(entry.total)}
+                {entry.status ? ` · status ${entry.status}` : ""}
+              </span>
+              <span className="text-muted-foreground">
+                excluído por {entry.actor_email ?? "desconhecido"} em{" "}
+                {new Date(entry.created_at).toLocaleString("pt-BR")}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
