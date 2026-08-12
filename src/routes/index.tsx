@@ -59,14 +59,16 @@ function Index() {
           </div>
 
           <JarViewer
-            jarColor={featured?.jar_color ?? "#14431F"}
-            lidColor={featured?.lid_color ?? "#1E7A34"}
+            jarColor={featured?.jar_color ?? "#F2F1EE"}
+            lidColor={featured?.lid_color ?? "#6FC49A"}
             capsuleColor={featured?.capsule_color ?? "#C9A227"}
             capsuleCount={featured?.capsule_count ?? 24}
             name={featured?.name}
             dosage={featured?.dosage ?? undefined}
+            subtitle={featured?.subtitle ?? undefined}
             imageUrl={featured?.image_url ?? undefined}
           />
+
         </div>
       </section>
 
