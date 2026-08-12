@@ -70,6 +70,20 @@ function OrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const removeOrder = useMutation({
+    mutationFn: async (id: string) => {
+      const { error: itemsError } = await supabase.from("order_items").delete().eq("order_id", id);
+      if (itemsError) throw itemsError;
+      const { error } = await supabase.from("orders").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Pedido excluído");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading) return <div className="mx-auto max-w-6xl px-5 py-20">Carregando…</div>;
   if (!isAdmin)
     return (
