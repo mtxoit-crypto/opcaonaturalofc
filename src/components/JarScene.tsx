@@ -307,11 +307,14 @@ function LidRibs({ color }: { color: string }) {
   );
 }
 
-function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosage }: Props) {
+function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosage, imageUrl }: Props) {
   const group = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Group>(null);
   const bottle = useBottleGeometry();
-  const label = useLabelTexture(name, dosage, capsuleCount);
+  const label = useLabel(imageUrl, name, dosage, capsuleCount);
+  const bodyColor = label?.bodyColor ?? jarColor;
+  const capColor = label?.lidColor ?? lidColor;
+
 
   useFrame((state, delta) => {
     if (group.current) {
