@@ -374,6 +374,7 @@ function Jar({
           clearcoat={0.35}
           clearcoatRoughness={0.6}
           sheen={0.25}
+          envMapIntensity={0.6}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -386,6 +387,7 @@ function Jar({
             map={label.texture}
             roughness={0.7}
             metalness={0}
+            envMapIntensity={0.35}
             side={THREE.DoubleSide}
             polygonOffset
             polygonOffsetFactor={-4}
