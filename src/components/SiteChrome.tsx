@@ -1,11 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { Leaf, LogOut, ShieldCheck, Truck } from "lucide-react";
+import { Leaf, LogOut, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   const { user, isAdmin } = useAuth();
+  const { count } = useCart();
+
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -49,6 +52,19 @@ export function SiteHeader() {
               </span>
             </Link>
           ) : null}
+          <Link
+            to="/checkout"
+            aria-label="Carrinho"
+            className="relative rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <ShoppingBag className="size-5" />
+            {count > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-accent-foreground">
+                {count}
+              </span>
+            ) : null}
+          </Link>
+
           {user ? (
             <Button
               variant="ghost"

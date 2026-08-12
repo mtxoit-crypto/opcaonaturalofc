@@ -14,6 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          city: string
+          code: string
+          complement: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          district: string
+          id: string
+          notes: string | null
+          number: string
+          payment_method: string
+          shipping_fee: number
+          state: string
+          status: string
+          street: string
+          subtotal: number
+          total: number
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          city: string
+          code?: string
+          complement?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          district: string
+          id?: string
+          notes?: string | null
+          number: string
+          payment_method?: string
+          shipping_fee?: number
+          state: string
+          status?: string
+          street: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          city?: string
+          code?: string
+          complement?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          district?: string
+          id?: string
+          notes?: string | null
+          number?: string
+          payment_method?: string
+          shipping_fee?: number
+          state?: string
+          status?: string
+          street?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           benefits: string[]
@@ -23,6 +137,8 @@ export type Database = {
           description: string | null
           dosage: string | null
           id: string
+          image_url: string | null
+          in_stock: boolean
           is_active: boolean
           jar_color: string
           lid_color: string
@@ -41,6 +157,8 @@ export type Database = {
           description?: string | null
           dosage?: string | null
           id?: string
+          image_url?: string | null
+          in_stock?: boolean
           is_active?: boolean
           jar_color?: string
           lid_color?: string
@@ -59,6 +177,8 @@ export type Database = {
           description?: string | null
           dosage?: string | null
           id?: string
+          image_url?: string | null
+          in_stock?: boolean
           is_active?: boolean
           jar_color?: string
           lid_color?: string
@@ -86,6 +206,36 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      store_settings: {
+        Row: {
+          created_at: string
+          free_shipping_min: number
+          id: boolean
+          pix_key: string | null
+          shipping_fee: number
+          updated_at: string
+          whatsapp_number: string
+        }
+        Insert: {
+          created_at?: string
+          free_shipping_min?: number
+          id?: boolean
+          pix_key?: string | null
+          shipping_fee?: number
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Update: {
+          created_at?: string
+          free_shipping_min?: number
+          id?: boolean
+          pix_key?: string | null
+          shipping_fee?: number
+          updated_at?: string
+          whatsapp_number?: string
         }
         Relationships: []
       }

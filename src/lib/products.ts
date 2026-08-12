@@ -13,12 +13,15 @@ export type Product = {
   capsule_color: string;
   jar_color: string;
   lid_color: string;
+  image_url: string | null;
+  in_stock: boolean;
   is_active: boolean;
   sort_order: number;
 };
 
 const COLUMNS =
-  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,is_active,sort_order";
+  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,in_stock,is_active,sort_order";
+
 
 export const productsQuery = {
   queryKey: ["products"],

@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { productsQuery, type Product } from "@/lib/products";
+import { storeSettingsQuery, type StoreSettings } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
-export const Route = createFileRoute("/admin")({
+
+export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
       { title: "Painel do catálogo · Opção Natural" },
@@ -37,6 +39,8 @@ const empty: Partial<Product> = {
   capsule_color: "#E8B54A",
   jar_color: "#2A3A2C",
   lid_color: "#C98A3C",
+  image_url: null,
+  in_stock: true,
   is_active: true,
   sort_order: 99,
 };
@@ -46,11 +50,30 @@ function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: products } = useQuery(productsQuery);
+  const { data: settings } = useQuery(storeSettingsQuery);
   const [form, setForm] = useState<Partial<Product>>(empty);
+  const [store, setStore] = useState<StoreSettings | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (settings && !store) setStore(settings);
+  }, [settings, store]);
+
+  const saveSettings = useMutation({
+    mutationFn: async (values: StoreSettings) => {
+      const { error } = await supabase.from("store_settings").update(values).not("id", "is", null);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Configurações salvas");
+      qc.invalidateQueries({ queryKey: ["store-settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const save = useMutation({
     mutationFn: async (values: Partial<Product>) => {
@@ -74,8 +97,11 @@ function AdminPage() {
         capsule_color: values.capsule_color ?? "#E8B54A",
         jar_color: values.jar_color ?? "#2A3A2C",
         lid_color: values.lid_color ?? "#C98A3C",
+        image_url: values.image_url || null,
+        in_stock: values.in_stock ?? true,
         is_active: values.is_active ?? true,
         sort_order: values.sort_order ?? 99,
+
       };
       const { error } = values.id
         ? await supabase.from("products").update(payload).eq("id", values.id)
@@ -119,17 +145,74 @@ function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-14">
-      <h1 className="text-4xl">Painel do catálogo</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-4xl">Painel do catálogo</h1>
+        <Button asChild variant="outline">
+          <Link to="/admin/pedidos">Ver pedidos</Link>
+        </Button>
+      </div>
       <p className="mt-2 text-muted-foreground">Crie, edite e remova os produtos do site.</p>
 
+      {store ? (
+        <form
+          className="surface-card mt-8 grid gap-3 p-6 sm:grid-cols-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveSettings.mutate(store);
+          }}
+        >
+          <Field label="WhatsApp (556199...)">
+            <Input
+              value={store.whatsapp_number}
+              onChange={(e) => setStore({ ...store, whatsapp_number: e.target.value })}
+            />
+          </Field>
+          <Field label="Chave Pix">
+            <Input
+              value={store.pix_key ?? ""}
+              onChange={(e) => setStore({ ...store, pix_key: e.target.value })}
+            />
+          </Field>
+          <Field label="Frete (R$)">
+            <Input
+              type="number"
+              step="0.01"
+              value={store.shipping_fee}
+              onChange={(e) => setStore({ ...store, shipping_fee: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Frete grátis acima de (R$)">
+            <Input
+              type="number"
+              step="0.01"
+              value={store.free_shipping_min}
+              onChange={(e) => setStore({ ...store, free_shipping_min: Number(e.target.value) })}
+            />
+          </Field>
+          <Button type="submit" className="sm:col-span-4" variant="secondary">
+            Salvar configurações da loja
+          </Button>
+        </form>
+      ) : null}
+
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+
         <div className="space-y-3">
           {(products ?? []).map((p) => (
             <div key={p.id} className="surface-card flex items-center gap-4 p-4">
-              <div
-                className="size-12 shrink-0 rounded-lg"
-                style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
-              />
+              {p.image_url ? (
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  className="size-12 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <div
+                  className="size-12 shrink-0 rounded-lg"
+                  style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
+                />
+              )}
+
               <div className="min-w-0 flex-1">
                 <p className="truncate text-lg">{p.name}</p>
                 <p className="truncate text-sm text-muted-foreground">
@@ -239,6 +322,21 @@ function AdminPage() {
               />
             </Field>
           </div>
+          <Field label="URL da imagem do produto">
+            <Input
+              value={form.image_url ?? ""}
+              placeholder="/__l5e/assets-v1/..."
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+            />
+          </Field>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="stock">Em estoque</Label>
+            <Switch
+              id="stock"
+              checked={form.in_stock ?? true}
+              onCheckedChange={(v) => setForm({ ...form, in_stock: v })}
+            />
+          </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="active">Visível no site</Label>
             <Switch
@@ -247,6 +345,7 @@ function AdminPage() {
               onCheckedChange={(v) => setForm({ ...form, is_active: v })}
             />
           </div>
+
           <Button type="submit" className="w-full" disabled={save.isPending}>
             Salvar produto
           </Button>
