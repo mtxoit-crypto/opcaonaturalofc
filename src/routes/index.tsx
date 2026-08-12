@@ -60,7 +60,7 @@ function Index() {
               <Leaf className="size-3.5" /> Suplementos naturais
             </span>
             <h1 className="mt-5 text-5xl leading-[1.05] md:text-6xl">
-              Mais disposição
+              Vitaminas e suplementos naturais
               <span className="text-accent"> para o seu dia</span>
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
