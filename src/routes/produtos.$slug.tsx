@@ -14,32 +14,64 @@ import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/produtos/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `${params.slug.replace(/-/g, " ")} · Opção Natural` },
-      {
-        name: "description",
-        content:
-          "Veja este suplemento natural em 3D: gire o pote, abra a tampa e compre com cartão, Pix ou boleto, com entrega em todo o Brasil.",
-      },
-      { property: "og:title", content: `Opção Natural · ${params.slug.replace(/-/g, " ")}` },
-      {
-        property: "og:description",
-        content: "Gire o pote em 3D, conheça os benefícios e finalize a compra com segurança.",
-      },
-      { property: "og:type", content: "product" },
-      {
-        property: "og:url",
-        content: `https://natural-pot-showcase.lovable.app/produtos/${params.slug}`,
-      },
-    ],
-    links: [
-      {
-        rel: "canonical",
-        href: `https://natural-pot-showcase.lovable.app/produtos/${params.slug}`,
-      },
-    ],
-  }),
+  loader: async ({ context, params }) =>
+    context.queryClient.ensureQueryData(productQuery(params.slug)),
+  head: ({ params, loaderData }) => {
+    const p = loaderData ?? null;
+    const url = `https://opcaonaturalofc.lovable.app/produtos/${params.slug}`;
+    const name = p?.name ?? params.slug.replace(/-/g, " ");
+    const description =
+      p?.description ??
+      p?.subtitle ??
+      "Veja este suplemento natural em 3D: gire o pote, abra a tampa e compre com cartão, Pix ou boleto, com entrega em todo o Brasil.";
+
+    return {
+      meta: [
+        { title: `${name} · Opção Natural` },
+        { name: "description", content: description },
+        { property: "og:title", content: `Opção Natural · ${name}` },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(p?.image_url?.startsWith("https://")
+          ? [
+              { property: "og:image", content: p.image_url },
+              { name: "twitter:image", content: p.image_url },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: p.name,
+                description,
+                ...(p.image_url ? { image: p.image_url } : {}),
+                brand: { "@type": "Brand", name: "Opção Natural" },
+                url,
+                ...(p.price != null
+                  ? {
+                      offers: {
+                        "@type": "Offer",
+                        price: p.price,
+                        priceCurrency: "BRL",
+                        availability: p.in_stock
+                          ? "https://schema.org/InStock"
+                          : "https://schema.org/OutOfStock",
+                        url,
+                      },
+                    }
+                  : {}),
+              }),
+            },
+          ]
+        : [],
+    };
+  },
   component: ProductPage,
 });
 
