@@ -221,6 +221,35 @@ function OrdersPage() {
           </div>
         ))}
       </div>
+
+      <section className="mt-14">
+        <h2 className="text-2xl">Log de exclusões</h2>
+        <p className="text-sm text-muted-foreground">
+          Registro de quem excluiu cada pedido e quando.
+        </p>
+        <div className="mt-4 space-y-2">
+          {(auditLog ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma exclusão registrada.</p>
+          ) : null}
+          {(auditLog ?? []).map((entry) => (
+            <div
+              key={entry.id}
+              className="surface-card flex flex-wrap items-center justify-between gap-2 p-4 text-sm"
+            >
+              <span>
+                <strong>{entry.order_code}</strong>
+                {entry.customer_name ? ` · ${entry.customer_name}` : ""} ·{" "}
+                {formatPrice(entry.total)}
+                {entry.status ? ` · status ${entry.status}` : ""}
+              </span>
+              <span className="text-muted-foreground">
+                excluído por {entry.actor_email ?? "desconhecido"} em{" "}
+                {new Date(entry.created_at).toLocaleString("pt-BR")}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
