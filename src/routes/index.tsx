@@ -64,7 +64,7 @@ function Index() {
             capsuleColor={featured?.capsule_color ?? "#C9A227"}
             capsuleCount={featured?.capsule_count ?? 24}
             name={featured?.name}
-            dosage={featured?.dosage}
+            dosage={featured?.dosage ?? undefined}
           />
         </div>
       </section>

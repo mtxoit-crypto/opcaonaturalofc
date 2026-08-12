@@ -109,7 +109,7 @@ function ProductPage() {
               capsuleColor={p.capsule_color}
               capsuleCount={p.capsule_count}
               name={p.name}
-              dosage={p.dosage}
+              dosage={p.dosage ?? undefined}
             />
           )}
           {gallery.length > 0 ? (
