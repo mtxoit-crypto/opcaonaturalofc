@@ -177,8 +177,8 @@ export function answerWithAssistant(query: string, products: Product[]): ChatMes
   let content = "";
 
   if (goals.length) {
-    const goalLabel = goals[0];
-    const goalNames: Record<string, string> = {
+    const goalLabel = goals[0] as keyof typeof goalNames;
+    const goalNames = {
       emagrecer: "emagrecimento",
       energia: "mais energia e disposição",
       sono: "sono e relaxamento",
