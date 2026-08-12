@@ -98,12 +98,42 @@ function AuthPage() {
     if (result.redirected) return;
   }
 
+  if (pending) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col px-5 py-20">
+        <h1 className="text-3xl">Confirme seu e-mail</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Enviamos um link de confirmação para <strong>{email}</strong>. Abra o e-mail e confirme
+          para ativar sua conta — só é possível uma conta por e-mail.
+        </p>
+        <div className="surface-card mt-8 space-y-3 p-6">
+          <Button className="w-full" onClick={resend} disabled={busy}>
+            Reenviar e-mail de confirmação
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setPending(false);
+              setMode("login");
+            }}
+          >
+            Voltar para o login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex max-w-md flex-col px-5 py-20">
       <h1 className="text-3xl">{mode === "login" ? "Entrar" : "Criar conta"}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Área restrita para gerenciar o catálogo de produtos.
+        {mode === "login"
+          ? "Acesse sua conta para acompanhar seus pedidos."
+          : "Uma conta por e-mail, confirmada por e-mail de verificação."}
       </p>
+
 
       <form onSubmit={submit} className="surface-card mt-8 space-y-4 p-6">
         <div className="space-y-2">
