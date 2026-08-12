@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { ProductMediaManager } from "@/components/ProductMediaManager";
 
 
 export const Route = createFileRoute("/admin/")({
@@ -346,6 +347,17 @@ function AdminPage() {
               onChange={(e) => setForm({ ...form, image_url: e.target.value })}
             />
           </Field>
+          {form.id ? (
+            <div className="space-y-2">
+              <Label>Fotos e vídeos do produto</Label>
+              <ProductMediaManager productId={form.id} />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Salve o produto para liberar o envio de fotos e vídeos.
+            </p>
+          )}
+
           <div className="flex items-center justify-between">
             <Label htmlFor="stock">Em estoque</Label>
             <Switch

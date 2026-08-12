@@ -125,25 +125,38 @@ function Index() {
           </Link>
         </div>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {(products ?? []).slice(0, 4).map((p) => (
-            <Link
-              key={p.id}
-              to="/produtos/$slug"
-              params={{ slug: p.slug }}
-              className="surface-card group p-5 transition-transform hover:-translate-y-1"
-            >
-              <div
-                className="h-28 rounded-xl"
-                style={{
-                  background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})`,
-                }}
-              />
-              <h3 className="mt-4 text-xl">{p.name}</h3>
-              <p className="text-sm text-muted-foreground">{p.subtitle}</p>
-              <p className="mt-3 text-sm font-medium text-accent">{formatPrice(p.price)}</p>
-            </Link>
-          ))}
+          {(products ?? [])
+            .filter((p) => p.is_active)
+            .slice(0, 4)
+            .map((p) => (
+              <Link
+                key={p.id}
+                to="/produtos/$slug"
+                params={{ slug: p.slug }}
+                className="surface-card group p-5 transition-transform hover:-translate-y-1"
+              >
+                {p.image_url ? (
+                  <img
+                    src={p.image_url}
+                    alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
+                    loading="lazy"
+                    className="h-32 w-full rounded-xl bg-sand object-contain"
+                  />
+                ) : (
+                  <div
+                    className="h-32 rounded-xl"
+                    style={{
+                      background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})`,
+                    }}
+                  />
+                )}
+                <h3 className="mt-4 text-xl">{p.name}</h3>
+                <p className="text-sm text-muted-foreground">{p.subtitle}</p>
+                <p className="mt-3 text-sm font-medium text-accent">{formatPrice(p.price)}</p>
+              </Link>
+            ))}
         </div>
+
       </section>
     </div>
   );
