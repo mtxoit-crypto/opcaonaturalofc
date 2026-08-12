@@ -97,8 +97,11 @@ function AdminPage() {
         capsule_color: values.capsule_color ?? "#E8B54A",
         jar_color: values.jar_color ?? "#2A3A2C",
         lid_color: values.lid_color ?? "#C98A3C",
+        image_url: values.image_url || null,
+        in_stock: values.in_stock ?? true,
         is_active: values.is_active ?? true,
         sort_order: values.sort_order ?? 99,
+
       };
       const { error } = values.id
         ? await supabase.from("products").update(payload).eq("id", values.id)
