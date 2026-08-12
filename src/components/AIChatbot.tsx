@@ -178,7 +178,7 @@ export function AIChatbot() {
               placeholder="Digite sua dúvida..."
               className="flex-1 rounded-full border border-input bg-background px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
-            <Button type="submit" size="icon" className="h-9 w-9 rounded-full" disabled={!input.trim()}>
+            <Button type="submit" size="icon" className="h-9 w-9 rounded-full">
               <Send className="size-4" />
             </Button>
           </form>
