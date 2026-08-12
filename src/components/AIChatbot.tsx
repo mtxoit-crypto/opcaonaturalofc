@@ -28,7 +28,20 @@ export function AIChatbot() {
     setTyping(true);
 
     setTimeout(() => {
-      const reply = answerWithAssistant(text, products ?? []);
+      const catalog = products ?? [];
+      if (catalog.length === 0) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              "Estou carregando o catálogo de produtos. Envie sua pergunta novamente em alguns segundos, por favor.",
+          },
+        ]);
+        setTyping(false);
+        return;
+      }
+      const reply = answerWithAssistant(text, catalog);
       setMessages((prev) => [...prev, reply]);
       setTyping(false);
     }, 600);
