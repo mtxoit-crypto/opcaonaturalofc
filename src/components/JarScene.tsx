@@ -323,19 +323,28 @@ function LidRibs({ color }: { color: string }) {
   );
 }
 
-function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosage, imageUrl }: Props) {
+function Jar({
+  open,
+  jarColor,
+  lidColor,
+  capsuleColor,
+  capsuleCount,
+  name,
+  dosage,
+  subtitle,
+  imageUrl,
+}: Props) {
   const group = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Group>(null);
   const bottle = useBottleGeometry();
-  const label = useLabel(imageUrl, name, dosage, capsuleCount);
+  const label = useLabel(imageUrl, name, dosage, capsuleCount, subtitle);
   const bodyColor = label?.bodyColor ?? jarColor;
   const capColor = label?.lidColor ?? lidColor;
-
 
   useFrame((state, delta) => {
     if (group.current) {
       // balanço suave mantendo o rótulo sempre virado para a frente
-      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.45) * 0.28;
+      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.45) * 0.26;
       group.current.rotation.x = THREE.MathUtils.damp(
         group.current.rotation.x,
         open ? -0.7 : 0,
@@ -352,40 +361,43 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
     }
   });
 
+  const labelHeight = label ? (0.592 * LABEL_ARC) / label.aspect : 0.7;
+
   return (
     <group ref={group} position={[0, -0.25, 0]} scale={0.78}>
-      {/* corpo do frasco */}
+      {/* corpo do frasco (HDPE fosco) */}
       <mesh geometry={bottle} castShadow receiveShadow>
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color={bodyColor}
-          roughness={0.62}
+          roughness={0.58}
           metalness={0}
+          clearcoat={0.35}
+          clearcoatRoughness={0.6}
+          sheen={0.25}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* rótulo curvo colado na frente, com a arte real do produto */}
+      {/* rótulo tipográfico curvo colado na frente */}
       {label ? (
-        <mesh position={[0, -0.08, 0]} rotation={[0, -LABEL_ARC / 2, 0]}>
-          <cylinderGeometry
-            args={[0.592, 0.592, (0.592 * LABEL_ARC) / label.aspect, 96, 1, true, 0, LABEL_ARC]}
-          />
-          <meshStandardMaterial
+        <mesh position={[0, -0.1, 0]} rotation={[0, -LABEL_ARC / 2, 0]}>
+          <cylinderGeometry args={[0.594, 0.594, labelHeight, 128, 1, true, 0, LABEL_ARC]} />
+          <meshPhysicalMaterial
             map={label.texture}
-            roughness={0.55}
+            roughness={0.42}
+            clearcoat={0.5}
+            clearcoatRoughness={0.35}
             metalness={0}
             side={THREE.DoubleSide}
             polygonOffset
-            polygonOffsetFactor={-2}
+            polygonOffsetFactor={-4}
           />
         </mesh>
       ) : null}
 
-
-
       <Capsules color={capsuleColor} count={capsuleCount} />
 
-      {/* tampa verde canelada */}
+      {/* tampa canelada */}
       <group ref={lid} position={[0, 1.05, 0]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.6, 0.6, 0.36, 72]} />
@@ -402,28 +414,30 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
           <meshStandardMaterial color={capColor} roughness={0.5} />
         </mesh>
       </group>
-
     </group>
   );
 }
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.3, 4.6], fov: 34 }}>
-      <ambientLight intensity={0.75} />
-      <directionalLight position={[3, 5, 3]} intensity={1.5} castShadow />
-      <directionalLight position={[-3, 2, -2]} intensity={0.45} />
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.15, 4.4], fov: 32 }}>
+      <ambientLight intensity={0.6} />
+      {/* luz principal em softbox de estúdio */}
+      <directionalLight position={[3, 5, 4]} intensity={1.6} castShadow />
+      <directionalLight position={[-4, 2.5, 2]} intensity={0.6} />
+      <directionalLight position={[0, 2, -4]} intensity={0.5} />
       <pointLight position={[0, 1.2, 0]} intensity={2} distance={2.5} />
       <Jar {...props} />
-      <ContactShadows position={[0, -1.12, 0]} opacity={0.35} scale={6} blur={2.6} far={3} />
-      <Environment preset="city" />
+      <ContactShadows position={[0, -1.12, 0]} opacity={0.4} scale={6} blur={2.4} far={3} />
+      <Environment preset="studio" />
       <OrbitControls
-        target={[0, 0.1, 0]}
+        target={[0, 0.05, 0]}
         enablePan={false}
         enableZoom={false}
-        minPolarAngle={Math.PI / 4}
-        maxPolarAngle={Math.PI / 1.9}
+        minPolarAngle={Math.PI / 3.4}
+        maxPolarAngle={Math.PI / 1.95}
       />
     </Canvas>
   );
 }
+
