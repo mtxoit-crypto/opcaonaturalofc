@@ -62,8 +62,8 @@ function AuthPage() {
       toast.error("Não foi possível entrar com Google.");
       return;
     }
+    // O redirecionamento final é tratado pelo useEffect de acordo com o perfil (admin ou cliente).
     if (result.redirected) return;
-    navigate({ to: "/admin" });
   }
 
   return (
