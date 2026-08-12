@@ -128,6 +128,44 @@ export type Database = {
         }
         Relationships: []
       }
+      product_media: {
+        Row: {
+          alt: string | null
+          created_at: string
+          id: string
+          media_type: string
+          product_id: string
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          media_type?: string
+          product_id: string
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          id?: string
+          media_type?: string
+          product_id?: string
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_media_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           benefits: string[]
@@ -206,6 +244,45 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      shipping_zones: {
+        Row: {
+          cep_end: number
+          cep_start: number
+          created_at: string
+          days_max: number
+          days_min: number
+          fee: number
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          cep_end: number
+          cep_start: number
+          created_at?: string
+          days_max?: number
+          days_min?: number
+          fee?: number
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          cep_end?: number
+          cep_start?: number
+          created_at?: string
+          days_max?: number
+          days_min?: number
+          fee?: number
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
