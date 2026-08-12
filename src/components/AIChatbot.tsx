@@ -28,7 +28,6 @@ export function AIChatbot() {
   // Reprocessa a última pergunta do usuário quando o catálogo termina de carregar.
   useEffect(() => {
     const catalog = products ?? [];
-    console.log("[AIChatbot] reprocess effect:", catalog.length, messages.length);
     if (catalog.length === 0 || messages.length < 2) return;
     const last = messages[messages.length - 1];
     const secondLast = messages[messages.length - 2];
@@ -40,7 +39,6 @@ export function AIChatbot() {
       last.content.includes("Ainda não entendi bem")
     ) {
       const reply = answerWithAssistant(secondLast.content, catalog);
-      console.log("[AIChatbot] reprocess reply:", reply.content.slice(0, 60));
       if (!reply.content.includes("Ainda não entendi bem")) {
         setMessages((prev) => [...prev.slice(0, -1), reply]);
       }
