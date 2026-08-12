@@ -22,6 +22,7 @@ type LabelData = {
 };
 
 const TEX_W = 2048;
+const LABEL_ARC = 2.6;
 const TEX_H = 1024;
 /** faixa horizontal da textura ocupada pelo rótulo (frente do frasco) */
 const LABEL_X = 0.06;
@@ -184,7 +185,7 @@ function buildFallback(name?: string, dosage?: string, capsuleCount?: number): L
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
-  return { texture: tex, bodyColor: null, lidColor: null };
+  return { texture: tex, bodyColor: null, lidColor: null, aspect: canvas.width / canvas.height };
 }
 
 function useLabel(
@@ -340,8 +341,10 @@ function Jar({ open, jarColor, lidColor, capsuleColor, capsuleCount, name, dosag
 
       {/* rótulo curvo colado na frente, com a arte real do produto */}
       {label ? (
-        <mesh position={[0, -0.08, 0]} rotation={[0, -0.6, 0]}>
-          <cylinderGeometry args={[0.592, 0.592, 0.92, 96, 1, true, 0, 1.2]} />
+        <mesh position={[0, -0.08, 0]} rotation={[0, -LABEL_ARC / 2, 0]}>
+          <cylinderGeometry
+            args={[0.592, 0.592, (0.592 * LABEL_ARC) / label.aspect, 96, 1, true, 0, LABEL_ARC]}
+          />
           <meshStandardMaterial
             map={label.texture}
             roughness={0.55}
