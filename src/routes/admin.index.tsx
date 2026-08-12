@@ -214,6 +214,9 @@ function AdminPage() {
         </form>
       ) : null}
 
+      <AdminMembers />
+
+
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
 
         <div className="space-y-3">
