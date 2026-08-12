@@ -142,9 +142,26 @@ function OrdersPage() {
     <div className="mx-auto max-w-6xl px-5 py-14">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-4xl">Pedidos</h1>
-        <Button asChild variant="outline">
-          <Link to="/admin">Catálogo</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            disabled={testOrders.length === 0 || removeTestOrders.isPending}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Excluir ${testOrders.length} pedido(s) com status "teste"? Essa ação não pode ser desfeita.`,
+                )
+              )
+                removeTestOrders.mutate(testOrders.map((o) => o.id));
+            }}
+          >
+            <Trash2 className="size-4" /> Excluir testes ({testOrders.length})
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/admin">Catálogo</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8 space-y-4">
