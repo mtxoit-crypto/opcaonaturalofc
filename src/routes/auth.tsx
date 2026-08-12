@@ -26,6 +26,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState(false);
   const { user, isAdmin, isAdminLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -37,22 +38,53 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const fn =
-      mode === "login"
-        ? supabase.auth.signInWithPassword({ email, password })
-        : supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo: `${window.location.origin}/admin` },
-          });
-    const { error } = await fn;
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setBusy(false);
+      if (error) {
+        toast.error(
+          error.message.toLowerCase().includes("not confirmed")
+            ? "Confirme seu e-mail antes de entrar. Verifique a caixa de entrada."
+            : "E-mail ou senha inválidos.",
+        );
+        return;
+      }
+      toast.success("Bem-vindo de volta!");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(mode === "login" ? "Bem-vindo de volta!" : "Conta criada. Verifique seu e-mail.");
+    // Supabase devolve identities vazio quando o e-mail já possui conta.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      toast.error("Este e-mail já possui uma conta. Faça login ou recupere a senha.");
+      setMode("login");
+      return;
+    }
+    setPending(true);
+    toast.success("Enviamos um e-mail de confirmação. Confirme para ativar sua conta.");
   }
+
+  async function resend() {
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else toast.success("E-mail de confirmação reenviado.");
+  }
+
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
