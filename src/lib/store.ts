@@ -4,7 +4,6 @@ import { formatPrice } from "@/lib/products";
 
 export type StoreSettings = {
   whatsapp_number: string;
-  pix_key: string | null;
   shipping_fee: number;
   free_shipping_min: number;
 };
@@ -14,13 +13,12 @@ export const storeSettingsQuery = {
   queryFn: async (): Promise<StoreSettings> => {
     const { data, error } = await supabase
       .from("store_settings")
-      .select("whatsapp_number,pix_key,shipping_fee,free_shipping_min")
+      .select("whatsapp_number,shipping_fee,free_shipping_min")
       .maybeSingle();
     if (error) throw error;
     return (
       (data as StoreSettings) ?? {
         whatsapp_number: "5500000000000",
-        pix_key: null,
         shipping_fee: 19.9,
         free_shipping_min: 199,
       }
@@ -69,50 +67,31 @@ export async function lookupCep(cep: string) {
   };
 }
 
-export async function createOrder(
-  address: CheckoutAddress,
-  items: CartItem[],
-  subtotal: number,
-  shipping_fee: number,
-) {
-  const id =
-    globalThis.crypto?.randomUUID?.() ??
-    `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
-  const code = `OP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-
-  const { error } = await supabase.from("orders").insert({
-    id,
-    code,
-    customer_name: address.customer_name,
-    customer_phone: address.customer_phone,
-    customer_email: address.customer_email || null,
-    zip_code: address.zip_code,
-    street: address.street,
-    number: address.number,
-    complement: address.complement || null,
-    district: address.district,
-    city: address.city,
-    state: address.state,
-    notes: address.notes || null,
-    payment_method: "pix",
-    subtotal,
-    shipping_fee,
-    total: subtotal + shipping_fee,
+export async function createOrder(address: CheckoutAddress, items: CartItem[]) {
+  const { data, error } = await supabase.rpc("create_order", {
+    _customer_name: address.customer_name,
+    _customer_phone: address.customer_phone,
+    _customer_email: address.customer_email || null,
+    _zip_code: address.zip_code,
+    _street: address.street,
+    _number: address.number,
+    _complement: address.complement || null,
+    _district: address.district,
+    _city: address.city,
+    _state: address.state,
+    _notes: address.notes || null,
+    _items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
   });
   if (error) throw error;
-
-  const { error: itemsError } = await supabase.from("order_items").insert(
-    items.map((i) => ({
-      order_id: id,
-      product_id: i.id,
-      product_name: i.name,
-      unit_price: i.price,
-      quantity: i.quantity,
-    })),
-  );
-  if (itemsError) throw itemsError;
-
-  return { id, code };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error("Não foi possível criar o pedido.");
+  return {
+    id: row.id as string,
+    code: row.code as string,
+    subtotal: Number(row.subtotal),
+    shipping_fee: Number(row.shipping_fee),
+    total: Number(row.total),
+  };
 }
 
 export function whatsappLink(
