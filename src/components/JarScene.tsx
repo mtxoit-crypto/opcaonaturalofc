@@ -22,7 +22,7 @@ type LabelData = {
 };
 
 const TEX_W = 2048;
-const LABEL_ARC = 2.6;
+const LABEL_ARC = 3.1;
 const TEX_H = 1024;
 /** faixa horizontal da textura ocupada pelo rótulo (frente do frasco) */
 const LABEL_X = 0.06;
@@ -113,7 +113,7 @@ function buildFromPhoto(img: HTMLImageElement): LabelData | null {
 
   const artW = 1400;
   const artH = Math.round((artW * lh) / lw);
-  const pad = Math.round(artW * 0.26);
+  const pad = Math.round(artW * 0.62);
   const out = document.createElement("canvas");
   out.width = artW + pad * 2;
   out.height = artH;
