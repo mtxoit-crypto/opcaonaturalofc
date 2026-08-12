@@ -65,6 +65,7 @@ function Index() {
             capsuleCount={featured?.capsule_count ?? 24}
             name={featured?.name}
             dosage={featured?.dosage ?? undefined}
+            imageUrl={featured?.image_url ?? undefined}
           />
         </div>
       </section>

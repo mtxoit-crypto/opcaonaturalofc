@@ -110,6 +110,7 @@ function ProductPage() {
               capsuleCount={p.capsule_count}
               name={p.name}
               dosage={p.dosage ?? undefined}
+              imageUrl={p.image_url ?? undefined}
             />
           )}
           {gallery.length > 0 ? (
