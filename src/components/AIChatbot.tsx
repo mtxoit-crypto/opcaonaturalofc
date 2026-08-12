@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { productsQuery, formatPrice } from "@/lib/products";
 import {
   answerWithAssistant,
-  detectGoals,
   getWelcomeMessage,
   type ChatMessage,
 } from "@/lib/ai-assistant";
