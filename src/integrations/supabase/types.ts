@@ -166,6 +166,44 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          author_name: string
+          comment: string | null
+          created_at: string
+          id: string
+          is_approved: boolean
+          product_id: string
+          rating: number
+        }
+        Insert: {
+          author_name: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          product_id: string
+          rating?: number
+        }
+        Update: {
+          author_name?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          product_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           benefits: string[]
@@ -180,6 +218,7 @@ export type Database = {
           is_active: boolean
           jar_color: string
           lid_color: string
+          model_url: string | null
           name: string
           price: number | null
           slug: string
@@ -200,6 +239,7 @@ export type Database = {
           is_active?: boolean
           jar_color?: string
           lid_color?: string
+          model_url?: string | null
           name: string
           price?: number | null
           slug: string
@@ -220,6 +260,7 @@ export type Database = {
           is_active?: boolean
           jar_color?: string
           lid_color?: string
+          model_url?: string | null
           name?: string
           price?: number | null
           slug?: string

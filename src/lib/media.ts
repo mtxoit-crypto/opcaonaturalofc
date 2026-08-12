@@ -37,17 +37,26 @@ export const productMediaQuery = (productId: string | undefined) => ({
   },
 });
 
+export function mediaTypeFor(file: File) {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "glb" || ext === "gltf") return "model";
+  if (file.type.startsWith("video")) return "video";
+  return "image";
+}
+
 export async function uploadProductMedia(productId: string, file: File) {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
   const path = `${productId}/${crypto.randomUUID()}.${ext}`;
-  const { error: upErr } = await supabase.storage
-    .from(MEDIA_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+  const type = mediaTypeFor(file);
+  const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
+    contentType: type === "model" ? "model/gltf-binary" : file.type,
+    upsert: false,
+  });
   if (upErr) throw upErr;
   const { error } = await supabase.from("product_media").insert({
     product_id: productId,
     storage_path: path,
-    media_type: file.type.startsWith("video") ? "video" : "image",
+    media_type: type,
     alt: file.name,
   });
   if (error) throw error;

@@ -51,7 +51,7 @@ export function ProductMediaManager({ productId }: { productId: string }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,video/*"
+        accept="image/*,video/*,.glb,.gltf,model/gltf-binary"
         multiple
         className="hidden"
         onChange={(e) => onFiles(e.target.files)}
@@ -64,17 +64,21 @@ export function ProductMediaManager({ productId }: { productId: string }) {
         onClick={() => inputRef.current?.click()}
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-        Enviar fotos ou vídeos
+        Enviar fotos, vídeos ou modelo 3D
       </Button>
       <p className="text-xs text-muted-foreground">
-        Do PC ou do celular (a câmera abre direto no celular). Até 50 MB por arquivo.
+        Do PC ou do celular (a câmera abre direto no celular). Aceita imagens, vídeos e modelos 3D .glb/.gltf. Até 50 MB por arquivo.
       </p>
 
       {media && media.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
           {media.map((m) => (
             <div key={m.id} className="group relative overflow-hidden rounded-lg bg-sand">
-              {m.media_type === "video" ? (
+              {m.media_type === "model" ? (
+                <div className="flex aspect-square items-center justify-center p-2 text-center text-[10px] text-muted-foreground">
+                  Modelo 3D
+                </div>
+              ) : m.media_type === "video" ? (
                 <video src={m.url} className="size-full aspect-square object-cover" muted />
               ) : (
                 <img src={m.url} alt={m.alt ?? ""} className="size-full aspect-square object-cover" />

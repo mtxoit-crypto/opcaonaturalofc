@@ -8,6 +8,8 @@ import { useAddToCart } from "@/hooks/useAddToCart";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { JarViewer } from "@/components/JarViewer";
+import { ModelViewer } from "@/components/ModelViewer";
+import { ProductReviews } from "@/components/ProductReviews";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { Button } from "@/components/ui/button";
 
@@ -63,6 +65,8 @@ function ProductPage() {
   }
 
   const p = product;
+  const model = (media ?? []).find((m) => m.media_type === "model");
+  const gallery = (media ?? []).filter((m) => m.media_type !== "model");
   const { variant } = getVariant(p.slug, p.name);
   const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
   const available = Boolean(variant?.availableForSale ?? p.in_stock);
@@ -96,15 +100,19 @@ function ProductPage() {
               className="w-full rounded-2xl bg-sand object-contain p-4"
             />
           ) : null}
-          <JarViewer
-            jarColor={p.jar_color}
-            lidColor={p.lid_color}
-            capsuleColor={p.capsule_color}
-            capsuleCount={p.capsule_count}
-          />
-          {media && media.length > 0 ? (
+          {model ? (
+            <ModelViewer url={model.url} />
+          ) : (
+            <JarViewer
+              jarColor={p.jar_color}
+              lidColor={p.lid_color}
+              capsuleColor={p.capsule_color}
+              capsuleCount={p.capsule_count}
+            />
+          )}
+          {gallery.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
-              {media.map((m) =>
+              {gallery.map((m) =>
                 m.media_type === "video" ? (
                   <video
                     key={m.id}
@@ -175,6 +183,8 @@ function ProductPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews productId={p.id} />
     </div>
   );
 }
