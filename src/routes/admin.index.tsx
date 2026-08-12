@@ -53,6 +53,20 @@ function AdminPage() {
   const { data: settings } = useQuery(storeSettingsQuery);
   const [form, setForm] = useState<Partial<Product>>(empty);
   const [store, setStore] = useState<StoreSettings | null>(null);
+  const [pixKey, setPixKey] = useState("");
+  const { data: adminPix } = useQuery({
+    queryKey: ["admin-pix-key", isAdmin],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_get_pix_key");
+      if (error) throw error;
+      return (data as string | null) ?? "";
+    },
+  });
+
+  useEffect(() => {
+    if (typeof adminPix === "string") setPixKey(adminPix);
+  }, [adminPix]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -63,8 +77,11 @@ function AdminPage() {
   }, [settings, store]);
 
   const saveSettings = useMutation({
-    mutationFn: async (values: StoreSettings) => {
-      const { error } = await supabase.from("store_settings").update(values).not("id", "is", null);
+    mutationFn: async (values: StoreSettings & { pix_key: string }) => {
+      const { error } = await supabase
+        .from("store_settings")
+        .update({ ...values, pix_key: values.pix_key || null })
+        .not("id", "is", null);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -158,7 +175,7 @@ function AdminPage() {
           className="surface-card mt-8 grid gap-3 p-6 sm:grid-cols-4"
           onSubmit={(e) => {
             e.preventDefault();
-            saveSettings.mutate(store);
+            saveSettings.mutate({ ...store, pix_key: pixKey });
           }}
         >
           <Field label="WhatsApp (556199...)">
@@ -169,8 +186,8 @@ function AdminPage() {
           </Field>
           <Field label="Chave Pix">
             <Input
-              value={store.pix_key ?? ""}
-              onChange={(e) => setStore({ ...store, pix_key: e.target.value })}
+              value={pixKey}
+              onChange={(e) => setPixKey(e.target.value)}
             />
           </Field>
           <Field label="Frete (R$)">

@@ -265,6 +265,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_pix_key: { Args: never; Returns: string }
+      create_order: {
+        Args: {
+          _city: string
+          _complement: string
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+          _district: string
+          _items: Json
+          _notes: string
+          _number: string
+          _state: string
+          _street: string
+          _zip_code: string
+        }
+        Returns: {
+          code: string
+          id: string
+          shipping_fee: number
+          subtotal: number
+          total: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
