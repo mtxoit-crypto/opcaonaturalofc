@@ -25,7 +25,17 @@ type Order = {
   order_items: OrderItem[];
 };
 
-const STATUSES = ["pendente", "pago", "enviado", "entregue", "cancelado"];
+const STATUSES = ["pendente", "pago", "enviado", "entregue", "cancelado", "teste"];
+
+type AuditEntry = {
+  id: string;
+  order_code: string;
+  customer_name: string | null;
+  total: number;
+  status: string | null;
+  actor_email: string | null;
+  created_at: string;
+};
 
 export const Route = createFileRoute("/admin/pedidos")({
   head: () => ({
