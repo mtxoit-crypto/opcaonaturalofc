@@ -71,15 +71,15 @@ export async function createOrder(address: CheckoutAddress, items: CartItem[]) {
   const { data, error } = await supabase.rpc("create_order", {
     _customer_name: address.customer_name,
     _customer_phone: address.customer_phone,
-    _customer_email: address.customer_email || null,
+    _customer_email: address.customer_email || "",
     _zip_code: address.zip_code,
     _street: address.street,
     _number: address.number,
-    _complement: address.complement || null,
+    _complement: address.complement || "",
     _district: address.district,
     _city: address.city,
     _state: address.state,
-    _notes: address.notes || null,
+    _notes: address.notes || "",
     _items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
   });
   if (error) throw error;
