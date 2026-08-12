@@ -65,7 +65,15 @@ export function AIChatbot() {
       }
       console.log("[AIChatbot] catalog loaded:", catalog.length);
       const reply = answerWithAssistant(text, catalog);
-      setMessages((prev) => [...prev, reply]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          ...reply,
+          content:
+            reply.content +
+            `\n\n[debug: catálogo=${catalog.length}, goals=${detectGoals(text).join(",")}]`,
+        },
+      ]);
       setTyping(false);
     }, 600);
   };
