@@ -61,6 +61,7 @@ export function AIChatbot() {
         setTyping(false);
         return;
       }
+      console.log("[AIChatbot] catalog loaded:", catalog.length);
       const reply = answerWithAssistant(text, catalog);
       setMessages((prev) => [...prev, reply]);
       setTyping(false);
