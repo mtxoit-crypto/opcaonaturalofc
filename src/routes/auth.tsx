@@ -26,12 +26,13 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin, isAdminLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate({ to: "/admin" });
-  }, [user, navigate]);
+    if (!user || isAdminLoading) return;
+    navigate({ to: isAdmin ? "/admin" : "/" });
+  }, [user, isAdmin, isAdminLoading, navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,8 +62,8 @@ function AuthPage() {
       toast.error("Não foi possível entrar com Google.");
       return;
     }
+    // O redirecionamento final é tratado pelo useEffect de acordo com o perfil (admin ou cliente).
     if (result.redirected) return;
-    navigate({ to: "/admin" });
   }
 
   return (
