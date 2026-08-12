@@ -63,6 +63,8 @@ function Index() {
             lidColor={featured?.lid_color ?? "#1E7A34"}
             capsuleColor={featured?.capsule_color ?? "#C9A227"}
             capsuleCount={featured?.capsule_count ?? 24}
+            name={featured?.name}
+            dosage={featured?.dosage}
           />
         </div>
       </section>
