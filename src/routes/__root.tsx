@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Toaster } from "@/components/ui/sonner";
+import { AIChatbot } from "@/components/AIChatbot";
+
 
 
 function NotFoundComponent() {
@@ -134,6 +136,7 @@ function RootComponent() {
         <SiteFooter />
       </div>
       <Toaster />
+      <AIChatbot />
     </QueryClientProvider>
 
 
