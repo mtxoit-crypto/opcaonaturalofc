@@ -364,7 +364,7 @@ function Jar({
   const labelHeight = label ? (0.592 * LABEL_ARC) / label.aspect : 0.7;
 
   return (
-    <group ref={group} position={[0, -0.25, 0]} scale={0.78}>
+    <group ref={group} position={[0, -0.2, 0]} scale={0.95}>
       {/* corpo do frasco (HDPE fosco) */}
       <mesh geometry={bottle} castShadow receiveShadow>
         <meshPhysicalMaterial
@@ -420,7 +420,7 @@ function Jar({
 
 export default function JarScene(props: Props) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.15, 4.4], fov: 32 }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.05, 4.1], fov: 32 }}>
       <ambientLight intensity={0.6} />
       {/* luz principal em softbox de estúdio */}
       <directionalLight position={[3, 5, 4]} intensity={1.6} castShadow />
