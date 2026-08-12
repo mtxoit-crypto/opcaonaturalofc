@@ -27,6 +27,8 @@ export function AIChatbot() {
     const last = messages[messages.length - 1];
     const secondLast = messages[messages.length - 2];
     if (
+      last &&
+      secondLast &&
       last.role === "assistant" &&
       secondLast.role === "user" &&
       last.content.includes("Ainda não entendi bem")
