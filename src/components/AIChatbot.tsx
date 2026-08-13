@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, X, Send, MessageCircle, ShoppingCart } from "lucide-react";
+import { Bot, X, Send, MessageCircle, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { productsQuery, formatPrice } from "@/lib/products";
 import {
@@ -10,6 +10,7 @@ import {
   type ChatMessage,
 } from "@/lib/ai-assistant";
 import { useAddToCart } from "@/hooks/useAddToCart";
+
 
 export function AIChatbot() {
   const [open, setOpen] = useState(false);
