@@ -17,9 +17,29 @@ export function AIChatbot() {
   const [messages, setMessages] = useState<ChatMessage[]>([getWelcomeMessage()]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const { data: products } = useQuery(productsQuery);
   const { addToCart, isLoading: cartLoading } = useAddToCart();
+
+  async function addAll(list: NonNullable<ChatMessage["products"]>, key: string, goCheckout: boolean) {
+    setBulkAction(key);
+    try {
+      let added = 0;
+      for (const p of list) {
+        const ok = await addToCart(p.slug, p.name, 1);
+        if (ok) added += 1;
+      }
+      if (added > 0 && goCheckout) {
+        setOpen(false);
+        navigate({ to: "/checkout" });
+      }
+    } finally {
+      setBulkAction(null);
+    }
+  }
+
 
   useEffect(() => {
     if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
