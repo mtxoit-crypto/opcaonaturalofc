@@ -192,8 +192,38 @@ export function AIChatbot() {
                         </div>
                       </div>
                     ))}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        disabled={cartLoading || bulkAction !== null}
+                        onClick={() => addAll(m.products!, `add-${i}`, false)}
+                      >
+                        {bulkAction === `add-${i}` ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <ShoppingCart className="size-3.5" /> Adicionar todos
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 text-xs"
+                        disabled={cartLoading || bulkAction !== null}
+                        onClick={() => addAll(m.products!, `buy-${i}`, true)}
+                      >
+                        {bulkAction === `buy-${i}` ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          "Comprar agora"
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 )}
+
 
                 {m.suggestions && m.suggestions.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
