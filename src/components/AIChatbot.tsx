@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bot, X, Send, MessageCircle, ShoppingCart } from "lucide-react";
+import { Bot, X, Send, MessageCircle, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { productsQuery, formatPrice } from "@/lib/products";
 import {
@@ -11,14 +11,35 @@ import {
 } from "@/lib/ai-assistant";
 import { useAddToCart } from "@/hooks/useAddToCart";
 
+
 export function AIChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([getWelcomeMessage()]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const { data: products } = useQuery(productsQuery);
   const { addToCart, isLoading: cartLoading } = useAddToCart();
+
+  async function addAll(list: NonNullable<ChatMessage["products"]>, key: string, goCheckout: boolean) {
+    setBulkAction(key);
+    try {
+      let added = 0;
+      for (const p of list) {
+        const ok = await addToCart(p.slug, p.name, 1);
+        if (ok) added += 1;
+      }
+      if (added > 0 && goCheckout) {
+        setOpen(false);
+        navigate({ to: "/checkout" });
+      }
+    } finally {
+      setBulkAction(null);
+    }
+  }
+
 
   useEffect(() => {
     if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
@@ -171,8 +192,38 @@ export function AIChatbot() {
                         </div>
                       </div>
                     ))}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs"
+                        disabled={cartLoading || bulkAction !== null}
+                        onClick={() => addAll(m.products!, `add-${i}`, false)}
+                      >
+                        {bulkAction === `add-${i}` ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <ShoppingCart className="size-3.5" /> Adicionar todos
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 text-xs"
+                        disabled={cartLoading || bulkAction !== null}
+                        onClick={() => addAll(m.products!, `buy-${i}`, true)}
+                      >
+                        {bulkAction === `buy-${i}` ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          "Comprar agora"
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 )}
+
 
                 {m.suggestions && m.suggestions.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
