@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Leaf, Sparkles, ShieldCheck } from "lucide-react";
+import { Leaf, ArrowRight, ShieldCheck, PackageCheck, Truck } from "lucide-react";
 import { productsQuery, formatPrice } from "@/lib/products";
 import { JarViewer } from "@/components/JarViewer";
 import { Button } from "@/components/ui/button";
@@ -53,35 +53,31 @@ function Index() {
 
   return (
     <div>
-      <section className="grain-bg">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:py-24">
+      <section className="hero-natural grain-bg">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-14 md:grid-cols-[0.9fr_1.1fr] md:py-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground">
-              <Leaf className="size-3.5" /> Suplementos naturais
-            </span>
-            <h1 className="mt-5 text-5xl leading-[1.05] md:text-6xl">
-              Vitaminas e suplementos naturais
-              <span className="text-accent"> para o seu dia</span>
+            <p className="eyebrow"><Leaf className="size-3.5" /> Bem-estar que cabe na rotina</p>
+            <h1 className="mt-5 text-5xl leading-[1.02] md:text-7xl">
+              Escolhas naturais.<br />Uma vida com <em>mais presença.</em>
             </h1>
-            <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Mais que vender produtos: levamos até você o que há de melhor da natureza. Gire o pote
-              em 3D, abra a tampa e veja as cápsulas antes de escolher.
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
+              Suplementos selecionados para acompanhar hábitos reais, com informação clara e cuidado em cada escolha.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link to="/produtos">Ver produtos</Link>
+                <Link to="/produtos">Conhecer os produtos <ArrowRight className="size-4" /></Link>
               </Button>
               {featured ? (
                 <Button asChild size="lg" variant="outline">
                   <Link to="/produtos/$slug" params={{ slug: featured.slug }}>
-                    Explorar {featured.name}
+                    Ver {featured.name}
                   </Link>
                 </Button>
               ) : null}
             </div>
           </div>
 
-          <JarViewer
+          <div className="hero-product-stage"><span className="hero-note">Arraste para girar<br /><strong>produto em 3D</strong></span><JarViewer
             jarColor={featured?.jar_color ?? "#F2F1EE"}
             lidColor={featured?.lid_color ?? "#6FC49A"}
             capsuleColor={featured?.capsule_color ?? "#C9A227"}
@@ -90,54 +86,36 @@ function Index() {
             dosage={featured?.dosage ?? undefined}
             subtitle={featured?.subtitle ?? undefined}
             imageUrl={featured?.image_url ?? undefined}
-          />
+          /></div>
 
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pt-4">
-        <div className="surface-card grid gap-8 p-8 md:grid-cols-[1.1fr_1fr] md:p-10">
+      <section className="mx-auto max-w-6xl px-5 py-20 md:py-24">
+        <div className="story-panel grid gap-10 md:grid-cols-[0.85fr_1.15fr] md:items-center">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Quem somos</p>
-            <h2 className="text-display mt-2 text-3xl">Nossa história</h2>
-            <p className="mt-4 text-muted-foreground">
-              Tudo começou quando meu pai mudou de vida com disciplina, alimentação e o uso de
-              suplementos naturais — eliminando 90 kg e transformando sua saúde e seus hábitos.
-            </p>
-            <p className="mt-3 text-muted-foreground">
-              Vendo meu pai renascer, entendi de verdade: saúde transforma vidas. Foi assim que
-              decidi oferecer os produtos que usamos no dia a dia, selecionados com cuidado,
-              qualidade e segurança.
-            </p>
-            <p className="mt-3 text-muted-foreground">
-              Meu propósito é compartilhar o que transformou a vida do meu pai e pode transformar a
-              sua também.
-            </p>
+            <p className="eyebrow">A história por trás da marca</p>
+            <p className="story-number">90<span>kg</span></p>
+            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">eliminados com constância, alimentação e uma mudança completa de hábitos.</p>
           </div>
-          <div className="grid gap-3 self-center">
-            {[
-              { t: "Perdeu 90 kg", d: "Com disciplina, alimentação e suplementação." },
-              { t: "Produtos que usamos", d: "Selecionados com cuidado e segurança." },
-              { t: "Saúde e bem-estar", d: "O melhor da natureza no seu dia a dia." },
-            ].map((i) => (
-              <div key={i.t} className="rounded-2xl border border-border bg-sand p-5">
-                <p className="text-display text-lg">{i.t}</p>
-                <p className="text-sm text-muted-foreground">{i.d}</p>
-              </div>
-            ))}
+          <div>
+            <h2 className="text-4xl leading-tight md:text-5xl">A Opção Natural nasceu de uma transformação vivida dentro de casa.</h2>
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">Quando meu pai retomou a própria saúde, entendemos que bem-estar não acontece de uma hora para outra. Ele é construído todos os dias. A marca nasceu para compartilhar produtos que fazem parte dessa rotina, escolhidos com responsabilidade e propósito.</p>
+            <Link to="/produtos" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-accent">Conheça nossa seleção <ArrowRight className="size-4" /></Link>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="text-3xl">Diferenciais da Opção Natural</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <p className="eyebrow">Nosso jeito de fazer</p>
+        <h2 className="mt-3 max-w-xl text-4xl">Menos promessa. Mais clareza em cada etapa.</h2>
+        <div className="principles-grid mt-9 grid sm:grid-cols-3">
           {[
-            { icon: Sparkles, t: "Fórmulas limpas", d: "Sem corantes nem excipientes dispensáveis." },
-            { icon: ShieldCheck, t: "Testado em lote", d: "Cada lote com laudo de pureza e potência." },
-            { icon: Leaf, t: "Cápsulas veganas", d: "Invólucro vegetal, fácil de digerir." },
+            { icon: PackageCheck, t: "Seleção cuidadosa", d: "Produtos escolhidos para uma rotina de bem-estar simples e possível." },
+            { icon: ShieldCheck, t: "Informação transparente", d: "Você entende o que está levando antes de comprar." },
+            { icon: Truck, t: "Do pedido à entrega", d: "Acompanhamento e envio para todo o Brasil pelos Correios." },
           ].map(({ icon: Icon, t, d }) => (
-            <div key={t} className="surface-card p-6">
+            <div key={t} className="principle-item p-6">
               <Icon className="size-5 text-accent" />
               <h3 className="mt-3 text-lg">{t}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{d}</p>
@@ -148,7 +126,7 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-5 pb-8">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="text-3xl">Nossas vitaminas</h2>
+          <div><p className="eyebrow">Seleção da casa</p><h2 className="mt-2 text-4xl">Produtos para conhecer</h2></div>
           <Link to="/produtos" className="text-sm text-accent underline-offset-4 hover:underline">
             Ver todas
           </Link>
@@ -162,14 +140,14 @@ function Index() {
                 key={p.id}
                 to="/produtos/$slug"
                 params={{ slug: p.slug }}
-                className="surface-card group p-5 transition-transform hover:-translate-y-1"
+                className="home-product group"
               >
                 {p.image_url ? (
                   <img
                     src={p.image_url}
                     alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
                     loading="lazy"
-                    className="h-32 w-full rounded-xl bg-sand object-contain"
+                    className="h-52 w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div
@@ -179,9 +157,9 @@ function Index() {
                     }}
                   />
                 )}
-                <h3 className="mt-4 text-xl">{p.name}</h3>
-                <p className="text-sm text-muted-foreground">{p.subtitle}</p>
-                <p className="mt-3 text-sm font-medium text-accent">{formatPrice(p.price)}</p>
+                <div className="p-5"><h3 className="text-xl">{p.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
+                <p className="mt-4 text-sm font-medium text-accent">{formatPrice(p.price)}</p></div>
               </Link>
             ))}
         </div>
