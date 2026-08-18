@@ -31,7 +31,7 @@ export function SiteHeader() {
         <nav className="flex items-center gap-1 text-sm">
           <Link
             to="/"
-            className="hidden rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:block"
+            className="rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             activeOptions={{ exact: true }}
             activeProps={{ className: "bg-secondary text-foreground" }}
           >
@@ -46,7 +46,7 @@ export function SiteHeader() {
           </Link>
           <Link
             to="/kits"
-            className="hidden rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:block"
+            className="rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             activeProps={{ className: "bg-secondary text-foreground" }}
           >
             Kits
@@ -54,7 +54,7 @@ export function SiteHeader() {
           {isAdmin ? (
             <Link
               to="/admin"
-              className="hidden rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:block"
+              className="rounded-full px-3 py-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
               <span className="flex items-center gap-1">
