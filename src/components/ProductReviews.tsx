@@ -32,7 +32,7 @@ export function ProductReviews({ productId }: { productId: string }) {
   const send = useMutation({
     mutationFn: () => submitReview({ product_id: productId, author_name: name, rating, comment }),
     onSuccess: () => {
-      toast.success("Obrigado pela sua avaliação!");
+      toast.success("Obrigado! Sua avaliação será publicada após aprovação.");
       setName("");
       setComment("");
       setRating(5);
