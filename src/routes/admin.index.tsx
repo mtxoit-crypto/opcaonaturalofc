@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { ProductMediaManager } from "@/components/ProductMediaManager";
 import { AdminMembers } from "@/components/AdminMembers";
 import { AdminKits } from "@/components/AdminKits";
+import { AdminReviews } from "@/components/AdminReviews";
 
 
 export const Route = createFileRoute("/admin/")({
@@ -218,6 +219,8 @@ function AdminPage() {
       <AdminMembers />
 
       <AdminKits />
+
+      <AdminReviews />
 
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
