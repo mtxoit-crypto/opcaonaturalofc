@@ -94,15 +94,15 @@ function CartPage() {
       const { data, error } = await supabase.rpc("create_order", {
         _customer_name: form.customer_name,
         _customer_phone: form.customer_phone,
-        _customer_email: form.customer_email || null,
+        _customer_email: form.customer_email,
         _zip_code: form.zip_code,
         _street: form.street,
         _number: form.number,
-        _complement: form.complement || null,
+        _complement: form.complement,
         _district: form.district,
         _city: form.city,
         _state: form.state.toUpperCase(),
-        _notes: form.notes || null,
+        _notes: form.notes,
         _items: payloadItems,
       });
       if (error) throw error;
