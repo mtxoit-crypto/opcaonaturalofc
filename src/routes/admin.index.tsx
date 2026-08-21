@@ -6,6 +6,7 @@ import { Copy, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { productsQuery, formatPrice, type Product } from "@/lib/products";
+import { isPaidOrder } from "@/lib/orders";
 import { storeSettingsQuery, type StoreSettings } from "@/lib/store";
 import { adminKitsQuery } from "@/lib/kits";
 import { Button } from "@/components/ui/button";
@@ -98,14 +99,14 @@ function AdminPage() {
     queryKey: ["admin-order-stats"],
     enabled: isAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase.from("orders").select("id,status,total");
+      const { data, error } = await supabase.from("orders").select("id,status,total,payment_status,financial_status");
       if (error) throw error;
-      const rows = data ?? [];
+      const rows = (data ?? []).filter(isPaidOrder);
       return {
         total: rows.length,
-        pending: rows.filter((o) => o.status === "pendente" || o.status === "pago").length,
+        pending: rows.filter((o) => o.status === "pago").length,
         revenue: rows
-          .filter((o) => o.status !== "cancelado" && o.status !== "teste")
+          .filter((o) => o.status !== "cancelado")
           .reduce((s, o) => s + Number(o.total ?? 0), 0),
       };
     },

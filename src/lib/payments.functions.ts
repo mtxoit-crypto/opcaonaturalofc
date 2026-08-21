@@ -132,7 +132,14 @@ export const confirmOrderPayment = createServerFn({ method: "POST" })
       const paid = session.payment_status === "paid";
 
       if (paid) {
-        await supabaseAdmin.from("orders").update({ status: "pago" }).eq("id", orderId);
+        await supabaseAdmin
+          .from("orders")
+          .update({
+            status: "pago",
+            payment_status: "paid",
+            financial_status: "paid",
+          })
+          .eq("id", orderId);
       }
 
       const { data: order } = await supabaseAdmin

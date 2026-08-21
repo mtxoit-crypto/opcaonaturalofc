@@ -6,6 +6,7 @@ import { MessageCircle, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/lib/products";
+import { ADMIN_ORDER_STATUSES, isPaidOrder } from "@/lib/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminShell } from "@/components/AdminShell";
@@ -25,10 +26,12 @@ type Order = {
   zip_code: string;
   total: number;
   created_at: string;
+  payment_status: string | null;
+  financial_status: string | null;
   order_items: OrderItem[];
 };
 
-const STATUSES = ["pendente", "pago", "enviado", "entregue", "cancelado", "teste"];
+const STATUSES = ADMIN_ORDER_STATUSES;
 
 type AuditEntry = {
   id: string;
@@ -69,11 +72,11 @@ function OrdersPage() {
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id,code,status,customer_name,customer_phone,city,state,street,number,district,zip_code,total,created_at,order_items(product_name,quantity,unit_price)",
+          "id,code,status,payment_status,financial_status,customer_name,customer_phone,city,state,street,number,district,zip_code,total,created_at,order_items(product_name,quantity,unit_price)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Order[];
+      return ((data ?? []) as Order[]).filter(isPaidOrder);
     },
     enabled: isAdmin,
   });
@@ -121,7 +124,6 @@ function OrdersPage() {
     enabled: isAdmin,
   });
 
-  const testOrders = (orders ?? []).filter((o) => o.status === "teste");
   const visible = useMemo(() => {
     const term = q.trim().toLowerCase();
     return (orders ?? []).filter((o) => {
@@ -133,22 +135,6 @@ function OrdersPage() {
     });
   }, [orders, q, status]);
 
-  const removeTestOrders = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const { error: itemsError } = await supabase.from("order_items").delete().in("order_id", ids);
-      if (itemsError) throw itemsError;
-      const { error } = await supabase.from("orders").delete().in("id", ids);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Pedidos de teste excluídos");
-      qc.invalidateQueries({ queryKey: ["orders"] });
-      qc.invalidateQueries({ queryKey: ["order-audit-log"] });
-      qc.invalidateQueries({ queryKey: ["admin-order-stats"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   if (loading) return <div className="mx-auto max-w-6xl px-5 py-20">Carregando…</div>;
   if (!isAdmin)
     return (
@@ -158,7 +144,7 @@ function OrdersPage() {
     );
 
   return (
-    <AdminShell title="Pedidos" hint="Busque, filtre por status e fale com o cliente no WhatsApp.">
+    <AdminShell title="Pedidos" hint="Só entram aqui depois que o pagamento for confirmado.">
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -181,21 +167,6 @@ function OrdersPage() {
             </option>
           ))}
         </select>
-        <Button
-          variant="outline"
-          className="text-destructive hover:text-destructive"
-          disabled={testOrders.length === 0 || removeTestOrders.isPending}
-          onClick={() => {
-            if (
-              window.confirm(
-                `Excluir ${testOrders.length} pedido(s) com status "teste"? Essa ação não pode ser desfeita.`,
-              )
-            )
-              removeTestOrders.mutate(testOrders.map((o) => o.id));
-          }}
-        >
-          <Trash2 className="size-4" /> Excluir testes ({testOrders.length})
-        </Button>
       </div>
 
       <div className="mt-5 space-y-3">
