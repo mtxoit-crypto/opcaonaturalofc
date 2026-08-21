@@ -42,7 +42,9 @@ export function AIChatbot() {
 
 
   useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    }
   }, [messages, typing]);
 
   // Reprocessa a última pergunta do usuário quando o catálogo termina de carregar.
@@ -105,7 +107,7 @@ export function AIChatbot() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-40 flex w-[92vw] max-w-sm flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+        <div className="fixed inset-x-4 bottom-5 z-40 flex w-auto max-w-sm flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl sm:left-auto sm:right-5">
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
             <div className="flex items-center gap-2">
               <span className="flex size-8 items-center justify-center rounded-full bg-primary-foreground/20">

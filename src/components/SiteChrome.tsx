@@ -61,20 +61,20 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+      <div className="mx-auto flex max-w-6xl min-w-0 items-center justify-between gap-3 px-4 py-4 sm:px-5">
+        <Link to="/" className="flex min-w-0 items-center gap-2" onClick={() => setOpen(false)}>
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Leaf className="size-4" />
           </span>
-          <span className="leading-none">
-            <span className="text-display block text-lg tracking-[0.04em]">Opção Natural</span>
-            <span className="block text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+          <span className="min-w-0 leading-none">
+            <span className="text-display block truncate text-lg tracking-[0.04em]">Opção Natural</span>
+            <span className="block truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:tracking-[0.28em]">
               Suplementos naturais
             </span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <nav className="hidden items-center gap-1 md:flex">{links}</nav>
           <CartDrawer />
           {user ? (
@@ -107,11 +107,7 @@ export function SiteHeader() {
       <AnimatePresence>
         {open ? (
           <motion.div
-            className="fixed inset-x-4 top-[4.5rem] z-40 origin-top rounded-2xl border border-foreground/10 p-6 md:hidden"
-            style={{
-              background: "color-mix(in oklch, var(--color-card) 78%, transparent)",
-              backdropFilter: "blur(20px)",
-            }}
+            className="fixed inset-x-4 top-[4.5rem] z-40 origin-top rounded-2xl border border-border bg-card/95 p-6 shadow-lg backdrop-blur-md md:hidden"
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}

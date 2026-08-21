@@ -15,14 +15,17 @@ export function WordReveal({
   const reduce = useReducedMotion();
   let i = 0;
   return (
-    <h1 className={cn("text-5xl leading-[1.15] md:text-6xl", className)}>
+    <h1 className={cn("max-w-full text-[2.15rem] leading-[1.15] sm:text-5xl md:text-6xl", className)}>
       {lines.map((line, li) => (
         <span key={li} className="block pb-1">
           {line.map((word, wi) => {
             const delay = 0.2 + i * 0.055;
             i += 1;
             return (
-              <span key={`${li}-${wi}`} className="mr-[0.28em] inline-block overflow-hidden align-bottom">
+              <span
+                key={`${li}-${wi}`}
+                className={cn("inline-block overflow-hidden align-bottom", wi < line.length - 1 && "mr-[0.28em]")}
+              >
                 <motion.span
                   className={cn(
                     "inline-block",

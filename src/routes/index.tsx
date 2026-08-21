@@ -71,12 +71,12 @@ function Index() {
               className="mt-0"
               lines={[
                 [{ text: "A", dim: true }, { text: "força" }, { text: "da", dim: true }],
+                [{ text: "natureza", italic: true }],
                 [
-                  { text: "natureza", italic: true },
                   { text: "em", dim: true },
                   { text: "cada" },
+                  { text: "cápsula", accent: true },
                 ],
-                [{ text: "cápsula", accent: true }],
               ]}
             />
             <p className="mt-5 max-w-md text-lg text-muted-foreground">

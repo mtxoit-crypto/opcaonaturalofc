@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from "react";
 import { ClientOnly } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const JarScene = lazy(() => import("./JarScene"));
 
@@ -30,7 +31,7 @@ export function JarViewer({ className, ...scene }: Props) {
 
   return (
     <motion.div
-      className={className}
+      className={cn("min-w-0 w-full", className)}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.35 }}
