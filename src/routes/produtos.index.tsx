@@ -7,6 +7,7 @@ import { useAddToCart } from "@/hooks/useAddToCart";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { Button } from "@/components/ui/button";
+import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
 export const Route = createFileRoute("/produtos/")({
   head: () => ({
@@ -70,7 +71,7 @@ function ProductsPage() {
     <div className="mx-auto max-w-6xl px-5 py-14">
       <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
-        Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro — cartão, Pix ou
+        Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro: cartão, Pix ou
         boleto.
       </p>
 
@@ -89,14 +90,14 @@ function ProductsPage() {
             const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
             const available = Boolean(variant?.availableForSale ?? p.in_stock);
             return (
-              <article key={p.id} className="surface-card flex flex-col p-6">
+              <article key={p.id} className="lift-card surface-card flex flex-col p-6">
                 <Link to="/produtos/$slug" params={{ slug: p.slug }} className="group">
                   {p.image_url ? (
-                    <img
+                    <PhotoSpotlight
                       src={p.image_url}
-                      alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
-                      loading="lazy"
-                      className="h-44 w-full rounded-xl bg-sand object-contain transition-transform group-hover:scale-[1.03]"
+                      alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                      className="h-44 rounded-xl"
+                      imgClassName="h-44 p-2"
                     />
                   ) : (
                     <div

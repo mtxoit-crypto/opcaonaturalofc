@@ -6,6 +6,7 @@ import { kitsQuery } from "@/lib/kits";
 import { formatPrice, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
 import { Button } from "@/components/ui/button";
+import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
 export const Route = createFileRoute("/kits/")({
   head: () => ({
@@ -77,14 +78,14 @@ function KitsPage() {
                       key={p.id}
                       to="/produtos/$slug"
                       params={{ slug: p.slug }}
-                      className="group rounded-xl bg-sand p-3 transition-transform hover:scale-[1.02]"
+                      className="lift-card group rounded-xl bg-sand p-3"
                     >
                       {p.image_url ? (
-                        <img
+                        <PhotoSpotlight
                           src={p.image_url}
-                          alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
-                          loading="lazy"
-                          className="h-32 w-full object-contain"
+                          alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                          className="h-32 rounded-lg"
+                          imgClassName="h-32 p-1"
                         />
                       ) : null}
                       <p className="mt-2 text-center text-sm">{p.name}</p>

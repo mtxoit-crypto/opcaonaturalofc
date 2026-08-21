@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Leaf, Sparkles, ShieldCheck } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 import { productsQuery, formatPrice } from "@/lib/products";
 import { JarViewer } from "@/components/JarViewer";
+import { WordReveal } from "@/components/WordReveal";
+import { BenefitCarousel } from "@/components/BenefitCarousel";
+import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -51,26 +53,41 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data: products } = useQuery(productsQuery);
   const featured = products?.[0];
+  const catalogCount = (products ?? []).filter((p) => p.is_active).length;
 
   return (
     <div>
-      <section className="grain-bg">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:py-24">
+      <section className="relative overflow-hidden grain-bg">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage:
+              "radial-gradient(800px 420px at 20% 0%, color-mix(in oklch, var(--color-leaf) 40%, transparent), transparent)",
+          }}
+        />
+        <div className="relative mx-auto grid min-h-[min(100dvh,820px)] max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:py-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground">
-              <Leaf className="size-3.5" /> Suplementos naturais
-            </span>
-            <h1 className="mt-5 text-5xl leading-[1.05] md:text-6xl">
-              Vitaminas e suplementos naturais
-              <span className="text-accent"> para o seu dia</span>
-            </h1>
+            <WordReveal
+              className="mt-0"
+              lines={[
+                [{ text: "A", dim: true }, { text: "força" }, { text: "da", dim: true }],
+                [
+                  { text: "natureza", italic: true },
+                  { text: "em", dim: true },
+                  { text: "cada" },
+                ],
+                [{ text: "cápsula", accent: true }],
+              ]}
+            />
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
               Mais que vender produtos: levamos até você o que há de melhor da natureza. Gire o pote
               em 3D, abra a tampa e veja as cápsulas antes de escolher.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link to="/produtos">Ver produtos</Link>
+                <Link to="/produtos">
+                  Ver produtos <ArrowUpRight className="size-4" />
+                </Link>
               </Button>
               {featured ? (
                 <Button asChild size="lg" variant="outline">
@@ -92,18 +109,38 @@ function Index() {
             subtitle={featured?.subtitle ?? undefined}
             imageUrl={featured?.image_url ?? undefined}
           />
+        </div>
 
+        <div className="relative z-10 grid grid-cols-1 overflow-hidden border-t border-border md:grid-cols-[2fr_1fr_2fr]">
+          <div className="bg-muted p-6 md:p-8">
+            <p className="text-display max-w-[350px] text-2xl leading-[1.1] lg:text-[32px]">
+              Comece seu caminho até o equilíbrio natural
+            </p>
+            <Link to="/produtos" className="mt-4 inline-block text-sm underline underline-offset-4">
+              Ver o catálogo
+            </Link>
+          </div>
+          <BenefitCarousel />
+          <div className="flex items-center gap-5 bg-primary p-6 text-primary-foreground md:p-8">
+            <div>
+              <p className="text-display text-3xl tracking-tight">{catalogCount}</p>
+              <p className="mt-1 max-w-[220px] text-sm text-primary-foreground/70">
+                {catalogCount
+                  ? "fórmulas ativas no catálogo, prontas para você girar em 3D"
+                  : "Catálogo em atualização"}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pt-4">
         <div className="surface-card grid gap-8 p-8 md:grid-cols-[1.1fr_1fr] md:p-10">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Quem somos</p>
-            <h2 className="text-display mt-2 text-3xl">Nossa história</h2>
+            <h2 className="text-display text-3xl">Nossa história</h2>
             <p className="mt-4 text-muted-foreground">
               Tudo começou quando meu pai mudou de vida com disciplina, alimentação e o uso de
-              suplementos naturais — eliminando 90 kg e transformando sua saúde e seus hábitos.
+              suplementos naturais, eliminando 90 kg e transformando sua saúde e seus hábitos.
             </p>
             <p className="mt-3 text-muted-foreground">
               Vendo meu pai renascer, entendi de verdade: saúde transforma vidas. Foi assim que
@@ -120,50 +157,25 @@ function Index() {
               { t: "Perdeu 90 kg", d: "Com disciplina, alimentação e suplementação." },
               { t: "Produtos que usamos", d: "Selecionados com cuidado e segurança." },
               { t: "Saúde e bem-estar", d: "O melhor da natureza no seu dia a dia." },
-            ].map((i) => (
-              <motion.div
+            ].map((i, idx) => (
+              <div
                 key={i.t}
-                className="rounded-2xl border border-border bg-sand p-5"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.5 }}
+                className="story-card border-b border-border py-4 last:border-b-0 last:pb-0 first:pt-0"
+                style={{ animationDelay: `${idx * 55}ms` }}
               >
                 <p className="text-display text-lg">{i.t}</p>
                 <p className="text-sm text-muted-foreground">{i.d}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="text-3xl">Diferenciais da Opção Natural</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {[
-            { icon: Sparkles, t: "Fórmulas limpas", d: "Sem corantes nem excipientes dispensáveis." },
-            { icon: ShieldCheck, t: "Testado em lote", d: "Cada lote com laudo de pureza e potência." },
-            { icon: Leaf, t: "Cápsulas veganas", d: "Invólucro vegetal, fácil de digerir." },
-          ].map(({ icon: Icon, t, d }) => (
-            <motion.div
-              key={t}
-              className="surface-card p-6"
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              whileHover={{ y: -4 }}
-              transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            >
-              <Icon className="size-5 text-accent" />
-              <h3 className="mt-3 text-lg">{t}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{d}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-5 pb-8">
         <div className="flex items-end justify-between gap-4">
-          <h2 className="text-3xl">Nossas vitaminas</h2>
+          <h2 className="text-3xl">
+            Nossas <span className="italic font-normal">vitaminas</span>
+          </h2>
           <Link to="/produtos" className="text-sm text-accent underline-offset-4 hover:underline">
             Ver todas
           </Link>
@@ -173,18 +185,18 @@ function Index() {
             .filter((p) => p.is_active)
             .slice(0, 4)
             .map((p) => (
-              <motion.div key={p.id} whileHover={{ y: -6 }} whileTap={{ scale: 0.99 }}>
+              <div key={p.id} className="lift-card">
                 <Link
                   to="/produtos/$slug"
                   params={{ slug: p.slug }}
                   className="surface-card group block p-5"
                 >
                 {p.image_url ? (
-                  <img
+                  <PhotoSpotlight
                     src={p.image_url}
-                    alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
-                    loading="lazy"
-                    className="h-32 w-full rounded-xl bg-sand object-contain"
+                    alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                    className="h-32 rounded-xl"
+                    imgClassName="h-32 p-2"
                   />
                 ) : (
                   <div
@@ -198,7 +210,7 @@ function Index() {
                 <p className="text-sm text-muted-foreground">{p.subtitle}</p>
                 <p className="mt-3 text-sm font-medium text-accent">{formatPrice(p.price)}</p>
               </Link>
-              </motion.div>
+              </div>
             ))}
         </div>
 

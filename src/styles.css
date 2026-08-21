@@ -57,6 +57,8 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --shadow-soft: 0 20px 50px -24px oklch(0.28 0.04 140 / 0.45);
   --shadow-lift: 0 30px 70px -30px oklch(0.28 0.04 140 / 0.6);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 :root {
@@ -143,6 +145,11 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  ::selection {
+    background: color-mix(in oklch, var(--color-leaf) 38%, transparent);
+    color: var(--color-foreground);
+  }
+
   h1,
   h2,
   h3 {
@@ -177,4 +184,88 @@
       color-mix(in oklch, var(--color-clay) 20%, transparent),
       transparent
     );
+}
+
+.liquid-glass {
+  background: color-mix(in oklch, var(--color-card) 55%, transparent);
+  backdrop-filter: blur(8px);
+  border-color: color-mix(in oklch, var(--color-foreground) 12%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .liquid-glass:hover {
+    background: color-mix(in oklch, var(--color-card) 78%, transparent);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .liquid-glass {
+    background: var(--color-card);
+    backdrop-filter: none;
+  }
+}
+
+.photo-zoom {
+  transition: transform 220ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .photo-zoom,
+  .photo-zoom:hover {
+    transform: scale(1.04);
+  }
+}
+
+.photo-reveal {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 700ms var(--ease-in-out);
+
+  @starting-style {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+.story-card {
+  opacity: 0;
+  animation: fadeUp 280ms var(--ease-out) forwards;
+}
+
+.lift-card {
+  transition: transform 200ms var(--ease-out);
+}
+
+.lift-card:active {
+  transform: scale(0.99);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lift-card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-zoom,
+  .photo-reveal,
+  .lift-card {
+    transition: none;
+    animation: none;
+    clip-path: none;
+  }
+
+  .story-card {
+    opacity: 1;
+    animation: none;
+  }
 }

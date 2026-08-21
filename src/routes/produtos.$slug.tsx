@@ -12,6 +12,7 @@ import { ModelViewer } from "@/components/ModelViewer";
 import { ProductReviews } from "@/components/ProductReviews";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { Button } from "@/components/ui/button";
+import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
 export const Route = createFileRoute("/produtos/$slug")({
   loader: async ({ context, params }) =>
@@ -126,10 +127,11 @@ function ProductPage() {
       <div className="mt-6 grid items-start gap-12 md:grid-cols-2">
         <div className="space-y-4">
           {p.image_url ? (
-            <img
+            <PhotoSpotlight
               src={p.image_url}
-              alt={`Pote de ${p.name} — suplemento natural em cápsulas`}
-              className="w-full rounded-2xl bg-sand object-contain p-4"
+              alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+              className="min-h-[280px] w-full"
+              reveal
             />
           ) : null}
           {model ? (

@@ -1,0 +1,46 @@
+import { motion, useReducedMotion } from "motion/react";
+import { cn } from "@/lib/utils";
+
+type Word = { text: string; dim?: boolean; italic?: boolean; accent?: boolean };
+
+const ease = [0.23, 1, 0.32, 1] as const;
+
+export function WordReveal({
+  lines,
+  className,
+}: {
+  lines: Word[][];
+  className?: string;
+}) {
+  const reduce = useReducedMotion();
+  let i = 0;
+  return (
+    <h1 className={cn("text-5xl leading-[1.15] md:text-6xl", className)}>
+      {lines.map((line, li) => (
+        <span key={li} className="block pb-1">
+          {line.map((word, wi) => {
+            const delay = 0.2 + i * 0.055;
+            i += 1;
+            return (
+              <span key={`${li}-${wi}`} className="mr-[0.28em] inline-block overflow-hidden align-bottom">
+                <motion.span
+                  className={cn(
+                    "inline-block",
+                    word.dim && "text-foreground/45",
+                    word.italic && "text-display italic font-normal leading-[1.15]",
+                    word.accent && "text-accent",
+                  )}
+                  initial={reduce ? false : { y: "100%", opacity: 0, filter: "blur(4px)" }}
+                  animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
+                  transition={{ duration: reduce ? 0.2 : 0.62, delay: reduce ? 0 : delay, ease }}
+                >
+                  {word.text}
+                </motion.span>
+              </span>
+            );
+          })}
+        </span>
+      ))}
+    </h1>
+  );
+}
