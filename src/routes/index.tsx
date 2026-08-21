@@ -6,6 +6,7 @@ import { JarViewer } from "@/components/JarViewer";
 import { WordReveal } from "@/components/WordReveal";
 import { BenefitCarousel } from "@/components/BenefitCarousel";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
+import { FatherStory } from "@/components/FatherStory";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -135,39 +136,25 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pt-4">
-        <div className="surface-card grid gap-8 p-8 md:grid-cols-[1.1fr_1fr] md:p-10">
-          <div>
-            <h2 className="text-display text-3xl">Nossa história</h2>
-            <p className="mt-4 text-muted-foreground">
-              Tudo começou quando meu pai mudou de vida com disciplina, alimentação e o uso de
-              suplementos naturais, eliminando 90 kg e transformando sua saúde e seus hábitos.
+        <div className="grid items-start gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] md:gap-12">
+          <div className="md:sticky md:top-24 md:pt-4">
+            <h2 className="text-display text-4xl leading-[1.1]">
+              A história é <span className="italic font-normal">dele</span>
+            </h2>
+            <p className="mt-5 max-w-[42ch] text-muted-foreground">
+              Meu pai mudou de vida com disciplina, alimentação e suplementos naturais. Eliminou 90
+              kg. O corpo mudou porque os hábitos mudaram, e os produtos que usamos em casa fizeram
+              parte desse caminho.
             </p>
-            <p className="mt-3 text-muted-foreground">
-              Vendo meu pai renascer, entendi de verdade: saúde transforma vidas. Foi assim que
-              decidi oferecer os produtos que usamos no dia a dia, selecionados com cuidado,
-              qualidade e segurança.
+            <p className="mt-3 max-w-[42ch] text-muted-foreground">
+              Vendo ele renascer, entendi: saúde transforma vidas. A Opção Natural existe para
+              oferecer o que transformou a dele, e pode transformar a sua.
             </p>
-            <p className="mt-3 text-muted-foreground">
-              Meu propósito é compartilhar o que transformou a vida do meu pai e pode transformar a
-              sua também.
+            <p className="mt-8 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              Passe as fotos. É o filme da virada.
             </p>
           </div>
-          <div className="grid gap-3 self-center">
-            {[
-              { t: "Perdeu 90 kg", d: "Com disciplina, alimentação e suplementação." },
-              { t: "Produtos que usamos", d: "Selecionados com cuidado e segurança." },
-              { t: "Saúde e bem-estar", d: "O melhor da natureza no seu dia a dia." },
-            ].map((i, idx) => (
-              <div
-                key={i.t}
-                className="story-card border-b border-border py-4 last:border-b-0 last:pb-0 first:pt-0"
-                style={{ animationDelay: `${idx * 55}ms` }}
-              >
-                <p className="text-display text-lg">{i.t}</p>
-                <p className="text-sm text-muted-foreground">{i.d}</p>
-              </div>
-            ))}
-          </div>
+          <FatherStory />
         </div>
       </section>
 
