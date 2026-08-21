@@ -125,7 +125,7 @@ function ProductsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-14">
+    <div className="mx-auto max-w-6xl px-5 py-10">
       <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
         Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro: cartão, Pix ou

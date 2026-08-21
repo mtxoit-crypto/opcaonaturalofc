@@ -18,10 +18,11 @@ type Props = {
   camera: NonNullable<CanvasProps["camera"]>;
   shadows?: boolean;
   hint: string;
+  compact?: boolean;
   controls?: ControlsProps;
 };
 
-export function ViewerStage({ children, camera, shadows, hint, controls }: Props) {
+export function ViewerStage({ children, camera, shadows, hint, compact, controls }: Props) {
   const [hitEl, setHitEl] = useState<HTMLDivElement | null>(null);
   const [interacting, setInteracting] = useState(false);
 
@@ -66,10 +67,13 @@ export function ViewerStage({ children, camera, shadows, hint, controls }: Props
         title={hint}
         className={cn(
           "absolute left-1/2 top-[48%] z-10 -translate-x-1/2 -translate-y-1/2",
-          "h-[34%] w-[36%] max-h-[132px] max-w-[128px] overflow-hidden rounded-full",
+          compact
+            ? "h-[42%] w-[40%] max-h-[96px] max-w-[88px] md:h-[50%] md:w-[42%] md:max-h-[140px] md:max-w-[120px]"
+            : "h-[34%] w-[36%] max-h-[132px] max-w-[128px] md:h-[58%] md:w-[50%] md:max-h-[260px] md:max-w-[220px]",
+          "overflow-hidden rounded-full",
           "cursor-grab touch-none select-none active:cursor-grabbing",
           "bg-foreground/[0.03] ring-1 ring-foreground/12",
-          "md:h-[58%] md:w-[50%] md:max-h-[260px] md:max-w-[220px] md:bg-transparent md:ring-foreground/10",
+          "md:bg-transparent md:ring-foreground/10",
         )}
       />
     </>

@@ -159,7 +159,7 @@ function OrdersPage() {
 
   return (
     <AdminShell title="Pedidos" hint="Busque, filtre por status e fale com o cliente no WhatsApp.">
-      <div className="mt-8 flex flex-wrap items-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -198,14 +198,14 @@ function OrdersPage() {
         </Button>
       </div>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-5 space-y-3">
         {visible.length === 0 ? (
           <p className="text-muted-foreground">Nenhum pedido nesse filtro.</p>
         ) : null}
         {visible.map((o) => {
           const wa = waLink(o.customer_phone);
           return (
-            <div key={o.id} className="surface-card p-5">
+            <div key={o.id} className="surface-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-lg">

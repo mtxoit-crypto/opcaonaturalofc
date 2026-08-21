@@ -16,6 +16,7 @@ type Props = {
   dosage?: string | undefined;
   subtitle?: string | undefined;
   imageUrl?: string | undefined;
+  compact?: boolean;
 };
 
 type LabelData = {
@@ -455,10 +456,12 @@ function Jar({
 }
 
 export default function JarScene(props: Props) {
+  const compact = props.compact;
   return (
     <ViewerStage
       shadows
-      camera={{ position: [0, 1.05, 4.1], fov: 32 }}
+      compact={compact}
+      camera={{ position: [0, compact ? 0.95 : 1.05, compact ? 5.35 : 4.1], fov: compact ? 28 : 32 }}
       hint="Arraste para girar o pote"
       controls={{
         enableZoom: false,

@@ -42,7 +42,7 @@ function KitsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-14">
+    <div className="mx-auto max-w-6xl px-5 py-10">
       <h1 className="text-4xl">Kits</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
         Combinações prontas de suplementos naturais para seguir sua rotina sem complicação.

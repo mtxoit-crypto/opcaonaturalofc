@@ -61,7 +61,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl min-w-0 items-center justify-between gap-3 px-4 py-4 sm:px-5">
+      <div className="mx-auto flex h-14 max-w-6xl min-w-0 items-center justify-between gap-3 px-4 sm:px-5">
         <Link to="/" className="flex min-w-0 items-center gap-2" onClick={() => setOpen(false)}>
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Leaf className="size-4" />
@@ -107,7 +107,7 @@ export function SiteHeader() {
       <AnimatePresence>
         {open ? (
           <motion.div
-            className="fixed inset-x-4 top-[4.5rem] z-40 origin-top rounded-2xl border border-border bg-card/95 p-6 shadow-lg backdrop-blur-md md:hidden"
+            className="fixed inset-x-4 top-16 z-40 origin-top rounded-2xl border border-border bg-card/95 p-6 shadow-lg backdrop-blur-md md:hidden"
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
@@ -132,8 +132,8 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border/60 bg-sand">
-      <div className="mx-auto grid max-w-6xl gap-4 px-5 py-8 text-sm sm:grid-cols-3">
+    <footer className="mt-14 border-t border-border/60 bg-sand">
+      <div className="mx-auto grid max-w-6xl gap-4 px-5 py-6 text-sm sm:grid-cols-3">
         {[
           { icon: Leaf, t: "Produtos naturais", d: "de qualidade" },
           { icon: ShieldCheck, t: "Fórmulas eficazes", d: "e seguras" },

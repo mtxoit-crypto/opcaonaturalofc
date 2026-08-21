@@ -15,7 +15,7 @@ export function WordReveal({
   const reduce = useReducedMotion();
   let i = 0;
   return (
-    <h1 className={cn("max-w-full text-[2.15rem] leading-[1.15] sm:text-5xl md:text-6xl", className)}>
+    <h1 className={cn("max-w-full text-[1.85rem] leading-[1.12] sm:text-4xl md:text-[2.75rem]", className)}>
       {lines.map((line, li) => (
         <span key={li} className="block pb-1">
           {line.map((word, wi) => {

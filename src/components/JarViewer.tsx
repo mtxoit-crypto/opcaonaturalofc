@@ -15,6 +15,7 @@ type Props = {
   dosage?: string | undefined;
   subtitle?: string | undefined;
   imageUrl?: string | undefined;
+  compact?: boolean;
   className?: string;
 };
 
@@ -26,31 +27,40 @@ function Placeholder() {
   );
 }
 
-export function JarViewer({ className, ...scene }: Props) {
+export function JarViewer({ className, compact, ...scene }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
     <motion.div
       className={cn("min-w-0 w-full", className)}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.35 }}
-      transition={{ type: "spring", stiffness: 140, damping: 22 }}
+      transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
     >
-      <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-sand grain-bg sm:h-[460px]">
+      <div
+        className={cn(
+          "relative w-full overflow-hidden rounded-2xl bg-sand grain-bg",
+          compact ? "h-[220px] sm:h-[248px]" : "h-[320px] sm:h-[380px]",
+        )}
+      >
         <ClientOnly fallback={<Placeholder />}>
           <Suspense fallback={<Placeholder />}>
-            <JarScene open={open} {...scene} />
+            <JarScene open={open} compact={compact} {...scene} />
           </Suspense>
         </ClientOnly>
-        <span className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-card/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-          Toque no círculo para girar
+        <span className="pointer-events-none absolute bottom-2.5 left-1/2 z-20 -translate-x-1/2 rounded-full bg-card/85 px-2.5 py-0.5 text-[11px] text-muted-foreground backdrop-blur">
+          Gire no círculo
         </span>
       </div>
-      <div className="mt-4 flex justify-center">
+      <div className="mt-3 flex justify-center">
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-          <Button size="lg" variant={open ? "secondary" : "default"} onClick={() => setOpen(!open)}>
-            {open ? "Fechar a tampa" : "Abrir a tampa e ver as cápsulas"}
+          <Button
+            size={compact ? "sm" : "lg"}
+            variant={open ? "secondary" : "default"}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? "Fechar tampa" : "Abrir tampa"}
           </Button>
         </motion.div>
       </div>

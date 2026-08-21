@@ -66,7 +66,7 @@ function Index() {
               "radial-gradient(800px 420px at 20% 0%, color-mix(in oklch, var(--color-leaf) 40%, transparent), transparent)",
           }}
         />
-        <div className="relative mx-auto grid min-h-[min(100dvh,820px)] max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-2 md:py-24">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-5 py-10 md:grid-cols-[1.15fr_0.85fr] md:py-12">
           <div>
             <WordReveal
               className="mt-0"
@@ -80,20 +80,19 @@ function Index() {
                 ],
               ]}
             />
-            <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Mais que vender produtos: levamos até você o que há de melhor da natureza. Gire o pote
-              em 3D, abra a tampa e veja as cápsulas antes de escolher.
+            <p className="mt-4 max-w-[38ch] text-muted-foreground">
+              Gire o pote em 3D, abra a tampa e veja as cápsulas antes de escolher.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Button asChild>
                 <Link to="/produtos">
                   Ver produtos <ArrowUpRight className="size-4" />
                 </Link>
               </Button>
               {featured ? (
-                <Button asChild size="lg" variant="outline">
+                <Button asChild variant="outline">
                   <Link to="/produtos/$slug" params={{ slug: featured.slug }}>
-                    Explorar {featured.name}
+                    Ver {featured.name}
                   </Link>
                 </Button>
               ) : null}
@@ -101,6 +100,7 @@ function Index() {
           </div>
 
           <JarViewer
+            compact
             jarColor={featured?.jar_color ?? "#F2F1EE"}
             lidColor={featured?.lid_color ?? "#6FC49A"}
             capsuleColor={featured?.capsule_color ?? "#C9A227"}
@@ -112,30 +112,28 @@ function Index() {
           />
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 overflow-hidden border-t border-border md:grid-cols-[2fr_1fr_2fr]">
-          <div className="bg-muted p-6 md:p-8">
-            <p className="text-display max-w-[350px] text-2xl leading-[1.1] lg:text-[32px]">
-              Comece seu caminho até o equilíbrio natural
+        <div className="relative z-10 grid grid-cols-1 overflow-hidden border-t border-border md:grid-cols-[1.4fr_1fr_1.2fr]">
+          <div className="bg-muted px-5 py-5 md:px-6">
+            <p className="text-display max-w-[280px] text-xl leading-[1.15] lg:text-2xl">
+              Comece pelo equilíbrio natural
             </p>
-            <Link to="/produtos" className="mt-4 inline-block text-sm underline underline-offset-4">
+            <Link to="/produtos" className="mt-3 inline-block text-sm underline underline-offset-4">
               Ver o catálogo
             </Link>
           </div>
           <BenefitCarousel />
-          <div className="flex items-center gap-5 bg-primary p-6 text-primary-foreground md:p-8">
+          <div className="flex items-center gap-4 bg-primary px-5 py-5 text-primary-foreground md:px-6">
             <div>
-              <p className="text-display text-3xl tracking-tight">{catalogCount}</p>
-              <p className="mt-1 max-w-[220px] text-sm text-primary-foreground/70">
-                {catalogCount
-                  ? "fórmulas ativas no catálogo, prontas para você girar em 3D"
-                  : "Catálogo em atualização"}
+              <p className="text-display text-2xl tracking-tight tabular-nums">{catalogCount}</p>
+              <p className="mt-1 max-w-[200px] text-sm text-primary-foreground/70">
+                {catalogCount ? "fórmulas ativas no catálogo" : "Catálogo em atualização"}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pt-4">
+      <section className="mx-auto max-w-6xl px-5 pt-8">
         <div className="grid items-start gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] md:gap-12">
           <div className="md:sticky md:top-24 md:pt-4">
             <h2 className="text-display text-4xl leading-[1.1]">
@@ -150,7 +148,7 @@ function Index() {
               Vendo ele renascer, entendi: saúde transforma vidas. A Opção Natural existe para
               oferecer o que transformou a dele, e pode transformar a sua.
             </p>
-            <p className="mt-8 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+            <p className="mt-6 text-sm text-muted-foreground">
               Passe as fotos. É o filme da virada.
             </p>
           </div>
@@ -158,7 +156,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-16">
+      <section className="mx-auto max-w-6xl px-5 py-10">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-3xl">
             Nossas <span className="italic font-normal">vitaminas</span>

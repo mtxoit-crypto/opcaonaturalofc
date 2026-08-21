@@ -35,7 +35,7 @@ export function BenefitCarousel() {
   const Icon = card.icon;
 
   return (
-    <div className="relative flex min-h-[148px] flex-col justify-between bg-card p-6">
+    <div className="relative flex min-h-[120px] flex-col justify-between bg-card px-5 py-5">
       <div className="relative min-h-[88px]">
         <AnimatePresence mode="wait">
           <motion.div

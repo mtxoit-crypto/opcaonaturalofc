@@ -225,7 +225,8 @@ function AdminPage() {
       />
 
       {tab === "visao" ? (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { t: "Produtos no ar", n: String(activeCount), go: "catalogo" },
             { t: "Kits", n: String(kits?.length ?? 0), go: "kits" },
@@ -233,34 +234,45 @@ function AdminPage() {
             { t: "Avaliações pendentes", n: String(pendingReviews), go: "avaliacoes" },
           ].map((c) =>
             c.href ? (
-              <a key={c.t} href={c.href} className="surface-card block p-5 hover:bg-sand">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{c.t}</p>
-                <p className="text-display mt-2 text-3xl">{c.n}</p>
+              <a key={c.t} href={c.href} className="surface-card block p-4 hover:bg-sand">
+                <p className="text-xs text-muted-foreground">{c.t}</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{c.n}</p>
               </a>
             ) : (
               <button
                 key={c.t}
                 type="button"
-                className="surface-card p-5 text-left hover:bg-sand"
+                className="surface-card p-4 text-left hover:bg-sand"
                 onClick={() => setTab(c.go)}
               >
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{c.t}</p>
-                <p className="text-display mt-2 text-3xl">{c.n}</p>
+                <p className="text-xs text-muted-foreground">{c.t}</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{c.n}</p>
               </button>
             ),
           )}
-          <div className="surface-card p-5 sm:col-span-2">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              Faturamento (sem testes/cancelados)
-            </p>
-            <p className="text-display mt-2 text-3xl">{formatPrice(orderStats?.revenue ?? 0)}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{orderStats?.total ?? 0} pedidos no total</p>
+          </div>
+          <div className="surface-card mt-3 flex flex-wrap items-end justify-between gap-3 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Faturamento (sem testes/cancelados)</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">
+                {formatPrice(orderStats?.revenue ?? 0)}
+              </p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{orderStats?.total ?? 0} pedidos no total</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setTab("catalogo")}>
+                Abrir catálogo
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <a href="/admin/pedidos">Pedidos</a>
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}
 
       {tab === "catalogo" ? (
-        <div className="mt-8">
+        <div className="mt-5">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-[200px] flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -289,19 +301,19 @@ function AdminPage() {
                 <p className="text-sm text-muted-foreground">Nenhum produto nesse filtro.</p>
               ) : null}
               {filtered.map((p) => (
-                <div key={p.id} className="surface-card flex items-center gap-4 p-4">
+                <div key={p.id} className="surface-card flex items-center gap-3 p-3">
                   {p.image_url ? (
-                    <img src={p.image_url} alt="" className="size-12 shrink-0 rounded-lg object-contain bg-sand" />
+                    <img src={p.image_url} alt="" className="size-10 shrink-0 rounded-md object-contain bg-sand" />
                   ) : (
                     <div
-                      className="size-12 shrink-0 rounded-lg"
+                      className="size-10 shrink-0 rounded-md"
                       style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
                     />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-lg">{p.name}</p>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {p.slug} · {formatPrice(p.price)} · {p.capsule_count} caps
+                    <p className="truncate font-medium">{p.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {p.slug} · {formatPrice(p.price)}
                       {p.is_active ? "" : " · oculto"}
                       {p.in_stock ? "" : " · sem estoque"}
                     </p>
@@ -339,7 +351,7 @@ function AdminPage() {
             </div>
 
             <form
-              className="surface-card h-fit space-y-4 p-6"
+              className="surface-card h-fit space-y-3 p-5"
               onSubmit={(e) => {
                 e.preventDefault();
                 save.mutate(form);
