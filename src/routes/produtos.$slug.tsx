@@ -23,7 +23,7 @@ export const Route = createFileRoute("/produtos/$slug")({
     const description =
       p?.description ??
       p?.subtitle ??
-      "Veja este suplemento natural em 3D: gire o pote, abra a tampa e compre com cartão, Pix ou boleto, com entrega em todo o Brasil.";
+      "Veja este suplemento natural em 3D: gire o pote, abra a tampa e compre no checkout seguro da Shopify, com entrega em todo o Brasil.";
 
     return {
       meta: [
@@ -206,7 +206,7 @@ function ProductPage() {
 
           <p className="mt-8 text-3xl text-accent">{formatMoney(price)}</p>
           <p className="text-sm text-muted-foreground">
-            Cartão de crédito, Pix ou boleto no checkout seguro
+            Pagamento somente no checkout seguro da Shopify
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

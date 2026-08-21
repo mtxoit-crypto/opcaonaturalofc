@@ -27,7 +27,7 @@ export const Route = createFileRoute("/produtos/")({
       {
         name: "description",
         content:
-          "Catálogo de suplementos naturais Opção Natural em cápsulas. Compre com cartão, Pix ou boleto e receba em todo o Brasil.",
+          "Catálogo de suplementos naturais Opção Natural em cápsulas. Finalize no checkout seguro da Shopify.",
       },
       { property: "og:title", content: "Produtos · Opção Natural suplementos naturais" },
       {
@@ -126,8 +126,7 @@ function ProductsPage() {
     <div className="mx-auto max-w-6xl px-5 py-10">
       <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
-        Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro: cartão, Pix ou
-        boleto.
+        Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro da Shopify.
       </p>
 
       {/* Barra de busca e filtros */}

@@ -48,7 +48,7 @@ const COMMON_ANSWERS: { patterns: string[]; answer: string }[] = [
   {
     patterns: ["pagamento", "cartao", "pix", "boleto", "parcelar", "credito", "debito"],
     answer:
-      "Aceitamos cartão de crédito, Pix e outros métodos disponíveis no Stripe. O pagamento é processado de forma segura e você recebe a confirmação por e-mail.",
+      "Aceitamos os métodos disponíveis no checkout da Shopify, de forma segura. Você recebe a confirmação por e-mail após o pagamento.",
   },
   {
     patterns: ["trocar", "devolver", "reembolso", "devolucao", "garantia"],

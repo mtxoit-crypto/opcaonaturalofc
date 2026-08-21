@@ -3,14 +3,15 @@ import { Link } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Minus, Plus, Trash2 } from "lucide-react";
+import { ShoppingBag, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const { items, updateQuantity, removeItem, syncCart } = useCartStore();
+  const { items, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart } =
+    useCartStore();
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + Number(i.price.amount) * i.quantity, 0);
@@ -19,6 +20,13 @@ export function CartDrawer() {
   useEffect(() => {
     if (isOpen) syncCart();
   }, [isOpen, syncCart]);
+
+  function payOnShopify() {
+    const checkoutUrl = getCheckoutUrl();
+    if (!checkoutUrl) return;
+    setIsOpen(false);
+    window.location.assign(checkoutUrl);
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -109,13 +117,23 @@ export function CartDrawer() {
                   <span className="text-lg">Total</span>
                   <span className="text-xl text-accent">{formatMoney(totalPrice, currency)}</span>
                 </div>
-                <Button asChild className="w-full" size="lg">
-                  <Link to="/checkout" onClick={() => setIsOpen(false)}>
-                    Ir para o carrinho
-                  </Link>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={payOnShopify}
+                  disabled={items.length === 0 || isLoading || isSyncing}
+                >
+                  {isLoading || isSyncing ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <>
+                      <ExternalLink className="size-4" />
+                      Pagar na Shopify
+                    </>
+                  )}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
-                  Cartão, Pix ou boleto. Você revisa o pedido antes de pagar.
+                  Pagamento somente no checkout seguro da Shopify.
                 </p>
               </div>
             </>
