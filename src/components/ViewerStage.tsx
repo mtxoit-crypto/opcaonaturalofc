@@ -15,7 +15,7 @@ type ControlsProps = {
 
 type Props = {
   children: ReactNode;
-  camera: CanvasProps["camera"];
+  camera: NonNullable<CanvasProps["camera"]>;
   shadows?: boolean;
   hint: string;
   controls?: ControlsProps;
