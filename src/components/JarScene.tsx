@@ -468,7 +468,9 @@ export default function JarScene(props: Props) {
         minPolarAngle: Math.PI / 3.4,
         maxPolarAngle: Math.PI / 1.95,
         target: [0, 0.05, 0],
-        autoRotateSpeed: 0.45,
+        autoRotateSpeed: 0.18,
+        rotateSpeed: 0.3,
+        dampingFactor: 0.042,
       }}
     >
       <ambientLight intensity={0.55} />

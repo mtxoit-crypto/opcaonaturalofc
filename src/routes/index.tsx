@@ -137,7 +137,7 @@ function Index() {
         <div className="grid items-start gap-10 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)] md:gap-12">
           <div className="md:sticky md:top-24 md:pt-4">
             <h2 className="text-display text-4xl leading-[1.1]">
-              A história é <span className="italic font-normal">dele</span>
+              A <span className="italic font-normal">história</span>
             </h2>
             <p className="mt-5 max-w-[42ch] text-muted-foreground">
               Meu pai mudou de vida com disciplina, alimentação e suplementos naturais. Eliminou 90
@@ -145,8 +145,8 @@ function Index() {
               parte desse caminho.
             </p>
             <p className="mt-3 max-w-[42ch] text-muted-foreground">
-              Vendo ele renascer, entendi: saúde transforma vidas. A Opção Natural existe para
-              oferecer o que transformou a dele, e pode transformar a sua.
+              Vendo aquela virada, entendi: saúde transforma vidas. A Opção Natural existe para
+              oferecer o que ajudou nessa jornada, e pode ajudar na sua.
             </p>
             <p className="mt-6 text-sm text-muted-foreground">
               Passe as fotos. É o filme da virada.

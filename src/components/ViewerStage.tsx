@@ -11,6 +11,8 @@ type ControlsProps = {
   maxPolarAngle?: number;
   target?: [number, number, number];
   autoRotateSpeed?: number;
+  rotateSpeed?: number;
+  dampingFactor?: number;
 };
 
 type Props = {
@@ -45,7 +47,7 @@ export function ViewerStage({ children, camera, shadows, hint, compact, controls
             makeDefault
             enablePan={false}
             enableDamping
-            dampingFactor={0.08}
+            dampingFactor={controls?.dampingFactor ?? 0.045}
             enableZoom={controls?.enableZoom ?? false}
             minDistance={controls?.minDistance ?? 2}
             maxDistance={controls?.maxDistance ?? 8}
@@ -53,8 +55,8 @@ export function ViewerStage({ children, camera, shadows, hint, compact, controls
             maxPolarAngle={controls?.maxPolarAngle ?? Math.PI / 1.85}
             target={controls?.target ?? [0, 0.05, 0]}
             autoRotate={!interacting}
-            autoRotateSpeed={controls?.autoRotateSpeed ?? 0.55}
-            rotateSpeed={0.85}
+            autoRotateSpeed={controls?.autoRotateSpeed ?? 0.22}
+            rotateSpeed={controls?.rotateSpeed ?? 0.32}
             onStart={() => setInteracting(true)}
             onEnd={() => setInteracting(false)}
           />

@@ -20,7 +20,9 @@ export default function ModelScene({ url }: { url: string }) {
         minPolarAngle: Math.PI / 5,
         maxPolarAngle: Math.PI / 1.7,
         target: [0, 0, 0],
-        autoRotateSpeed: 0.5,
+        autoRotateSpeed: 0.18,
+        rotateSpeed: 0.3,
+        dampingFactor: 0.042,
       }}
     >
       <ambientLight intensity={0.7} />
