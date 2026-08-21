@@ -29,9 +29,10 @@ export function ViewerStage({ children, camera, shadows, hint, controls }: Props
     <>
       {hitEl ? (
         <Canvas
-          shadows={shadows}
+          shadows={shadows ?? false}
           dpr={[1, 1.75]}
-          camera={camera}
+          camera={camera ?? undefined}
+
           className="absolute inset-0 h-full w-full"
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           eventSource={hitEl}
