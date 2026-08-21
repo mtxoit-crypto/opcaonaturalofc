@@ -6,11 +6,18 @@ import {
   productMediaQuery,
   uploadProductMedia,
   deleteProductMedia,
+  publicMediaUrl,
   type ProductMedia,
 } from "@/lib/media";
 import { Button } from "@/components/ui/button";
 
-export function ProductMediaManager({ productId }: { productId: string }) {
+export function ProductMediaManager({
+  productId,
+  onSetCover,
+}: {
+  productId: string;
+  onSetCover?: (url: string) => void;
+}) {
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -92,6 +99,17 @@ export function ProductMediaManager({ productId }: { productId: string }) {
               >
                 <Trash2 className="size-3" />
               </Button>
+              {m.media_type === "image" && onSetCover ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="absolute bottom-1 left-1 h-6 px-2 text-[10px]"
+                  onClick={async () => onSetCover(await publicMediaUrl(m.storage_path))}
+                >
+                  Capa
+                </Button>
+              ) : null}
             </div>
           ))}
         </div>

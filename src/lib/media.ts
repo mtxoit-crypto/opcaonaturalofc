@@ -62,6 +62,11 @@ export async function uploadProductMedia(productId: string, file: File) {
   if (error) throw error;
 }
 
+export async function publicMediaUrl(storagePath: string) {
+  const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(storagePath);
+  return data.publicUrl;
+}
+
 export async function deleteProductMedia(media: ProductMedia) {
   await supabase.storage.from(MEDIA_BUCKET).remove([media.storage_path]);
   const { error } = await supabase.from("product_media").delete().eq("id", media.id);

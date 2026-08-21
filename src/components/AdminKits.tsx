@@ -156,7 +156,7 @@ export function AdminKits() {
   const itemsTotal = (selected?.products ?? []).reduce((s, p) => s + (p.price ?? 0), 0);
 
   return (
-    <section className="mt-10">
+    <section className="mt-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl">Kits</h2>

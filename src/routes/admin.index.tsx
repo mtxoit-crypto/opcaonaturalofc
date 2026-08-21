@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { productsQuery, type Product } from "@/lib/products";
+import { productsQuery, formatPrice, type Product } from "@/lib/products";
 import { storeSettingsQuery, type StoreSettings } from "@/lib/store";
+import { adminKitsQuery } from "@/lib/kits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,15 +17,13 @@ import { ProductMediaManager } from "@/components/ProductMediaManager";
 import { AdminMembers } from "@/components/AdminMembers";
 import { AdminKits } from "@/components/AdminKits";
 import { AdminReviews } from "@/components/AdminReviews";
-
+import { AdminShell, AdminTabs } from "@/components/AdminShell";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Painel do catálogo · Opção Natural" },
-      { name: "description", content: "Gerencie os produtos naturais do catálogo Opção Natural." },
-      { property: "og:title", content: "Painel do catálogo · Opção Natural" },
-      { property: "og:description", content: "Gerencie os produtos do catálogo." },
+      { title: "Painel · Opção Natural" },
+      { name: "description", content: "Gerencie catálogo, kits, avaliações e a loja Opção Natural." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -41,7 +40,7 @@ const empty: Partial<Product> = {
   capsule_count: 60,
   price: null,
   capsule_color: "#E8B54A",
-  jar_color: "#2A3A2C",
+  jar_color: "#F4F3F0",
   lid_color: "#C98A3C",
   image_url: null,
   in_stock: true,
@@ -49,15 +48,29 @@ const empty: Partial<Product> = {
   sort_order: 99,
 };
 
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: products } = useQuery(productsQuery);
+  const { data: kits } = useQuery(adminKitsQuery);
   const { data: settings } = useQuery(storeSettingsQuery);
+  const [tab, setTab] = useState("visao");
   const [form, setForm] = useState<Partial<Product>>(empty);
   const [store, setStore] = useState<StoreSettings | null>(null);
   const [pixKey, setPixKey] = useState("");
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"todos" | "ativos" | "ocultos" | "sem-estoque">("todos");
+
   const { data: adminPix } = useQuery({
     queryKey: ["admin-pix-key", isAdmin],
     enabled: isAdmin,
@@ -65,6 +78,36 @@ function AdminPage() {
       const { data, error } = await supabase.rpc("admin_get_pix_key");
       if (error) throw error;
       return (data as string | null) ?? "";
+    },
+  });
+
+  const { data: pendingReviews = 0 } = useQuery({
+    queryKey: ["admin-reviews-count"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("product_reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("is_approved", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: orderStats } = useQuery({
+    queryKey: ["admin-order-stats"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("orders").select("id,status,total");
+      if (error) throw error;
+      const rows = data ?? [];
+      return {
+        total: rows.length,
+        pending: rows.filter((o) => o.status === "pendente" || o.status === "pago").length,
+        revenue: rows
+          .filter((o) => o.status !== "cancelado" && o.status !== "teste")
+          .reduce((s, o) => s + Number(o.total ?? 0), 0),
+      };
     },
   });
 
@@ -79,6 +122,17 @@ function AdminPage() {
   useEffect(() => {
     if (settings && !store) setStore(settings);
   }, [settings, store]);
+
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    return (products ?? []).filter((p) => {
+      if (filter === "ativos" && !p.is_active) return false;
+      if (filter === "ocultos" && p.is_active) return false;
+      if (filter === "sem-estoque" && p.in_stock) return false;
+      if (!term) return true;
+      return [p.name, p.slug, p.subtitle].some((s) => s?.toLowerCase().includes(term));
+    });
+  }, [products, q, filter]);
 
   const saveSettings = useMutation({
     mutationFn: async (values: StoreSettings & { pix_key: string }) => {
@@ -95,17 +149,9 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   const save = useMutation({
     mutationFn: async (values: Partial<Product>) => {
-      const slug =
-        values.slug ||
-        (values.name ?? "")
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "");
+      const slug = values.slug || slugify(values.name ?? "");
       const payload = {
         slug,
         name: values.name ?? "",
@@ -116,23 +162,20 @@ function AdminPage() {
         capsule_count: values.capsule_count ?? 60,
         price: values.price ?? null,
         capsule_color: values.capsule_color ?? "#E8B54A",
-        jar_color: values.jar_color ?? "#2A3A2C",
+        jar_color: values.jar_color ?? "#F4F3F0",
         lid_color: values.lid_color ?? "#C98A3C",
         image_url: values.image_url || null,
         in_stock: values.in_stock ?? true,
         is_active: values.is_active ?? true,
         sort_order: values.sort_order ?? 99,
-
       };
       const { error } = values.id
         ? await supabase.from("products").update(payload).eq("id", values.id)
         : await supabase.from("products").insert(payload);
       if (error) throw error;
     },
-
     onSuccess: () => {
       toast.success("Produto salvo");
-      setForm(empty);
       qc.invalidateQueries({ queryKey: ["products"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -145,6 +188,7 @@ function AdminPage() {
     },
     onSuccess: () => {
       toast.success("Produto removido");
+      if (form.id) setForm(empty);
       qc.invalidateQueries({ queryKey: ["products"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -157,42 +201,317 @@ function AdminPage() {
       <div className="mx-auto max-w-2xl px-5 py-20">
         <h1 className="text-3xl">Acesso restrito</h1>
         <p className="mt-3 text-muted-foreground">
-          Sua conta ({user.email}) ainda não tem permissão de administrador. Peça a um administrador
-          para liberar o acesso.
+          Sua conta ({user.email}) ainda não tem permissão de administrador.
         </p>
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto max-w-6xl px-5 py-14">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-4xl">Painel do catálogo</h1>
-        <Button asChild variant="outline">
-          <Link to="/admin/pedidos">Ver pedidos</Link>
-        </Button>
-      </div>
-      <p className="mt-2 text-muted-foreground">Crie, edite e remova os produtos do site.</p>
+  const activeCount = (products ?? []).filter((p) => p.is_active).length;
 
-      {store ? (
+  return (
+    <AdminShell title="Painel" hint="Catálogo, kits, avaliações, sócios e configurações da loja.">
+      <AdminTabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: "visao", label: "Visão geral" },
+          { id: "catalogo", label: "Catálogo", count: products?.length },
+          { id: "kits", label: "Kits", count: kits?.length },
+          { id: "avaliacoes", label: "Avaliações", count: pendingReviews },
+          { id: "loja", label: "Loja" },
+          { id: "equipe", label: "Equipe" },
+        ]}
+      />
+
+      {tab === "visao" ? (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { t: "Produtos no ar", n: String(activeCount), go: "catalogo" },
+            { t: "Kits", n: String(kits?.length ?? 0), go: "kits" },
+            { t: "Pedidos em aberto", n: String(orderStats?.pending ?? "—"), href: "/admin/pedidos" },
+            { t: "Avaliações pendentes", n: String(pendingReviews), go: "avaliacoes" },
+          ].map((c) =>
+            c.href ? (
+              <a key={c.t} href={c.href} className="surface-card block p-5 hover:bg-sand">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{c.t}</p>
+                <p className="text-display mt-2 text-3xl">{c.n}</p>
+              </a>
+            ) : (
+              <button
+                key={c.t}
+                type="button"
+                className="surface-card p-5 text-left hover:bg-sand"
+                onClick={() => setTab(c.go)}
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{c.t}</p>
+                <p className="text-display mt-2 text-3xl">{c.n}</p>
+              </button>
+            ),
+          )}
+          <div className="surface-card p-5 sm:col-span-2">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Faturamento (sem testes/cancelados)
+            </p>
+            <p className="text-display mt-2 text-3xl">{formatPrice(orderStats?.revenue ?? 0)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{orderStats?.total ?? 0} pedidos no total</p>
+          </div>
+        </div>
+      ) : null}
+
+      {tab === "catalogo" ? (
+        <div className="mt-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[200px] flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                placeholder="Buscar por nome ou slug"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+            <select
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as typeof filter)}
+            >
+              <option value="todos">Todos</option>
+              <option value="ativos">Visíveis</option>
+              <option value="ocultos">Ocultos</option>
+              <option value="sem-estoque">Sem estoque</option>
+            </select>
+          </div>
+
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-3">
+              {filtered.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum produto nesse filtro.</p>
+              ) : null}
+              {filtered.map((p) => (
+                <div key={p.id} className="surface-card flex items-center gap-4 p-4">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt="" className="size-12 shrink-0 rounded-lg object-contain bg-sand" />
+                  ) : (
+                    <div
+                      className="size-12 shrink-0 rounded-lg"
+                      style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-lg">{p.name}</p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {p.slug} · {formatPrice(p.price)} · {p.capsule_count} caps
+                      {p.is_active ? "" : " · oculto"}
+                      {p.in_stock ? "" : " · sem estoque"}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setForm(p)}>
+                    Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Duplicar"
+                    onClick={() =>
+                      setForm({
+                        ...p,
+                        id: undefined,
+                        name: `${p.name} (cópia)`,
+                        slug: `${p.slug}-copia`,
+                        sort_order: (p.sort_order ?? 99) + 1,
+                      })
+                    }
+                  >
+                    <Copy className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm(`Remover ${p.name} do catálogo?`)) remove.mutate(p.id);
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <form
+              className="surface-card h-fit space-y-4 p-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                save.mutate(form);
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl">{form.id ? "Editar produto" : "Novo produto"}</h2>
+                {form.id ? (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm(empty)}>
+                    <Plus className="size-4" />
+                  </Button>
+                ) : null}
+              </div>
+              <Field label="Nome">
+                <Input
+                  value={form.name ?? ""}
+                  required
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </Field>
+              <Field label="Slug (URL)">
+                <Input
+                  value={form.slug ?? ""}
+                  placeholder="gerado do nome se vazio"
+                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                />
+              </Field>
+              <Field label="Subtítulo">
+                <Input
+                  value={form.subtitle ?? ""}
+                  onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+                />
+              </Field>
+              <Field label="Descrição">
+                <Textarea
+                  value={form.description ?? ""}
+                  rows={4}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+              </Field>
+              <Field label="Benefícios (um por linha)">
+                <Textarea
+                  value={(form.benefits ?? []).join("\n")}
+                  rows={3}
+                  onChange={(e) =>
+                    setForm({ ...form, benefits: e.target.value.split("\n").filter(Boolean) })
+                  }
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Cápsulas">
+                  <Input
+                    type="number"
+                    value={form.capsule_count ?? 60}
+                    onChange={(e) => setForm({ ...form, capsule_count: Number(e.target.value) })}
+                  />
+                </Field>
+                <Field label="Preço (R$)">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={form.price ?? ""}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Dosagem">
+                  <Input
+                    value={form.dosage ?? ""}
+                    onChange={(e) => setForm({ ...form, dosage: e.target.value })}
+                  />
+                </Field>
+                <Field label="Ordem no site">
+                  <Input
+                    type="number"
+                    value={form.sort_order ?? 99}
+                    onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Pote">
+                  <Input
+                    type="color"
+                    value={form.jar_color ?? "#F4F3F0"}
+                    onChange={(e) => setForm({ ...form, jar_color: e.target.value })}
+                  />
+                </Field>
+                <Field label="Tampa">
+                  <Input
+                    type="color"
+                    value={form.lid_color ?? "#C98A3C"}
+                    onChange={(e) => setForm({ ...form, lid_color: e.target.value })}
+                  />
+                </Field>
+                <Field label="Cápsula">
+                  <Input
+                    type="color"
+                    value={form.capsule_color ?? "#E8B54A"}
+                    onChange={(e) => setForm({ ...form, capsule_color: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <Field label="URL da foto principal">
+                <Input
+                  value={form.image_url ?? ""}
+                  placeholder="/produtos/gengibre.png"
+                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                />
+              </Field>
+              {form.id ? (
+                <div className="space-y-2">
+                  <Label>Fotos, vídeos e 3D</Label>
+                  <ProductMediaManager
+                    productId={form.id}
+                    onSetCover={(url) => {
+                      setForm((f) => ({ ...f, image_url: url }));
+                      toast.success("Capa definida. Salve o produto para gravar.");
+                    }}
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Salve o produto para enviar fotos, vídeos ou modelo 3D.
+                </p>
+              )}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="stock">Em estoque</Label>
+                <Switch
+                  id="stock"
+                  checked={form.in_stock ?? true}
+                  onCheckedChange={(v) => setForm({ ...form, in_stock: v })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="active">Visível no site</Label>
+                <Switch
+                  id="active"
+                  checked={form.is_active ?? true}
+                  onCheckedChange={(v) => setForm({ ...form, is_active: v })}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={save.isPending}>
+                Salvar produto
+              </Button>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {tab === "kits" ? <AdminKits /> : null}
+      {tab === "avaliacoes" ? <AdminReviews /> : null}
+
+      {tab === "loja" && store ? (
         <form
-          className="surface-card mt-8 grid gap-3 p-6 sm:grid-cols-4"
+          className="surface-card mt-8 grid gap-3 p-6 sm:grid-cols-2"
           onSubmit={(e) => {
             e.preventDefault();
             saveSettings.mutate({ ...store, pix_key: pixKey });
           }}
         >
-          <Field label="WhatsApp (556199...)">
+          <Field label="WhatsApp (com DDI, ex. 556199...)">
             <Input
               value={store.whatsapp_number}
               onChange={(e) => setStore({ ...store, whatsapp_number: e.target.value })}
             />
           </Field>
           <Field label="Chave Pix">
-            <Input
-              value={pixKey}
-              onChange={(e) => setPixKey(e.target.value)}
-            />
+            <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} />
           </Field>
           <Field label="Frete (R$)">
             <Input
@@ -210,187 +529,14 @@ function AdminPage() {
               onChange={(e) => setStore({ ...store, free_shipping_min: Number(e.target.value) })}
             />
           </Field>
-          <Button type="submit" className="sm:col-span-4" variant="secondary">
+          <Button type="submit" className="sm:col-span-2" variant="secondary">
             Salvar configurações da loja
           </Button>
         </form>
       ) : null}
 
-      <AdminMembers />
-
-      <AdminKits />
-
-      <AdminReviews />
-
-
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
-
-        <div className="space-y-3">
-          {(products ?? []).map((p) => (
-            <div key={p.id} className="surface-card flex items-center gap-4 p-4">
-              {p.image_url ? (
-                <img
-                  src={p.image_url}
-                  alt={p.name}
-                  className="size-12 shrink-0 rounded-lg object-cover"
-                />
-              ) : (
-                <div
-                  className="size-12 shrink-0 rounded-lg"
-                  style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
-                />
-              )}
-
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-lg">{p.name}</p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {p.slug} · {p.capsule_count} cápsulas {p.is_active ? "" : "· inativo"}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setForm(p)}>
-                Editar
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => remove.mutate(p.id)}>
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <form
-          className="surface-card space-y-4 p-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            save.mutate(form);
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl">{form.id ? "Editar produto" : "Novo produto"}</h2>
-            {form.id ? (
-              <Button type="button" variant="ghost" size="sm" onClick={() => setForm(empty)}>
-                <Plus className="size-4" />
-              </Button>
-            ) : null}
-          </div>
-
-          <Field label="Nome">
-            <Input
-              value={form.name ?? ""}
-              required
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </Field>
-          <Field label="Subtítulo">
-            <Input
-              value={form.subtitle ?? ""}
-              onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-            />
-          </Field>
-          <Field label="Descrição">
-            <Textarea
-              value={form.description ?? ""}
-              rows={4}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </Field>
-          <Field label="Benefícios (um por linha)">
-            <Textarea
-              value={(form.benefits ?? []).join("\n")}
-              rows={3}
-              onChange={(e) =>
-                setForm({ ...form, benefits: e.target.value.split("\n").filter(Boolean) })
-              }
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Cápsulas">
-              <Input
-                type="number"
-                value={form.capsule_count ?? 60}
-                onChange={(e) => setForm({ ...form, capsule_count: Number(e.target.value) })}
-              />
-            </Field>
-            <Field label="Preço (R$)">
-              <Input
-                type="number"
-                step="0.01"
-                value={form.price ?? ""}
-                onChange={(e) =>
-                  setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })
-                }
-              />
-            </Field>
-          </div>
-          <Field label="Dosagem">
-            <Input
-              value={form.dosage ?? ""}
-              onChange={(e) => setForm({ ...form, dosage: e.target.value })}
-            />
-          </Field>
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="Pote">
-              <Input
-                type="color"
-                value={form.jar_color ?? "#2A3A2C"}
-                onChange={(e) => setForm({ ...form, jar_color: e.target.value })}
-              />
-            </Field>
-            <Field label="Tampa">
-              <Input
-                type="color"
-                value={form.lid_color ?? "#C98A3C"}
-                onChange={(e) => setForm({ ...form, lid_color: e.target.value })}
-              />
-            </Field>
-            <Field label="Cápsula">
-              <Input
-                type="color"
-                value={form.capsule_color ?? "#E8B54A"}
-                onChange={(e) => setForm({ ...form, capsule_color: e.target.value })}
-              />
-            </Field>
-          </div>
-          <Field label="URL da imagem do produto">
-            <Input
-              value={form.image_url ?? ""}
-              placeholder="/__l5e/assets-v1/..."
-              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-            />
-          </Field>
-          {form.id ? (
-            <div className="space-y-2">
-              <Label>Fotos e vídeos do produto</Label>
-              <ProductMediaManager productId={form.id} />
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Salve o produto para liberar o envio de fotos e vídeos.
-            </p>
-          )}
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="stock">Em estoque</Label>
-            <Switch
-              id="stock"
-              checked={form.in_stock ?? true}
-              onCheckedChange={(v) => setForm({ ...form, in_stock: v })}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="active">Visível no site</Label>
-            <Switch
-              id="active"
-              checked={form.is_active ?? true}
-              onCheckedChange={(v) => setForm({ ...form, is_active: v })}
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={save.isPending}>
-            Salvar produto
-          </Button>
-        </form>
-      </div>
-    </div>
+      {tab === "equipe" ? <AdminMembers /> : null}
+    </AdminShell>
   );
 }
 

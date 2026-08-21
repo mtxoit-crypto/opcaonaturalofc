@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { productsQuery } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 
 type PendingReview = {
@@ -15,6 +16,9 @@ type PendingReview = {
 
 export function AdminReviews() {
   const qc = useQueryClient();
+  const { data: products } = useQuery(productsQuery);
+  const names = Object.fromEntries((products ?? []).map((p) => [p.id, p.name]));
+
   const { data } = useQuery({
     queryKey: ["admin-reviews"],
     queryFn: async (): Promise<PendingReview[]> => {
@@ -44,17 +48,26 @@ export function AdminReviews() {
   });
 
   return (
-    <section className="mt-12">
+    <section className="mt-8">
       <h2 className="text-2xl">Avaliações pendentes</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Aprovadas aparecem na página do produto. Rejeitar apaga o comentário.
+      </p>
       <div className="mt-4 space-y-3">
         {data?.length ? (
           data.map((r) => (
             <article key={r.id} className="surface-card flex flex-wrap items-center gap-3 p-4">
-              <div className="min-w-[200px] flex-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {names[r.product_id] ?? "Produto"}
+                </p>
                 <p className="font-medium">
                   {r.author_name} · {r.rating}★
                 </p>
                 {r.comment ? <p className="text-sm text-muted-foreground">{r.comment}</p> : null}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date(r.created_at).toLocaleString("pt-BR")}
+                </p>
               </div>
               <Button size="sm" disabled={act.isPending} onClick={() => act.mutate({ id: r.id, approve: true })}>
                 Aprovar
