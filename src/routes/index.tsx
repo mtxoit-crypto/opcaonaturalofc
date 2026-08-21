@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
-import { productsQuery, formatPrice } from "@/lib/products";
+import { productsQuery, formatPrice, productPhoto } from "@/lib/products";
 import { JarViewer } from "@/components/JarViewer";
 import { WordReveal } from "@/components/WordReveal";
 import { BenefitCarousel } from "@/components/BenefitCarousel";
@@ -108,7 +108,7 @@ function Index() {
             name={featured?.name}
             dosage={featured?.dosage ?? undefined}
             subtitle={featured?.subtitle ?? undefined}
-            imageUrl={featured?.image_url ?? undefined}
+            imageUrl={featured ? productPhoto(featured) : undefined}
           />
         </div>
 
@@ -176,21 +176,12 @@ function Index() {
                   params={{ slug: p.slug }}
                   className="surface-card group block p-5"
                 >
-                {p.image_url ? (
                   <PhotoSpotlight
-                    src={p.image_url}
+                    src={productPhoto(p)}
                     alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
                     className="h-32 rounded-xl"
                     imgClassName="h-32 p-2"
                   />
-                ) : (
-                  <div
-                    className="h-32 rounded-xl"
-                    style={{
-                      background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})`,
-                    }}
-                  />
-                )}
                 <h3 className="mt-4 text-xl">{p.name}</h3>
                 <p className="text-sm text-muted-foreground">{p.subtitle}</p>
                 <p className="mt-3 text-sm font-medium text-accent">{formatPrice(p.price)}</p>

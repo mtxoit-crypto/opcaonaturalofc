@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
-import { productsQuery, type Product } from "@/lib/products";
+import { productsQuery, productPhoto, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
-import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,9 +61,9 @@ export const Route = createFileRoute("/produtos/")({
 });
 
 function ProductsPage() {
+  const navigate = useNavigate();
   const { data: products, isLoading } = useQuery(productsQuery);
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
-  const checkoutUrl = useCartStore((s) => s.checkoutUrl);
 
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("relevancia");
@@ -75,8 +74,7 @@ function ProductsPage() {
     const ok = await addToCart(p.slug, p.name);
     if (!ok) return;
     if (now) {
-      const url = useCartStore.getState().getCheckoutUrl() ?? checkoutUrl;
-      if (url) window.open(url, "_blank");
+      navigate({ to: "/checkout" });
     } else {
       toast.success(`${p.name} adicionado ao carrinho`);
     }
@@ -287,21 +285,12 @@ function ProductsPage() {
                   </Badge>
                 ) : null}
                 <Link to="/produtos/$slug" params={{ slug: p.slug }} className="group">
-                  {p.image_url ? (
-                    <PhotoSpotlight
-                      src={p.image_url}
-                      alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
-                      className="h-44 rounded-xl transition-transform duration-300 group-hover/card:scale-[1.03]"
-                      imgClassName="h-44 p-2"
-                    />
-                  ) : (
-                    <div
-                      className="h-44 rounded-xl transition-transform duration-300 group-hover/card:scale-[1.03]"
-                      style={{
-                        background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})`,
-                      }}
-                    />
-                  )}
+                  <PhotoSpotlight
+                    src={productPhoto(p)}
+                    alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                    className="h-44 rounded-xl transition-transform duration-300 group-hover/card:scale-[1.03]"
+                    imgClassName="h-44 p-2"
+                  />
                   <h2 className="mt-5 text-2xl">{p.name}</h2>
                   <p className="text-sm text-muted-foreground">{p.subtitle}</p>
                 </Link>

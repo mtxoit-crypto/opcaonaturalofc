@@ -24,7 +24,7 @@ export function WordReveal({
             return (
               <span
                 key={`${li}-${wi}`}
-                className={cn("inline-block overflow-hidden align-bottom", wi < line.length - 1 && "mr-[0.28em]")}
+                className={cn("inline-block align-bottom", wi < line.length - 1 && "mr-[0.28em]")}
               >
                 <motion.span
                   className={cn(
@@ -33,8 +33,8 @@ export function WordReveal({
                     word.italic && "text-display italic font-normal leading-[1.15]",
                     word.accent && "text-accent",
                   )}
-                  initial={reduce ? false : { y: "100%", opacity: 0, filter: "blur(4px)" }}
-                  animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
+                  initial={reduce ? false : { y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: reduce ? 0.2 : 0.62, delay: reduce ? 0 : delay, ease }}
                 >
                   {word.text}

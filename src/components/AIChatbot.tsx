@@ -99,7 +99,7 @@ export function AIChatbot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 md:bottom-5"
           aria-label="Abrir assistente virtual"
         >
           <Bot className="size-6" />
@@ -107,7 +107,7 @@ export function AIChatbot() {
       )}
 
       {open && (
-        <div className="fixed inset-x-4 bottom-5 z-40 flex w-auto max-w-sm flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl sm:left-auto sm:right-5">
+        <div className="fixed inset-x-4 bottom-20 z-40 flex w-auto max-w-sm flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl sm:left-auto sm:right-5 md:bottom-5">
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
             <div className="flex items-center gap-2">
               <span className="flex size-8 items-center justify-center rounded-full bg-primary-foreground/20">

@@ -156,6 +156,17 @@ export function SiteFooter() {
             Opção Natural · Suplementos naturais
           </p>
           <p>Suplementos não substituem uma alimentação equilibrada.</p>
+          <nav className="flex flex-wrap gap-4">
+            <Link to="/produtos" className="hover:text-foreground">
+              Produtos
+            </Link>
+            <Link to="/kits" className="hover:text-foreground">
+              Kits
+            </Link>
+            <Link to="/checkout" className="hover:text-foreground">
+              Carrinho
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>
