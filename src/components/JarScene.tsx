@@ -456,7 +456,7 @@ function Jar({
 }
 
 export default function JarScene(props: Props) {
-  const compact = props.compact;
+  const compact = props.compact ?? false;
   return (
     <ViewerStage
       shadows

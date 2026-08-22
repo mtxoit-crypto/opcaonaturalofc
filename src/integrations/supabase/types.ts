@@ -213,10 +213,12 @@ export type Database = {
           customer_name: string
           customer_phone: string
           district: string
+          financial_status: string | null
           id: string
           notes: string | null
           number: string
           payment_method: string
+          payment_status: string | null
           shipping_fee: number
           state: string
           status: string
@@ -235,10 +237,12 @@ export type Database = {
           customer_name: string
           customer_phone: string
           district: string
+          financial_status?: string | null
           id?: string
           notes?: string | null
           number: string
           payment_method?: string
+          payment_status?: string | null
           shipping_fee?: number
           state: string
           status?: string
@@ -257,10 +261,12 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           district?: string
+          financial_status?: string | null
           id?: string
           notes?: string | null
           number?: string
           payment_method?: string
+          payment_status?: string | null
           shipping_fee?: number
           state?: string
           status?: string

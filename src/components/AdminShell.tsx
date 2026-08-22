@@ -25,7 +25,7 @@ export function AdminShell({
             <Link
               key={l.to}
               to={l.to}
-              activeOptions={l.exact ? { exact: true } : undefined}
+              activeOptions={{ exact: l.exact }}
               className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-[color,background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
               activeProps={{ className: "bg-primary text-primary-foreground" }}
               inactiveProps={{ className: "bg-card hover:bg-secondary hover:text-foreground" }}

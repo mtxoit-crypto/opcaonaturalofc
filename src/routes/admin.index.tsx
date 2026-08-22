@@ -217,8 +217,8 @@ function AdminPage() {
         onChange={setTab}
         tabs={[
           { id: "visao", label: "Visão geral" },
-          { id: "catalogo", label: "Catálogo", count: products?.length },
-          { id: "kits", label: "Kits", count: kits?.length },
+          { id: "catalogo", label: "Catálogo", count: products?.length ?? 0 },
+          { id: "kits", label: "Kits", count: kits?.length ?? 0 },
           { id: "avaliacoes", label: "Avaliações", count: pendingReviews },
           { id: "loja", label: "Loja" },
           { id: "equipe", label: "Equipe" },
@@ -244,7 +244,7 @@ function AdminPage() {
                 key={c.t}
                 type="button"
                 className="surface-card p-4 text-left hover:bg-sand"
-                onClick={() => setTab(c.go)}
+                onClick={() => setTab(c.go ?? "visao")}
               >
                 <p className="text-xs text-muted-foreground">{c.t}</p>
                 <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{c.n}</p>
@@ -326,15 +326,15 @@ function AdminPage() {
                     variant="ghost"
                     size="sm"
                     aria-label="Duplicar"
-                    onClick={() =>
+                    onClick={() => {
+                      const { id: _id, ...rest } = p;
                       setForm({
-                        ...p,
-                        id: undefined,
+                        ...rest,
                         name: `${p.name} (cópia)`,
                         slug: `${p.slug}-copia`,
                         sort_order: (p.sort_order ?? 99) + 1,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <Copy className="size-4" />
                   </Button>
