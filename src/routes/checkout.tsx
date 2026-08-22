@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
+import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout")({

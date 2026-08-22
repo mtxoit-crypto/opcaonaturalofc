@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingBag, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
+import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { track } from "@/lib/analytics";
 
 export function CartDrawer() {
