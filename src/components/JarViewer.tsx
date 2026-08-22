@@ -46,7 +46,7 @@ export function JarViewer({ className, compact, ...scene }: Props) {
       >
         <ClientOnly fallback={<Placeholder />}>
           <Suspense fallback={<Placeholder />}>
-            <JarScene open={open} compact={compact} {...scene} />
+            <JarScene open={open} compact={compact ?? false} {...scene} />
           </Suspense>
         </ClientOnly>
         <span className="pointer-events-none absolute bottom-2.5 left-1/2 z-20 -translate-x-1/2 rounded-full bg-card/85 px-2.5 py-0.5 text-[11px] text-muted-foreground backdrop-blur">
