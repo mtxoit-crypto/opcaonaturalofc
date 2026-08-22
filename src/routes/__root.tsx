@@ -130,8 +130,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
       <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip">
+        <a href="#conteudo" className="skip-link">
+          Ir para o conteúdo
+        </a>
         <SiteHeader />
-        <main className="min-w-0 flex-1 overflow-x-clip">
+        <main id="conteudo" className="min-w-0 flex-1 overflow-x-clip">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>

@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as PedidoConfirmadoRouteImport } from './routes/pedido-confirmado'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as TrocasRouteImport } from './routes/trocas'
+import { Route as EntregaRouteImport } from './routes/entrega'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
@@ -35,9 +38,24 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PedidoConfirmadoRoute = PedidoConfirmadoRouteImport.update({
-  id: '/pedido-confirmado',
-  path: '/pedido-confirmado',
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrocasRoute = TrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntregaRoute = EntregaRouteImport.update({
+  id: '/entrega',
+  path: '/entrega',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -75,7 +93,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
-  '/pedido-confirmado': typeof PedidoConfirmadoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
+  '/trocas': typeof TrocasRoute
+  '/entrega': typeof EntregaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -87,7 +108,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
-  '/pedido-confirmado': typeof PedidoConfirmadoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
+  '/trocas': typeof TrocasRoute
+  '/entrega': typeof EntregaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -100,7 +124,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
-  '/pedido-confirmado': typeof PedidoConfirmadoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
+  '/trocas': typeof TrocasRoute
+  '/entrega': typeof EntregaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -114,7 +141,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
-    | '/pedido-confirmado'
+    | '/privacidade'
+    | '/termos'
+    | '/trocas'
+    | '/entrega'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -126,7 +156,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
-    | '/pedido-confirmado'
+    | '/privacidade'
+    | '/termos'
+    | '/trocas'
+    | '/entrega'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -138,7 +171,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
-    | '/pedido-confirmado'
+    | '/privacidade'
+    | '/termos'
+    | '/trocas'
+    | '/entrega'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -151,7 +187,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
-  PedidoConfirmadoRoute: typeof PedidoConfirmadoRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosRoute: typeof TermosRoute
+  TrocasRoute: typeof TrocasRoute
+  EntregaRoute: typeof EntregaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   ProdutosSlugRoute: typeof ProdutosSlugRoute
@@ -183,11 +222,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pedido-confirmado': {
-      id: '/pedido-confirmado'
-      path: '/pedido-confirmado'
-      fullPath: '/pedido-confirmado'
-      preLoaderRoute: typeof PedidoConfirmadoRouteImport
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocas': {
+      id: '/trocas'
+      path: '/trocas'
+      fullPath: '/trocas'
+      preLoaderRoute: typeof TrocasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrega': {
+      id: '/entrega'
+      path: '/entrega'
+      fullPath: '/entrega'
+      preLoaderRoute: typeof EntregaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -239,7 +299,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
-  PedidoConfirmadoRoute: PedidoConfirmadoRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosRoute: TermosRoute,
+  TrocasRoute: TrocasRoute,
+  EntregaRoute: EntregaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   ProdutosSlugRoute: ProdutosSlugRoute,

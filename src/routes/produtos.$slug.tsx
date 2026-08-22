@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronLeft, ShoppingBag, Loader2 } from "lucide-react";
+import { Check, ShoppingBag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { productQuery, productsQuery, productPhoto } from "@/lib/products";
 import { productMediaQuery } from "@/lib/media";
@@ -12,13 +13,19 @@ import { ProductReviews } from "@/components/ProductReviews";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { Button } from "@/components/ui/button";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { reviewsQuery, averageRating } from "@/lib/reviews";
+import { track } from "@/lib/analytics";
+import { absoluteUrl, SITE_ORIGIN } from "@/lib/site";
 
 export const Route = createFileRoute("/produtos/$slug")({
   loader: async ({ context, params }) =>
     context.queryClient.ensureQueryData(productQuery(params.slug)),
   head: ({ params, loaderData }) => {
     const p = loaderData ?? null;
-    const url = `https://opcaonaturalofc.lovable.app/produtos/${params.slug}`;
+    const url = absoluteUrl(`/produtos/${params.slug}`);
+    const photo = p ? productPhoto(p) : "";
+    const image = photo.startsWith("http") ? photo : absoluteUrl(photo);
     const name = p?.name ?? params.slug.replace(/-/g, " ");
     const description =
       p?.description ??
@@ -33,10 +40,10 @@ export const Route = createFileRoute("/produtos/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "product" },
         { property: "og:url", content: url },
-        ...(p?.image_url?.startsWith("https://")
+        ...(image
           ? [
-              { property: "og:image", content: p.image_url },
-              { name: "twitter:image", content: p.image_url },
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
             ]
           : []),
       ],
@@ -45,12 +52,13 @@ export const Route = createFileRoute("/produtos/$slug")({
         ? [
             {
               type: "application/ld+json",
-              children: JSON.stringify({
+              children: JSON.stringify([
+                {
                 "@context": "https://schema.org",
                 "@type": "Product",
                 name: p.name,
                 description,
-                ...(p.image_url ? { image: p.image_url } : {}),
+                ...(image ? { image } : {}),
                 brand: { "@type": "Brand", name: "Opção Natural" },
                 url,
                 ...(p.price != null
@@ -66,7 +74,17 @@ export const Route = createFileRoute("/produtos/$slug")({
                       },
                     }
                   : {}),
-              }),
+                },
+                {
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                    { "@type": "ListItem", position: 1, name: "Início", item: SITE_ORIGIN },
+                    { "@type": "ListItem", position: 2, name: "Produtos", item: absoluteUrl("/produtos") },
+                    { "@type": "ListItem", position: 3, name: p.name, item: url },
+                  ],
+                },
+              ]),
             },
           ]
         : [],
@@ -84,6 +102,11 @@ function ProductPage() {
     product?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(product.id) ? product.id : undefined;
   const { data: media } = useQuery(productMediaQuery(mediaId));
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
+  const { data: reviews } = useQuery(reviewsQuery(mediaId));
+
+  useEffect(() => {
+    track({ name: "view_product", slug });
+  }, [slug]);
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-5 py-20 text-muted-foreground">Carregando…</div>;
@@ -105,9 +128,10 @@ function ProductPage() {
   const gallery = (media ?? []).filter((m) => m.media_type !== "model");
   const { variant } = getVariant(p.slug, p.name);
   const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
-  const available = Boolean(variant?.availableForSale ?? p.in_stock);
   const related = (catalog ?? []).filter((x) => x.is_active && x.slug !== p.slug).slice(0, 4);
   const photo = productPhoto(p);
+  const avg = averageRating(reviews);
+  const buyable = Boolean(variant?.availableForSale);
 
   async function buy(now: boolean) {
     const ok = await addToCart(p.slug, p.name);
@@ -121,12 +145,23 @@ function ProductPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
-      <Link
-        to="/produtos"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ChevronLeft className="size-4" /> Produtos
-      </Link>
+      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-1">
+          <li>
+            <Link to="/" className="hover:text-foreground">
+              Início
+            </Link>
+          </li>
+          <li aria-hidden>/</li>
+          <li>
+            <Link to="/produtos" className="hover:text-foreground">
+              Produtos
+            </Link>
+          </li>
+          <li aria-hidden>/</li>
+          <li className="text-foreground">{p.name}</li>
+        </ol>
+      </nav>
 
       <div className="mt-6 grid items-start gap-12 md:grid-cols-2">
         <div className="space-y-4">
@@ -179,6 +214,12 @@ function ProductPage() {
 
         <div>
           <h1 className="text-4xl">{p.name}</h1>
+          {avg != null ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Avaliação média {avg.toFixed(1)} de 5
+              {reviews?.length ? ` · ${reviews.length} avaliações` : ""}
+            </p>
+          ) : null}
           <p className="mt-1 text-muted-foreground">{p.subtitle}</p>
           <p className="mt-6 text-lg leading-relaxed">{p.description}</p>
 
@@ -198,33 +239,53 @@ function ProductPage() {
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">Conteúdo</dt>
               <dd className="mt-1 text-lg">{p.capsule_count} cápsulas</dd>
             </div>
+            {p.dosage ? (
             <div className="surface-card p-4">
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Dosagem</dt>
-              <dd className="mt-1 text-lg">{p.dosage ?? "—"}</dd>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Modo de uso</dt>
+              <dd className="mt-1 text-lg">{p.dosage}</dd>
             </div>
+            ) : null}
           </dl>
 
           <p className="mt-8 text-3xl text-accent">{formatMoney(price)}</p>
+          <p className="text-sm font-medium">{buyable ? "Disponível" : "Esgotado"}</p>
           <p className="text-sm text-muted-foreground">
-            Pagamento somente no checkout seguro da Shopify
+            Pagamento somente no checkout seguro da Shopify. Frete confirmado no checkout.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <Button size="lg" variant="outline" disabled={!available || cartLoading} onClick={() => buy(false)}>
+            <Button size="lg" variant="outline" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(false)}>
               {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
               Adicionar ao carrinho
             </Button>
-            <Button size="lg" disabled={!available || cartLoading} onClick={() => buy(true)}>
+            <Button size="lg" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
               Comprar agora
             </Button>
           </div>
-          {!available ? (
+          {!buyable ? (
             <p className="mt-3 text-sm text-muted-foreground">Produto temporariamente esgotado.</p>
           ) : null}
 
           <div className="mt-8">
             <ShippingCalculator />
           </div>
+          <Accordion type="single" collapsible className="mt-8">
+            <AccordionItem value="pagamento">
+              <AccordionTrigger>Formas de pagamento e troca</AccordionTrigger>
+              <AccordionContent className="space-y-2 text-sm text-muted-foreground">
+                <p>O pagamento acontece no checkout da Shopify.</p>
+                <p>
+                  <Link to="/trocas" className="underline-offset-4 hover:underline">
+                    Trocas e devoluções
+                  </Link>
+                  {" · "}
+                  <Link to="/entrega" className="underline-offset-4 hover:underline">
+                    Política de entrega
+                  </Link>
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
 
@@ -260,7 +321,7 @@ function ProductPage() {
             <span className="font-medium">{p.name}</span>
             <span className="ml-2 text-accent">{formatMoney(price)}</span>
           </p>
-          <Button size="sm" disabled={!available || cartLoading} onClick={() => buy(true)}>
+          <Button size="sm" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
             Comprar
           </Button>
         </div>

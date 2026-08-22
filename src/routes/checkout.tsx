@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
-import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -41,6 +41,7 @@ function CartPage() {
       toast.error("O carrinho ainda está sincronizando. Tente de novo em instantes.");
       return;
     }
+    track({ name: "begin_checkout" });
     window.location.assign(url);
   }
 

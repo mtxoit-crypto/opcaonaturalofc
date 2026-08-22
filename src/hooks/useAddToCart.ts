@@ -31,6 +31,8 @@ export function useAddToCart() {
       price: variant.price,
       quantity,
     });
+    const { track } = await import("@/lib/analytics");
+    track({ name: "add_to_cart", slug });
     return true;
   }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
@@ -21,6 +21,9 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 export const Route = createFileRoute("/produtos/")({
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Produtos · Opção Natural suplementos naturais" },
@@ -62,13 +65,18 @@ export const Route = createFileRoute("/produtos/")({
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const { q: qParam } = Route.useSearch();
   const { data: products, isLoading } = useQuery(productsQuery);
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(qParam ?? "");
   const [sort, setSort] = useState<SortKey>("relevancia");
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (qParam) setQuery(qParam);
+  }, [qParam]);
 
   async function buy(p: Product, now: boolean) {
     const ok = await addToCart(p.slug, p.name);

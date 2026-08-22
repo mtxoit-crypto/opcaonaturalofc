@@ -16,9 +16,9 @@ export const storeSettingsQuery = {
     if (error) throw error;
     return (
       (data as StoreSettings) ?? {
-        whatsapp_number: "5500000000000",
-        shipping_fee: 19.9,
-        free_shipping_min: 199,
+        whatsapp_number: "",
+        shipping_fee: 0,
+        free_shipping_min: 0,
       }
     );
   },

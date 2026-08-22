@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { SITE_ORIGIN } from "@/lib/site";
 import { supabase } from "@/integrations/supabase/client";
-
-const BASE_URL = "https://opcaonaturalofc.lovable.app";
 
 interface SitemapEntry {
   path: string;
@@ -18,6 +17,10 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/produtos", changefreq: "weekly", priority: "0.9" },
           { path: "/kits", changefreq: "weekly", priority: "0.8" },
+          { path: "/privacidade", changefreq: "yearly", priority: "0.3" },
+          { path: "/termos", changefreq: "yearly", priority: "0.3" },
+          { path: "/trocas", changefreq: "yearly", priority: "0.3" },
+          { path: "/entrega", changefreq: "yearly", priority: "0.3" },
         ];
 
         const { data } = await supabase
@@ -34,7 +37,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
+            `    <loc>${SITE_ORIGIN}${e.path}</loc>`,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,

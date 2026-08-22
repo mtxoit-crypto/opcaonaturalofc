@@ -71,6 +71,10 @@ export function PhotoSpotlight({
       <img
         src={src}
         alt={alt}
+        width={640}
+        height={640}
+        loading="lazy"
+        decoding="async"
         className={cn("photo-zoom relative z-0 h-full w-full object-contain p-4", imgClassName)}
       />
       {desktop && !reduce ? (

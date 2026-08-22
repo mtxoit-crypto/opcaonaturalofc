@@ -19,6 +19,7 @@ export const reviewsQuery = (productId: string | undefined) => ({
       .from("product_reviews")
       .select("id,product_id,author_name,rating,comment,is_approved,created_at")
       .eq("product_id", productId)
+      .eq("is_approved", true)
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []) as Review[];
@@ -44,3 +45,37 @@ export function averageRating(reviews: Review[] | undefined) {
   if (!reviews?.length) return null;
   return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
 }
+
+export type HomeReview = Review & { product_name: string; product_slug: string };
+
+export const approvedHomeReviewsQuery = {
+  queryKey: ["home-reviews-approved"],
+  queryFn: async (): Promise<HomeReview[]> => {
+    const { data, error } = await supabase
+      .from("product_reviews")
+      .select("id,product_id,author_name,rating,comment,is_approved,created_at,products(name,slug)")
+      .eq("is_approved", true)
+      .not("comment", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(8);
+    if (error) return [];
+    return (data ?? [])
+      .map((row) => {
+        const product = row.products as { name?: string; slug?: string } | { name?: string; slug?: string }[] | null;
+        const p = Array.isArray(product) ? product[0] : product;
+        if (!p?.name || !p.slug || !row.comment?.trim()) return null;
+        return {
+          id: row.id as string,
+          product_id: row.product_id as string,
+          author_name: row.author_name as string,
+          rating: row.rating as number,
+          comment: row.comment as string,
+          is_approved: true,
+          created_at: row.created_at as string,
+          product_name: p.name,
+          product_slug: p.slug,
+        };
+      })
+      .filter((r): r is HomeReview => r != null);
+  },
+};
