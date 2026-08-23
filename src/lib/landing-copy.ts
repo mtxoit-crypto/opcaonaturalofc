@@ -3,7 +3,7 @@ export const landing = {
     title: "Sua rotina natural começa com a escolha certa.",
     text: "Cápsulas no catálogo, com preço e estoque claros. Entrega para todo o Brasil.",
     primary: "Encontrar meu suplemento",
-    secondary: "Nossa história",
+    secondary: "Ver kits",
   },
   trust: [
     { title: "Checkout seguro", detail: "Pagamento somente na Shopify." },
@@ -16,11 +16,6 @@ export const landing = {
     p2: "Os suplementos naturais que usamos em casa fizeram parte da rotina. Eles não substituem alimentação equilibrada e não garantem o mesmo resultado para outras pessoas.",
     cta: "Conheça os produtos",
   },
-  how: [
-    { n: "1", t: "Escolha o produto", d: "Veja nome, quantidade, preço e disponibilidade no catálogo." },
-    { n: "2", t: "Adicione ao carrinho", d: "Ajuste a quantidade e revise os itens antes de pagar." },
-    { n: "3", t: "Finalize na Shopify", d: "Frete e formas de pagamento são confirmados no checkout seguro." },
-  ],
   faq: [
     {
       q: "Como escolher um produto?",

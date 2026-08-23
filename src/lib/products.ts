@@ -195,21 +195,85 @@ const LOCAL: Array<{
     benefits: ["Mineral essencial"],
     price: 39.9,
   },
+  {
+    slug: "ashwagandha",
+    name: "Ashuwagandá",
+    subtitle: "Ashwagandha em cápsulas",
+    description: "Ashwagandha em cápsulas para a rotina do dia e da noite.",
+    benefits: ["Rotina"],
+    price: 49.9,
+  },
+  {
+    slug: "capim-limao",
+    name: "Capim Limão",
+    subtitle: "Capim-limão em cápsulas",
+    description: "Capim-limão em cápsulas para a rotina antes de dormir.",
+    benefits: ["Rotina noturna"],
+    price: 49.9,
+  },
+  {
+    slug: "gaba",
+    name: "GABA",
+    subtitle: "GABA em cápsulas",
+    description: "GABA em cápsulas para a rotina meia hora antes de dormir.",
+    benefits: ["Rotina noturna"],
+    price: 49.9,
+  },
+  {
+    slug: "glicina",
+    name: "Glicina",
+    subtitle: "Glicina em cápsulas",
+    description: "Glicina em cápsulas para a rotina antes de dormir.",
+    benefits: ["Rotina noturna"],
+    price: 49.9,
+  },
+  {
+    slug: "maracuja",
+    name: "Maracujá",
+    subtitle: "Maracujá em cápsulas",
+    description: "Maracujá em cápsulas para a rotina da noite.",
+    benefits: ["Rotina noturna"],
+    price: 49.9,
+  },
+  {
+    slug: "mulungu",
+    name: "Mulungu",
+    subtitle: "Mulungu em cápsulas",
+    description: "Mulungu em cápsulas para a rotina da noite.",
+    benefits: ["Rotina noturna"],
+    price: 49.9,
+  },
 ];
 
-const TWICE_DAILY = new Set([
-  "catuaba",
-  "feno-grego",
-  "ginseng",
-  "maca-peruana-negra",
-  "marapuama",
-  "mucuna-preta",
-  "tribulus-terrestris",
-]);
+const DOSAGE: Record<string, string> = {
+  "ashwagandha": "1 cápsula de manhã e 1 cápsula à noite",
+  "banana-verde": "1 cápsula 30 min antes do almoço e do jantar",
+  "capim-limao": "1 a 2 cápsulas antes de dormir",
+  "catuaba": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "cha-verde": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "feno-grego": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "gaba": "1 cápsula meia hora antes de dormir",
+  "gengibre": "1 cápsula de manhã e 1 cápsula à noite",
+  "ginseng": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "glicina": "1 ou 2 cápsulas antes de dormir",
+  "glucomannan": "1 cápsula meia hora antes do almoço e do jantar",
+  "hibisco": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "laranja-moro": "1 cápsula de manhã e 1 cápsula à noite",
+  "maca-peruana-negra": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "maracuja": "1 a 2 cápsulas à noite",
+  "marapuama": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "mucuna-preta": "1 cápsula de manhã e 1 cápsula após o almoço",
+  "mulungu": "1 a 2 cápsulas à noite",
+  "psyllium": "2 cápsulas meia hora antes do almoço e 2 antes do jantar",
+  "tribulus-terrestris": "1 cápsula de manhã e 1 cápsula após o almoço",
+};
 
 function productDosage(slug: string) {
-  if (TWICE_DAILY.has(slug)) return "1 cápsula de manhã e 1 cápsula após o almoço";
-  return "1 cápsula ao dia";
+  return DOSAGE[slug] ?? "1 cápsula ao dia";
+}
+
+function capsuleCount(slug: string) {
+  return slug === "gaba" ? 30 : 60;
 }
 
 function localCatalog(): Product[] {
@@ -221,11 +285,11 @@ function localCatalog(): Product[] {
     description: p.description,
     benefits: p.benefits,
     dosage: productDosage(p.slug),
-    capsule_count: 60,
+    capsule_count: capsuleCount(p.slug),
     price: p.price,
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
-    lid_color: TWICE_DAILY.has(p.slug) ? "#A8D4B8" : "#C98A3C",
+    lid_color: p.slug === "maracuja" ? "#2F4A8A" : p.slug === "gaba" ? "#F4F3F0" : "#A8D4B8",
     image_url: `/produtos/${p.slug}.png`,
     in_stock: true,
     is_active: true,
@@ -245,11 +309,11 @@ function fromShopify(edge: ShopifyProduct, index: number): Product {
     description: n.description || local?.description || null,
     benefits: local?.benefits ?? [],
     dosage: productDosage(n.handle),
-    capsule_count: 60,
+    capsule_count: capsuleCount(n.handle),
     price: Number.isFinite(amount) ? amount : (local?.price ?? null),
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
-    lid_color: TWICE_DAILY.has(n.handle) ? "#A8D4B8" : "#C98A3C",
+    lid_color: n.handle === "maracuja" ? "#2F4A8A" : n.handle === "gaba" ? "#F4F3F0" : "#A8D4B8",
     image_url: `/produtos/${n.handle}.png`,
     in_stock: Boolean(firstVariant(edge)?.availableForSale),
     is_active: true,
@@ -263,13 +327,16 @@ export function productPhoto(p: Pick<Product, "slug" | "image_url">) {
 }
 
 async function storefrontCatalog(): Promise<Product[]> {
+  const local = localCatalog();
   try {
     const shopify = await shopifyProductsQuery.queryFn();
-    if (shopify.length) return shopify.map(fromShopify);
+    if (!shopify.length) return local;
+    const fromShop = shopify.map(fromShopify);
+    const seen = new Set(fromShop.map((p) => p.slug));
+    return [...fromShop, ...local.filter((p) => !seen.has(p.slug))];
   } catch {
-    /* usa o catálogo local */
+    return local;
   }
-  return localCatalog();
 }
 
 export const productsQuery = {

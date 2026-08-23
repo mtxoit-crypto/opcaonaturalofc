@@ -58,7 +58,13 @@ export function SiteHeader() {
       >
         Kits
       </Link>
-      <Link to="/" hash="historia" className={navClass} onClick={() => setOpen(false)}>
+      <Link
+        to="/nossa-historia"
+        className={navClass}
+        activeProps={{ className: "bg-secondary text-foreground" }}
+        aria-current={pathname.startsWith("/nossa-historia") ? "page" : undefined}
+        onClick={() => setOpen(false)}
+      >
         Nossa história
       </Link>
       <Link to="/" hash="duvidas" className={navClass} onClick={() => setOpen(false)}>
@@ -176,7 +182,7 @@ export function SiteFooter() {
             <Link to="/kits" className="text-muted-foreground hover:text-foreground">
               Kits
             </Link>
-            <Link to="/" hash="historia" className="text-muted-foreground hover:text-foreground">
+            <Link to="/nossa-historia" className="text-muted-foreground hover:text-foreground">
               Nossa história
             </Link>
             <Link to="/" hash="duvidas" className="text-muted-foreground hover:text-foreground">

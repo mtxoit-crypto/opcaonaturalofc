@@ -16,6 +16,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TrocasRouteImport } from './routes/trocas'
 import { Route as EntregaRouteImport } from './routes/entrega'
+import { Route as NossaHistoriaRouteImport } from './routes/nossa-historia'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
@@ -58,6 +59,11 @@ const EntregaRoute = EntregaRouteImport.update({
   path: '/entrega',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NossaHistoriaRoute = NossaHistoriaRouteImport.update({
+  id: '/nossa-historia',
+  path: '/nossa-historia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
   '/entrega': typeof EntregaRoute
+  '/nossa-historia': typeof NossaHistoriaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
   '/entrega': typeof EntregaRoute
+  '/nossa-historia': typeof NossaHistoriaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
   '/entrega': typeof EntregaRoute
+  '/nossa-historia': typeof NossaHistoriaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas'
     | '/entrega'
+    | '/nossa-historia'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas'
     | '/entrega'
+    | '/nossa-historia'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas'
     | '/entrega'
+    | '/nossa-historia'
     | '/sitemap.xml'
     | '/admin/pedidos'
     | '/produtos/$slug'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   TrocasRoute: typeof TrocasRoute
   EntregaRoute: typeof EntregaRoute
+  NossaHistoriaRoute: typeof NossaHistoriaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   ProdutosSlugRoute: typeof ProdutosSlugRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntregaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nossa-historia': {
+      id: '/nossa-historia'
+      path: '/nossa-historia'
+      fullPath: '/nossa-historia'
+      preLoaderRoute: typeof NossaHistoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   TrocasRoute: TrocasRoute,
   EntregaRoute: EntregaRoute,
+  NossaHistoriaRoute: NossaHistoriaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   ProdutosSlugRoute: ProdutosSlugRoute,

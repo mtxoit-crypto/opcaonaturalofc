@@ -9,9 +9,7 @@ import { TrustBar } from "@/components/landing/TrustBar";
 import { FeaturedProducts } from "@/components/landing/FeaturedProducts";
 import { ObjectivePicker } from "@/components/landing/ObjectivePicker";
 import { Differentials } from "@/components/landing/Differentials";
-import { StorySection } from "@/components/landing/StorySection";
 import { HomeReviews } from "@/components/landing/HomeReviews";
-import { HowToBuy } from "@/components/landing/HowToBuy";
 import { HomeFaq } from "@/components/landing/HomeFaq";
 import { ClosingCta } from "@/components/landing/ClosingCta";
 
@@ -75,9 +73,7 @@ function Index() {
       <FeaturedProducts products={products} isLoading={isLoading} isError={isError} />
       <ObjectivePicker products={products} />
       <Differentials />
-      <StorySection />
       <HomeReviews />
-      <HowToBuy />
       <HomeFaq />
       <ClosingCta />
       <p className="sr-only">

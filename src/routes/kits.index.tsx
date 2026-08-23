@@ -15,7 +15,7 @@ export const Route = createFileRoute("/kits/")({
       {
         name: "description",
         content:
-          "Kits de suplementos naturais Opção Natural: combinações prontas, como o Kit Testosterona com 7 produtos em cápsulas.",
+          "Kits de suplementos naturais Opção Natural: Kit Emagrecimento, Kit Testosterona e Kit Ansiedade.",
       },
       { property: "og:title", content: "Kits · Opção Natural" },
       {

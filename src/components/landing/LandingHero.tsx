@@ -29,9 +29,9 @@ export function LandingHero({ product }: { product: Product | undefined }) {
               </Link>
             </Button>
             <Button asChild variant="outline" className="min-h-11">
-              <a href="#historia" onClick={() => track({ name: "click_hero_cta", cta: "secondary" })}>
+              <Link to="/kits" onClick={() => track({ name: "click_hero_cta", cta: "secondary" })}>
                 {landing.hero.secondary}
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

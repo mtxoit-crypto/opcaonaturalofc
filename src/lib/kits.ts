@@ -60,34 +60,92 @@ const KIT_TESTOSTERONA_SLUGS = [
   "catuaba",
 ];
 
-export function kitTestosteronaFromCatalog(products: Product[]): Kit {
+const KIT_EMAGRECIMENTO_SLUGS = [
+  "gengibre",
+  "laranja-moro",
+  "banana-verde",
+  "cha-verde",
+  "glucomannan",
+  "psyllium",
+  "hibisco",
+];
+
+const KIT_ANSIEDADE_SLUGS = ["mulungu", "gaba", "glicina", "maracuja", "ashwagandha", "capim-limao"];
+
+function kitFromSlugs(
+  products: Product[],
+  spec: {
+    id: string;
+    slug: string;
+    name: string;
+    subtitle: string;
+    description: string;
+    image_url: string;
+    sort_order: number;
+    slugs: string[];
+  },
+): Kit {
   const bySlug = new Map(products.map((p) => [p.slug, p]));
-  const items: KitItem[] = KIT_TESTOSTERONA_SLUGS.flatMap((slug, i) => {
+  const items: KitItem[] = spec.slugs.flatMap((slug, i) => {
     const product = bySlug.get(slug);
     if (!product) return [];
-    return [
-      {
-        id: `local-kit-testosterona-${slug}`,
-        product_id: product.id,
-        sort_order: i,
-        product,
-      },
-    ];
+    return [{ id: `${spec.id}-${slug}`, product_id: product.id, sort_order: i, product }];
   });
   return {
-    id: "local-kit-testosterona",
-    slug: "kit-testosterona",
-    name: "Kit Testosterona",
-    subtitle: "7 potes da linha de vitalidade",
-    description:
-      "Conjunto com Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Marapuama, Mucuna Preta e Catuaba. Cada pote contém 60 cápsulas. Este kit reúne fitoterápicos da rotina; não substitui avaliação médica nem promete alteração hormonal.",
+    id: spec.id,
+    slug: spec.slug,
+    name: spec.name,
+    subtitle: spec.subtitle,
+    description: spec.description,
     price: null,
-    image_url: "/kits/kit-testosterona.png",
+    image_url: spec.image_url,
     is_active: true,
-    sort_order: 1,
+    sort_order: spec.sort_order,
     items,
     products: items.map((i) => i.product).filter((p): p is Product => Boolean(p)),
   };
+}
+
+export function localKitsFromCatalog(products: Product[]): Kit[] {
+  return [
+    kitFromSlugs(products, {
+      id: "local-kit-emagrecimento",
+      slug: "kit-emagrecimento",
+      name: "Kit Emagrecimento",
+      subtitle: "7 potes da linha de rotina",
+      description:
+        "Conjunto com Gengibre, Laranja Moro, Banana Verde, Chá Verde, Glucomannan, Psyllium e Hibisco. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
+      image_url: "/kits/kit-emagrecimento.png",
+      sort_order: 0,
+      slugs: KIT_EMAGRECIMENTO_SLUGS,
+    }),
+    kitFromSlugs(products, {
+      id: "local-kit-testosterona",
+      slug: "kit-testosterona",
+      name: "Kit Testosterona",
+      subtitle: "7 potes da linha de vitalidade",
+      description:
+        "Conjunto com Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Marapuama, Mucuna Preta e Catuaba. Cada pote contém 60 cápsulas. Este kit reúne fitoterápicos da rotina; não substitui avaliação médica nem promete alteração hormonal.",
+      image_url: "/kits/kit-testosterona.png",
+      sort_order: 1,
+      slugs: KIT_TESTOSTERONA_SLUGS,
+    }),
+    kitFromSlugs(products, {
+      id: "local-kit-ansiedade",
+      slug: "kit-ansiedade",
+      name: "Kit Ansiedade",
+      subtitle: "6 potes da rotina noturna",
+      description:
+        "Conjunto com Mulungu, GABA, Glicina, Maracujá, Ashuwagandá e Capim Limão. O GABA contém 30 cápsulas; os demais, 60. Não substitui avaliação profissional nem tratamento.",
+      image_url: "/kits/kit-ansiedade.png",
+      sort_order: 2,
+      slugs: KIT_ANSIEDADE_SLUGS,
+    }),
+  ].filter((k) => k.products.length > 0);
+}
+
+export function kitTestosteronaFromCatalog(products: Product[]): Kit {
+  return localKitsFromCatalog(products).find((k) => k.slug === "kit-testosterona")!;
 }
 
 export const kitsQuery = {
@@ -100,10 +158,13 @@ export const kitsQuery = {
       .order("sort_order", { ascending: true });
     if (error) throw error;
     const kits = (data ?? []).map((k) => mapKit(k as Record<string, unknown>));
-    if (kits.some((k) => k.slug === "kit-testosterona")) return kits;
     const products = await productsQuery.queryFn();
-    const kit = kitTestosteronaFromCatalog(products);
-    return kit.products.length ? [...kits, kit] : kits;
+    const bySlug = new Map(kits.map((k) => [k.slug, k]));
+    for (const local of localKitsFromCatalog(products)) {
+      const existing = bySlug.get(local.slug);
+      if (!existing || existing.products.length === 0) bySlug.set(local.slug, local);
+    }
+    return [...bySlug.values()].sort((a, b) => a.sort_order - b.sort_order);
   },
 };
 
