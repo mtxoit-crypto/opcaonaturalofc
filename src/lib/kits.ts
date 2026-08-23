@@ -61,13 +61,13 @@ const KIT_TESTOSTERONA_SLUGS = [
 ];
 
 const KIT_EMAGRECIMENTO_SLUGS = [
-  "marapuama",
-  "hibisco",
-  "laranja-moro",
   "gengibre",
+  "laranja-moro",
+  "banana-verde",
+  "cha-verde",
   "glucomannan",
   "psyllium",
-  "cha-verde",
+  "hibisco",
 ];
 
 const KIT_ANSIEDADE_SLUGS = ["mulungu", "gaba", "glicina", "maracuja", "ashwagandha", "capim-limao"];
@@ -115,8 +115,8 @@ export function localKitsFromCatalog(products: Product[]): Kit[] {
       name: "Kit Emagrecimento",
       subtitle: "7 potes da linha de rotina",
       description:
-        "Conjunto com Marapuama, Hibisco, Laranja Moro, Gengibre, Glucomannan, Psyllium e Chá Verde. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
-      price: 189.99,
+        "Conjunto com Gengibre, Laranja Moro, Banana Verde, Chá Verde, Glucomannan, Psyllium e Hibisco. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
+      price: null,
       image_url: "/kits/kit-emagrecimento.png",
       sort_order: 0,
       slugs: KIT_EMAGRECIMENTO_SLUGS,
