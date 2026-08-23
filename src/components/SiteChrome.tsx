@@ -166,7 +166,6 @@ export function SiteFooter() {
           <p className="mt-2 text-sm text-muted-foreground">
             Suplementos naturais em cápsulas. Pagamento no checkout da Shopify.
           </p>
-          <p className="mt-3 text-sm text-muted-foreground">TODO_CONTEUDO_REAL: razão social, CNPJ e endereço.</p>
         </div>
         <div>
           <p className="text-sm font-medium">Loja</p>
@@ -210,14 +209,14 @@ export function SiteFooter() {
           {wa ? (
             <a
               href={`https://wa.me/${wa}`}
-              className="mt-3 inline-block text-sm text-muted-foreground hover:text-foreground"
+              className="mt-3 inline-block min-h-11 text-sm text-muted-foreground hover:text-foreground"
               rel="noreferrer"
               target="_blank"
             >
               WhatsApp
             </a>
           ) : (
-            <p className="mt-3 text-sm text-muted-foreground">TODO_CONTEUDO_REAL: e-mail e telefone oficiais.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Contato pelo e-mail da compra na Shopify.</p>
           )}
           <p className="mt-4 text-sm text-muted-foreground">
             Suplementos não substituem uma alimentação equilibrada.

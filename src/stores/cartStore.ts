@@ -151,7 +151,16 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "opcao-natural-shopify-cart",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window === "undefined") {
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
+        return localStorage;
+      }),
       partialize: (state) => ({
         items: state.items,
         cartId: state.cartId,

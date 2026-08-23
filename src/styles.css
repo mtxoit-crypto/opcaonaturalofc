@@ -263,6 +263,12 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 38%, var(--background));
+  color: var(--foreground);
 }
 
 :focus-visible {

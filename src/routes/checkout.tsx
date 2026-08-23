@@ -48,12 +48,12 @@ function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-24 text-center">
-        <h1 className="text-4xl">Seu carrinho está vazio</h1>
+      <div className="mx-auto max-w-lg px-5 py-20 text-center">
+        <h1 className="text-display text-4xl leading-[1.15]">Seu carrinho está vazio</h1>
         <p className="mt-3 text-muted-foreground">
-          Escolha seus suplementos e volte aqui para finalizar a compra.
+          Escolha um suplemento no catálogo. O pagamento acontece no checkout da Shopify.
         </p>
-        <Button asChild className="mt-6">
+        <Button asChild className="mt-6 min-h-11">
           <Link to="/produtos">Ver produtos</Link>
         </Button>
       </div>
@@ -90,7 +90,8 @@ function CartPage() {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="size-7"
+                    className="size-11"
+                    aria-label={`Diminuir ${i.title}`}
                     onClick={() => updateQuantity(i.variantId, i.quantity - 1)}
                   >
                     <Minus className="size-3" />
@@ -99,7 +100,8 @@ function CartPage() {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="size-7"
+                    className="size-11"
+                    aria-label={`Aumentar ${i.title}`}
                     onClick={() => updateQuantity(i.variantId, i.quantity + 1)}
                   >
                     <Plus className="size-3" />
@@ -107,7 +109,8 @@ function CartPage() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="ml-auto size-7"
+                    className="ml-auto size-11"
+                    aria-label={`Remover ${i.title}`}
                     onClick={() => removeItem(i.variantId)}
                   >
                     <Trash2 className="size-3.5" />
@@ -127,7 +130,7 @@ function CartPage() {
             <p className="text-xs text-muted-foreground">
               Frete e formas de pagamento aparecem no checkout da Shopify.
             </p>
-            <Button className="w-full" size="lg" onClick={checkout} disabled={isLoading || isSyncing}>
+            <Button className="w-full min-h-11" size="lg" onClick={checkout} disabled={isLoading || isSyncing}>
               {isLoading || isSyncing ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (

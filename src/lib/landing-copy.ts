@@ -1,10 +1,9 @@
 export const landing = {
   hero: {
-    eyebrow: "Suplementos para uma rotina mais simples",
     title: "Sua rotina natural começa com a escolha certa.",
-    text: "Encontre suplementos em cápsulas para diferentes objetivos e compre com praticidade, transparência e entrega para todo o Brasil.",
+    text: "Cápsulas no catálogo, com preço e estoque claros. Entrega para todo o Brasil.",
     primary: "Encontrar meu suplemento",
-    secondary: "Conhecer a nossa história",
+    secondary: "Nossa história",
   },
   trust: [
     { title: "Checkout seguro", detail: "Pagamento somente na Shopify." },

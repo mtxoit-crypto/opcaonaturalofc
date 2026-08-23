@@ -45,26 +45,31 @@ export function FeaturedProducts({
         <p className="mt-6 text-muted-foreground">Catálogo em atualização.</p>
       ) : (
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((p) => {
+          {list.map((p, i) => {
             const { variant } = getVariant(p.slug, p.name);
             const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
             const available = Boolean(variant?.availableForSale ?? p.in_stock);
             const buyable = Boolean(variant?.availableForSale);
             const benefit = (p.benefits ?? [])[0];
+            const featured = i === 0;
             return (
-              <article key={p.id} className="lift-card surface-card flex flex-col p-5">
+              <article
+                key={p.id}
+                className={`lift-card surface-card flex flex-col p-5 ${featured ? "sm:col-span-2 lg:col-span-2 lg:flex-row lg:gap-8" : ""}`}
+              >
                 <PhotoSpotlight
                   src={productPhoto(p)}
                   alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
-                  className="h-36 rounded-xl"
-                  imgClassName="h-36 p-2"
+                  className={featured ? "h-44 rounded-xl lg:h-full lg:min-h-52 lg:w-1/2" : "h-36 rounded-xl"}
+                  imgClassName={featured ? "h-44 p-2 lg:h-52" : "h-36 p-2"}
                 />
-                <h3 className="mt-4 text-xl">{p.name}</h3>
+                <div className="flex flex-1 flex-col">
+                <h3 className="mt-4 text-xl lg:mt-0">{p.name}</h3>
                 {benefit ? <p className="text-sm text-muted-foreground">{benefit}</p> : null}
                 <p className="mt-2 text-sm text-muted-foreground">{p.capsule_count} cápsulas</p>
                 <p className="mt-2 text-lg text-accent">{formatMoney(price)}</p>
                 <p className="text-xs text-muted-foreground">{available ? "Disponível" : "Esgotado"}</p>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-auto flex gap-2 pt-4">
                   <Button asChild variant="outline" className="min-h-11 flex-1">
                     <Link to="/produtos/$slug" params={{ slug: p.slug }}>
                       Ver detalhes
@@ -78,6 +83,7 @@ export function FeaturedProducts({
                     {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
                     Adicionar
                   </Button>
+                </div>
                 </div>
               </article>
             );

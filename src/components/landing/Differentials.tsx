@@ -3,12 +3,12 @@ import { landing } from "@/lib/landing-copy";
 export function Differentials() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-14">
-      <h2 className="text-display text-3xl">O que você encontra aqui</h2>
-      <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <h2 className="text-display max-w-[16ch] text-3xl leading-[1.15]">O que você encontra aqui</h2>
+      <ul className="mt-8 max-w-2xl divide-y divide-border border-y border-border">
         {landing.diffs.map((item) => (
-          <li key={item.t} className="surface-card p-5">
+          <li key={item.t} className="py-5">
             <h3 className="text-lg">{item.t}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{item.d}</p>
+            <p className="mt-1 max-w-[52ch] text-sm text-muted-foreground">{item.d}</p>
           </li>
         ))}
       </ul>
