@@ -61,13 +61,13 @@ const KIT_TESTOSTERONA_SLUGS = [
 ];
 
 const KIT_EMAGRECIMENTO_SLUGS = [
-  "gengibre",
+  "marapuama",
+  "hibisco",
   "laranja-moro",
-  "banana-verde",
-  "cha-verde",
+  "gengibre",
   "glucomannan",
   "psyllium",
-  "hibisco",
+  "cha-verde",
 ];
 
 const KIT_ANSIEDADE_SLUGS = ["mulungu", "gaba", "glicina", "maracuja", "ashwagandha", "capim-limao"];
@@ -80,6 +80,7 @@ function kitFromSlugs(
     name: string;
     subtitle: string;
     description: string;
+    price: number | null;
     image_url: string;
     sort_order: number;
     slugs: string[];
@@ -97,7 +98,7 @@ function kitFromSlugs(
     name: spec.name,
     subtitle: spec.subtitle,
     description: spec.description,
-    price: null,
+    price: spec.price,
     image_url: spec.image_url,
     is_active: true,
     sort_order: spec.sort_order,
@@ -114,7 +115,8 @@ export function localKitsFromCatalog(products: Product[]): Kit[] {
       name: "Kit Emagrecimento",
       subtitle: "7 potes da linha de rotina",
       description:
-        "Conjunto com Gengibre, Laranja Moro, Banana Verde, Chá Verde, Glucomannan, Psyllium e Hibisco. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
+        "Conjunto com Marapuama, Hibisco, Laranja Moro, Gengibre, Glucomannan, Psyllium e Chá Verde. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
+      price: 189.99,
       image_url: "/kits/kit-emagrecimento.png",
       sort_order: 0,
       slugs: KIT_EMAGRECIMENTO_SLUGS,
@@ -126,6 +128,7 @@ export function localKitsFromCatalog(products: Product[]): Kit[] {
       subtitle: "7 potes da linha de vitalidade",
       description:
         "Conjunto com Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Marapuama, Mucuna Preta e Catuaba. Cada pote contém 60 cápsulas. Este kit reúne fitoterápicos da rotina; não substitui avaliação médica nem promete alteração hormonal.",
+      price: null,
       image_url: "/kits/kit-testosterona.png",
       sort_order: 1,
       slugs: KIT_TESTOSTERONA_SLUGS,
@@ -137,6 +140,7 @@ export function localKitsFromCatalog(products: Product[]): Kit[] {
       subtitle: "6 potes da rotina noturna",
       description:
         "Conjunto com Mulungu, GABA, Glicina, Maracujá, Ashuwagandá e Capim Limão. O GABA contém 30 cápsulas; os demais, 60. Não substitui avaliação profissional nem tratamento.",
+      price: null,
       image_url: "/kits/kit-ansiedade.png",
       sort_order: 2,
       slugs: KIT_ANSIEDADE_SLUGS,

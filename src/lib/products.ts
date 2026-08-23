@@ -57,7 +57,7 @@ const LOCAL: Array<{
     subtitle: "Chá verde em cápsulas",
     description: "Chá verde em cápsulas para o dia a dia, sem infusão.",
     benefits: ["Antioxidantes"],
-    price: 39.9,
+    price: 29.99,
   },
   {
     slug: "feno-grego",
@@ -73,7 +73,7 @@ const LOCAL: Array<{
     subtitle: "Gengibre em cápsulas",
     description: "Gengibre em cápsulas para ter o rizoma à mão na rotina.",
     benefits: ["Digestão"],
-    price: 35,
+    price: 29.99,
   },
   {
     slug: "ginseng",
@@ -89,7 +89,7 @@ const LOCAL: Array<{
     subtitle: "Glucomannan em cápsulas",
     description: "Glucomannan em cápsulas, fibra solúvel para a alimentação.",
     benefits: ["Fibras", "Saciedade"],
-    price: 49.9,
+    price: 29.99,
   },
   {
     slug: "hibisco",
@@ -97,7 +97,7 @@ const LOCAL: Array<{
     subtitle: "Hibisco em cápsulas",
     description: "Hibisco em cápsulas, a flor do chá em formato prático.",
     benefits: ["Rotina leve"],
-    price: 39.9,
+    price: 29.99,
   },
   {
     slug: "laranja-moro",
@@ -105,7 +105,7 @@ const LOCAL: Array<{
     subtitle: "Laranja moro em cápsulas",
     description: "Laranja moro em cápsulas, o citrus em formato prático.",
     benefits: ["Citrus"],
-    price: 35,
+    price: 29.99,
   },
   {
     slug: "maca-peruana-negra",
@@ -137,7 +137,7 @@ const LOCAL: Array<{
     subtitle: "Marapuama em cápsulas",
     description: "Marapuama em cápsulas, planta amazônica da fitoterapia brasileira.",
     benefits: ["Tradição amazônica"],
-    price: 49.9,
+    price: 29.99,
   },
   {
     slug: "mucuna-preta",
@@ -169,7 +169,7 @@ const LOCAL: Array<{
     subtitle: "Psyllium em cápsulas",
     description: "Psyllium em cápsulas, fibra conhecida para a alimentação.",
     benefits: ["Fibras", "Saciedade"],
-    price: 39.9,
+    price: 29.99,
   },
   {
     slug: "tribulus-terrestris",
@@ -310,7 +310,7 @@ function fromShopify(edge: ShopifyProduct, index: number): Product {
     benefits: local?.benefits ?? [],
     dosage: productDosage(n.handle),
     capsule_count: capsuleCount(n.handle),
-    price: Number.isFinite(amount) ? amount : (local?.price ?? null),
+    price: local?.price ?? (Number.isFinite(amount) ? amount : null),
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
     lid_color: n.handle === "maracuja" ? "#2F4A8A" : n.handle === "gaba" ? "#F4F3F0" : "#A8D4B8",
