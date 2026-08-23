@@ -59,12 +59,11 @@ export const approvedHomeReviewsQuery = {
       .order("created_at", { ascending: false })
       .limit(8);
     if (error) return [];
-    return (data ?? [])
-      .map((row) => {
+    return (data ?? []).flatMap((row): HomeReview[] => {
         const product = row.products as { name?: string; slug?: string } | { name?: string; slug?: string }[] | null;
         const p = Array.isArray(product) ? product[0] : product;
-        if (!p?.name || !p.slug || !row.comment?.trim()) return null;
-        return {
+        if (!p?.name || !p.slug || !row.comment?.trim()) return [];
+        return [{
           id: row.id as string,
           product_id: row.product_id as string,
           author_name: row.author_name as string,
@@ -74,8 +73,7 @@ export const approvedHomeReviewsQuery = {
           created_at: row.created_at as string,
           product_name: p.name,
           product_slug: p.slug,
-        };
-      })
-      .filter((r): r is HomeReview => r != null);
+        }];
+      });
   },
 };
