@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Product } from "@/lib/products";
+import { productsQuery, type Product } from "@/lib/products";
 
 export type KitItem = {
   id: string;
@@ -50,6 +50,46 @@ function mapKit(k: Record<string, unknown>): Kit {
   };
 }
 
+const KIT_TESTOSTERONA_SLUGS = [
+  "ginseng",
+  "tribulus-terrestris",
+  "feno-grego",
+  "maca-peruana-negra",
+  "marapuama",
+  "mucuna-preta",
+  "catuaba",
+];
+
+export function kitTestosteronaFromCatalog(products: Product[]): Kit {
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+  const items: KitItem[] = KIT_TESTOSTERONA_SLUGS.flatMap((slug, i) => {
+    const product = bySlug.get(slug);
+    if (!product) return [];
+    return [
+      {
+        id: `local-kit-testosterona-${slug}`,
+        product_id: product.id,
+        sort_order: i,
+        product,
+      },
+    ];
+  });
+  return {
+    id: "local-kit-testosterona",
+    slug: "kit-testosterona",
+    name: "Kit Testosterona",
+    subtitle: "7 potes da linha de vitalidade",
+    description:
+      "Conjunto com Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Marapuama, Mucuna Preta e Catuaba. Cada pote contém 60 cápsulas. Este kit reúne fitoterápicos da rotina; não substitui avaliação médica nem promete alteração hormonal.",
+    price: null,
+    image_url: "/kits/kit-testosterona.png",
+    is_active: true,
+    sort_order: 1,
+    items,
+    products: items.map((i) => i.product).filter((p): p is Product => Boolean(p)),
+  };
+}
+
 export const kitsQuery = {
   queryKey: ["kits"],
   queryFn: async (): Promise<Kit[]> => {
@@ -59,7 +99,11 @@ export const kitsQuery = {
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
     if (error) throw error;
-    return (data ?? []).map((k) => mapKit(k as Record<string, unknown>));
+    const kits = (data ?? []).map((k) => mapKit(k as Record<string, unknown>));
+    if (kits.some((k) => k.slug === "kit-testosterona")) return kits;
+    const products = await productsQuery.queryFn();
+    const kit = kitTestosteronaFromCatalog(products);
+    return kit.products.length ? [...kits, kit] : kits;
   },
 };
 

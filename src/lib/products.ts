@@ -197,6 +197,21 @@ const LOCAL: Array<{
   },
 ];
 
+const TWICE_DAILY = new Set([
+  "catuaba",
+  "feno-grego",
+  "ginseng",
+  "maca-peruana-negra",
+  "marapuama",
+  "mucuna-preta",
+  "tribulus-terrestris",
+]);
+
+function productDosage(slug: string) {
+  if (TWICE_DAILY.has(slug)) return "1 cápsula de manhã e 1 cápsula após o almoço";
+  return "1 cápsula ao dia";
+}
+
 function localCatalog(): Product[] {
   return LOCAL.map((p, i) => ({
     id: `local-${p.slug}`,
@@ -205,12 +220,12 @@ function localCatalog(): Product[] {
     subtitle: p.subtitle,
     description: p.description,
     benefits: p.benefits,
-    dosage: "1 cápsula ao dia",
+    dosage: productDosage(p.slug),
     capsule_count: 60,
     price: p.price,
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
-    lid_color: "#C98A3C",
+    lid_color: TWICE_DAILY.has(p.slug) ? "#A8D4B8" : "#C98A3C",
     image_url: `/produtos/${p.slug}.png`,
     in_stock: true,
     is_active: true,
@@ -229,12 +244,12 @@ function fromShopify(edge: ShopifyProduct, index: number): Product {
     subtitle: local?.subtitle ?? null,
     description: n.description || local?.description || null,
     benefits: local?.benefits ?? [],
-    dosage: "1 cápsula ao dia",
+    dosage: productDosage(n.handle),
     capsule_count: 60,
     price: Number.isFinite(amount) ? amount : (local?.price ?? null),
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
-    lid_color: "#C98A3C",
+    lid_color: TWICE_DAILY.has(n.handle) ? "#A8D4B8" : "#C98A3C",
     image_url: `/produtos/${n.handle}.png`,
     in_stock: Boolean(firstVariant(edge)?.availableForSale),
     is_active: true,
@@ -264,8 +279,11 @@ export const productsQuery = {
       ascending: true,
     });
     if (error) throw error;
-    if (data?.length) return data as Product[];
-    return storefrontCatalog();
+    const store = await storefrontCatalog();
+    if (!data?.length) return store;
+    const db = data as Product[];
+    const seen = new Set(db.map((p) => p.slug));
+    return [...db, ...store.filter((p) => !seen.has(p.slug))];
   },
 };
 

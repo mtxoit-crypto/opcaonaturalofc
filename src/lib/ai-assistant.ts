@@ -83,7 +83,7 @@ const COMMON_ANSWERS: { patterns: string[]; answer: string }[] = [
   {
     patterns: ["kit", "kits", "combo", "promocao", "desconto"],
     answer:
-      "Temos kits montados com produtos complementares e preço especial. Dê uma olhada na aba 'Kits' no menu ou me diga seu objetivo que eu indico o melhor combo.",
+      "Temos kits montados com produtos que se complementam na rotina, como o Kit Testosterona (7 potes). Veja a aba Kits no menu.",
   },
 ];
 

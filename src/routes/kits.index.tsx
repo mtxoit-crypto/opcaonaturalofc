@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { kitsQuery } from "@/lib/kits";
-import { formatPrice, type Product } from "@/lib/products";
+import { formatPrice, productPhoto, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
 import { Button } from "@/components/ui/button";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/kits/")({
       {
         name: "description",
         content:
-          "Kits de suplementos naturais Opção Natural: combinações prontas, como o Kit Emagrecimento com 7 produtos em cápsulas.",
+          "Kits de suplementos naturais Opção Natural: combinações prontas, como o Kit Testosterona com 7 produtos em cápsulas.",
       },
       { property: "og:title", content: "Kits · Opção Natural" },
       {
@@ -71,6 +71,14 @@ function KitsPage() {
                   </div>
                 </div>
                 <p className="mt-3 max-w-2xl text-muted-foreground">{kit.description}</p>
+                {kit.image_url ? (
+                  <PhotoSpotlight
+                    src={kit.image_url}
+                    alt={`${kit.name}: os 7 potes juntos`}
+                    className="mt-6 h-56 rounded-2xl sm:h-72"
+                    imgClassName="h-56 p-3 sm:h-72"
+                  />
+                ) : null}
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {kit.products.map((p) => (
@@ -80,9 +88,9 @@ function KitsPage() {
                       params={{ slug: p.slug }}
                       className="lift-card group rounded-xl bg-sand p-3"
                     >
-                      {p.image_url ? (
+                      {p.image_url || p.slug ? (
                         <PhotoSpotlight
-                          src={p.image_url}
+                          src={productPhoto(p)}
                           alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
                           className="h-32 rounded-lg"
                           imgClassName="h-32 p-1"
