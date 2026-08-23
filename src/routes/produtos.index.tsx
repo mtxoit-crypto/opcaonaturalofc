@@ -21,9 +21,8 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 export const Route = createFileRoute("/produtos/")({
-  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
-    q: typeof search.q === "string" ? search.q : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search["q"] === "string" ? { q: search["q"] } : {},
   head: () => ({
     meta: [
       { title: "Produtos · Opção Natural suplementos naturais" },
