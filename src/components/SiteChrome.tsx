@@ -138,7 +138,7 @@ export function SiteHeader() {
             className="fixed inset-x-4 top-16 z-40 origin-top rounded-2xl border border-border bg-card p-6 shadow-lg lg:hidden"
             initial={reduce ? false : { opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0, y: -6 }}
+            {...(!reduce ? { exit: { opacity: 0, y: -6 } } : {})}
             transition={{ duration: 0.2 }}
           >
             <nav className="flex flex-col items-center gap-3 text-lg" aria-label="Mobile">
