@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { productsQuery, formatPrice, productPhoto, type Product } from "@/lib/products";
@@ -13,10 +13,7 @@ import { adminKitsQuery } from "@/lib/kits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { ProductMediaManager } from "@/components/ProductMediaManager";
-import { ProductPricePanel } from "@/components/ProductPricePanel";
+import { ProductEditor } from "@/components/ProductEditor";
 import { AdminMembers } from "@/components/AdminMembers";
 import { AdminKits } from "@/components/AdminKits";
 import { AdminReviews } from "@/components/AdminReviews";
@@ -160,7 +157,7 @@ function AdminPage() {
         name: values.name ?? "",
         subtitle: values.subtitle ?? null,
         description: values.description ?? null,
-        benefits: values.benefits ?? [],
+        benefits: (values.benefits ?? []).map((b) => b.trim()).filter(Boolean),
         dosage: values.dosage ?? null,
         capsule_count: values.capsule_count ?? 60,
         price: values.price ?? null,
@@ -303,31 +300,34 @@ function AdminPage() {
             </select>
           </div>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)]">
-            <div className="space-y-3">
+          <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+            <div className="space-y-2">
               {filtered.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum produto nesse filtro.</p>
               ) : null}
               {filtered.map((p) => (
-                <div key={p.id} className="surface-card flex items-center gap-3 p-3">
+                <div
+                  key={p.id}
+                  className={`surface-card flex items-center gap-3 p-3 ${form.id === p.id ? "ring-1 ring-clay" : ""}`}
+                >
                   {productPhoto(p) ? (
-                    <img src={productPhoto(p)} alt="" className="size-10 shrink-0 rounded-md object-contain bg-sand" />
+                    <img src={productPhoto(p)} alt="" className="size-12 shrink-0 rounded-md object-contain bg-sand" />
                   ) : (
                     <div
-                      className="size-10 shrink-0 rounded-md"
+                      className="size-12 shrink-0 rounded-md"
                       style={{ background: `linear-gradient(160deg, ${p.jar_color}, ${p.lid_color})` }}
                     />
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{p.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {p.slug} · {formatPrice(p.price)}
+                      {formatPrice(p.price)}
                       {p.is_active ? "" : " · oculto"}
                       {p.in_stock ? "" : " · sem estoque"}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setForm(p)}>
-                    Editar
+                  <Button variant={form.id === p.id ? "secondary" : "outline"} size="sm" onClick={() => setForm(p)}>
+                    {form.id === p.id ? "Aberto" : "Editar"}
                   </Button>
                   <Button
                     variant="ghost"
@@ -359,140 +359,18 @@ function AdminPage() {
             </div>
 
             <form
-              className="surface-card h-fit space-y-3 p-5"
+              className="surface-card h-fit p-5"
               onSubmit={(e) => {
                 e.preventDefault();
                 save.mutate(form);
               }}
             >
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl">{form.id ? "Editar produto" : "Novo produto"}</h2>
-                {form.id ? (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm(empty)}>
-                    <Plus className="size-4" />
-                  </Button>
-                ) : null}
-              </div>
-              <ProductPricePanel
-                slug={form.slug}
-                name={form.name}
-                price={form.price ?? null}
-                onChange={(price) => setForm({ ...form, price })}
+              <ProductEditor
+                form={form}
+                setForm={setForm}
+                saving={save.isPending}
+                onNew={() => setForm(empty)}
               />
-              <div className="space-y-2 border-t border-border/70 pt-4">
-                <ProductMediaManager
-                  productId={form.id}
-                  coverUrl={form.image_url}
-                  onCoverChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
-                />
-                <Field label="URL da foto principal">
-                  <Input
-                    value={form.image_url ?? ""}
-                    placeholder="/produtos/gengibre.png"
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                  />
-                </Field>
-              </div>
-              <Field label="Nome">
-                <Input
-                  value={form.name ?? ""}
-                  required
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </Field>
-              <Field label="Slug (URL)">
-                <Input
-                  value={form.slug ?? ""}
-                  placeholder="gerado do nome se vazio"
-                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                />
-              </Field>
-              <Field label="Subtítulo">
-                <Input
-                  value={form.subtitle ?? ""}
-                  onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-                />
-              </Field>
-              <Field label="Descrição">
-                <Textarea
-                  value={form.description ?? ""}
-                  rows={4}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </Field>
-              <Field label="Benefícios (um por linha)">
-                <Textarea
-                  value={(form.benefits ?? []).join("\n")}
-                  rows={3}
-                  onChange={(e) =>
-                    setForm({ ...form, benefits: e.target.value.split("\n").filter(Boolean) })
-                  }
-                />
-              </Field>
-              <Field label="Cápsulas">
-                <Input
-                  type="number"
-                  value={form.capsule_count ?? 60}
-                  onChange={(e) => setForm({ ...form, capsule_count: Number(e.target.value) })}
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Dosagem">
-                  <Input
-                    value={form.dosage ?? ""}
-                    onChange={(e) => setForm({ ...form, dosage: e.target.value })}
-                  />
-                </Field>
-                <Field label="Ordem no site">
-                  <Input
-                    type="number"
-                    value={form.sort_order ?? 99}
-                    onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
-                  />
-                </Field>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <Field label="Pote">
-                  <Input
-                    type="color"
-                    value={form.jar_color ?? "#F4F3F0"}
-                    onChange={(e) => setForm({ ...form, jar_color: e.target.value })}
-                  />
-                </Field>
-                <Field label="Tampa">
-                  <Input
-                    type="color"
-                    value={form.lid_color ?? "#C98A3C"}
-                    onChange={(e) => setForm({ ...form, lid_color: e.target.value })}
-                  />
-                </Field>
-                <Field label="Cápsula">
-                  <Input
-                    type="color"
-                    value={form.capsule_color ?? "#E8B54A"}
-                    onChange={(e) => setForm({ ...form, capsule_color: e.target.value })}
-                  />
-                </Field>
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="stock">Em estoque</Label>
-                <Switch
-                  id="stock"
-                  checked={form.in_stock ?? true}
-                  onCheckedChange={(v) => setForm({ ...form, in_stock: v })}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="active">Visível no site</Label>
-                <Switch
-                  id="active"
-                  checked={form.is_active ?? true}
-                  onCheckedChange={(v) => setForm({ ...form, is_active: v })}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={save.isPending}>
-                Salvar produto
-              </Button>
             </form>
           </div>
         </div>

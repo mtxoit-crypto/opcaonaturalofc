@@ -49,6 +49,19 @@ export function mediaTypeFor(file: File) {
   return "image";
 }
 
+export function partitionMediaFiles(files: Iterable<File>) {
+  const images: File[] = [];
+  const videos: File[] = [];
+  const models: File[] = [];
+  for (const file of files) {
+    const type = mediaTypeFor(file);
+    if (type === "video") videos.push(file);
+    else if (type === "model") models.push(file);
+    else images.push(file);
+  }
+  return { images, videos, models };
+}
+
 export function assertMediaFile(file: File) {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (ext === "svg" || sniffType(file) === "image/svg+xml") {

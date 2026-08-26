@@ -51,14 +51,12 @@ export function ProductPricePanel({
   const mismatch = checkout != null && price != null && Math.abs(checkout - price) >= 0.01;
 
   return (
-    <section className="rounded-2xl border border-border/80 bg-sand/60 p-4">
-      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-        Preço
-      </p>
-      <p className="mt-2 text-display text-4xl leading-none tracking-tight text-foreground tabular-nums">
+    <section className="rounded-2xl bg-sand/60 p-4">
+      <h3 className="text-base font-semibold tracking-tight">Preço</h3>
+      <p className="mt-3 font-sans text-4xl font-semibold leading-none tracking-tight text-foreground tabular-nums">
         {display}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Como o cliente vê na vitrine do site.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Como aparece na vitrine do site.</p>
 
       <div className="mt-4 space-y-1.5">
         <Label htmlFor="product-price">Valor no catálogo (R$)</Label>
@@ -103,5 +101,3 @@ export function ProductPricePanel({
     </section>
   );
 }
-
-export { ProductPricePanel as ProductPricePanel };

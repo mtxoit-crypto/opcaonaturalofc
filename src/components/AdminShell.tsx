@@ -19,7 +19,7 @@ export function AdminShell({
 }) {
   return (
     <div className="min-h-[70dvh] border-t border-border/50 bg-sand/50">
-      <div className="mx-auto grid max-w-6xl min-w-0 gap-6 px-4 py-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:px-5 lg:py-8">
+      <div className="mx-auto grid max-w-7xl min-w-0 gap-6 px-4 py-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:px-5 lg:py-8">
         <aside className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
           {links.map((l) => (
             <Link
