@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Copy, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { productsQuery, formatPrice, type Product } from "@/lib/products";
+import { productsQuery, formatPrice, productPhoto, type Product } from "@/lib/products";
+import { isDatabaseProductId } from "@/lib/media";
 import { isPaidOrder } from "@/lib/orders";
 import { storeSettingsQuery, type StoreSettings } from "@/lib/store";
 import { adminKitsQuery } from "@/lib/kits";
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ProductMediaManager } from "@/components/ProductMediaManager";
+import { ProductPricePanel } from "@/components/ProductPricePanel";
 import { AdminMembers } from "@/components/AdminMembers";
 import { AdminKits } from "@/components/AdminKits";
 import { AdminReviews } from "@/components/AdminReviews";
@@ -170,13 +172,18 @@ function AdminPage() {
         is_active: values.is_active ?? true,
         sort_order: values.sort_order ?? 99,
       };
-      const { error } = values.id
-        ? await supabase.from("products").update(payload).eq("id", values.id)
-        : await supabase.from("products").insert(payload);
+      if (isDatabaseProductId(values.id)) {
+        const { error } = await supabase.from("products").update(payload).eq("id", values.id);
+        if (error) throw error;
+        return values.id;
+      }
+      const { data, error } = await supabase.from("products").insert(payload).select("id").single();
       if (error) throw error;
+      return data.id as string;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       toast.success("Produto salvo");
+      setForm((f) => ({ ...f, id }));
       qc.invalidateQueries({ queryKey: ["products"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -296,15 +303,15 @@ function AdminPage() {
             </select>
           </div>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)]">
             <div className="space-y-3">
               {filtered.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum produto nesse filtro.</p>
               ) : null}
               {filtered.map((p) => (
                 <div key={p.id} className="surface-card flex items-center gap-3 p-3">
-                  {p.image_url ? (
-                    <img src={p.image_url} alt="" className="size-10 shrink-0 rounded-md object-contain bg-sand" />
+                  {productPhoto(p) ? (
+                    <img src={productPhoto(p)} alt="" className="size-10 shrink-0 rounded-md object-contain bg-sand" />
                   ) : (
                     <div
                       className="size-10 shrink-0 rounded-md"
@@ -366,6 +373,26 @@ function AdminPage() {
                   </Button>
                 ) : null}
               </div>
+              <ProductPricePanel
+                slug={form.slug}
+                name={form.name}
+                price={form.price ?? null}
+                onChange={(price) => setForm({ ...form, price })}
+              />
+              <div className="space-y-2 border-t border-border/70 pt-4">
+                <ProductMediaManager
+                  productId={form.id}
+                  coverUrl={form.image_url}
+                  onCoverChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+                />
+                <Field label="URL da foto principal">
+                  <Input
+                    value={form.image_url ?? ""}
+                    placeholder="/produtos/gengibre.png"
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  />
+                </Field>
+              </div>
               <Field label="Nome">
                 <Input
                   value={form.name ?? ""}
@@ -402,25 +429,13 @@ function AdminPage() {
                   }
                 />
               </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Cápsulas">
-                  <Input
-                    type="number"
-                    value={form.capsule_count ?? 60}
-                    onChange={(e) => setForm({ ...form, capsule_count: Number(e.target.value) })}
-                  />
-                </Field>
-                <Field label="Preço (R$)">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={form.price ?? ""}
-                    onChange={(e) =>
-                      setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })
-                    }
-                  />
-                </Field>
-              </div>
+              <Field label="Cápsulas">
+                <Input
+                  type="number"
+                  value={form.capsule_count ?? 60}
+                  onChange={(e) => setForm({ ...form, capsule_count: Number(e.target.value) })}
+                />
+              </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Dosagem">
                   <Input
@@ -459,29 +474,6 @@ function AdminPage() {
                   />
                 </Field>
               </div>
-              <Field label="URL da foto principal">
-                <Input
-                  value={form.image_url ?? ""}
-                  placeholder="/produtos/gengibre.png"
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                />
-              </Field>
-              {form.id ? (
-                <div className="space-y-2">
-                  <Label>Fotos, vídeos e 3D</Label>
-                  <ProductMediaManager
-                    productId={form.id}
-                    onSetCover={(url) => {
-                      setForm((f) => ({ ...f, image_url: url }));
-                      toast.success("Capa definida. Salve o produto para gravar.");
-                    }}
-                  />
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Salve o produto para enviar fotos, vídeos ou modelo 3D.
-                </p>
-              )}
               <div className="flex items-center justify-between">
                 <Label htmlFor="stock">Em estoque</Label>
                 <Switch
