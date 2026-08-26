@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       kit_items: {
         Row: {
           created_at: string
@@ -373,6 +406,8 @@ export type Database = {
           price: number | null
           slug: string
           sort_order: number
+          low_stock_threshold: number | null
+          stock_quantity: number | null
           subtitle: string | null
           updated_at: string
         }
@@ -394,6 +429,8 @@ export type Database = {
           price?: number | null
           slug: string
           sort_order?: number
+          low_stock_threshold?: number | null
+          stock_quantity?: number | null
           subtitle?: string | null
           updated_at?: string
         }
@@ -415,6 +452,8 @@ export type Database = {
           price?: number | null
           slug?: string
           sort_order?: number
+          low_stock_threshold?: number | null
+          stock_quantity?: number | null
           subtitle?: string | null
           updated_at?: string
         }

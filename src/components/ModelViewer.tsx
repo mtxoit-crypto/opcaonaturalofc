@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Component, Suspense, lazy, type ReactNode } from "react";
 import { ClientOnly } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
@@ -12,7 +12,40 @@ function Placeholder() {
   );
 }
 
-export function ModelViewer({ url, className }: { url: string; className?: string }) {
+type ErrorBoundaryProps = { fallback: ReactNode; children: ReactNode };
+type ErrorBoundaryState = { hasError: boolean };
+
+class ModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    return this.state.hasError ? this.props.fallback : this.props.children;
+  }
+}
+
+function ModelFailure() {
+  return (
+    <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+      Não foi possível carregar o modelo 3D.
+    </div>
+  );
+}
+
+export function ModelViewer({
+  url,
+  className,
+  compact,
+  fallback = <ModelFailure />,
+}: {
+  url: string;
+  className?: string;
+  compact?: boolean;
+  fallback?: ReactNode;
+}) {
   return (
     <motion.div
       className={className}
@@ -21,14 +54,16 @@ export function ModelViewer({ url, className }: { url: string; className?: strin
       viewport={{ once: true, amount: 0.35 }}
       transition={{ type: "spring", stiffness: 140, damping: 22 }}
     >
-      <div className="relative h-[380px] w-full overflow-hidden rounded-3xl bg-sand grain-bg sm:h-[460px]">
-        <ClientOnly fallback={<Placeholder />}>
-          <Suspense fallback={<Placeholder />}>
-            <ModelScene url={url} />
-          </Suspense>
-        </ClientOnly>
+      <div className={`relative w-full overflow-hidden rounded-3xl bg-sand grain-bg ${compact ? "h-full" : "h-[380px] sm:h-[460px]"}`}>
+        <ModelErrorBoundary key={url} fallback={fallback}>
+          <ClientOnly fallback={<Placeholder />}>
+            <Suspense fallback={<Placeholder />}>
+              <ModelScene url={url} />
+            </Suspense>
+          </ClientOnly>
+        </ModelErrorBoundary>
         <span className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-card/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-          Toque no círculo para girar
+          Arraste para girar
         </span>
       </div>
     </motion.div>

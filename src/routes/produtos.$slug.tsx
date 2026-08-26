@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -93,9 +93,35 @@ export const Route = createFileRoute("/produtos/$slug")({
   component: ProductPage,
 });
 
+type MediaTab = "foto" | "modelo" | "video";
+
+function ProductVideo({ src, alt }: { src: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  return (
+    <div className="space-y-2">
+      <video
+        src={src}
+        controls
+        playsInline
+        preload="metadata"
+        aria-label={alt}
+        onError={() => setHasError(true)}
+        className="w-full rounded-xl bg-sand"
+      />
+      {hasError ? (
+        <p className="text-sm text-muted-foreground" role="alert">
+          Não foi possível reproduzir este vídeo.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ProductPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const [activeMediaTab, setActiveMediaTab] = useState<MediaTab>("foto");
   const { data: product, isLoading } = useQuery(productQuery(slug));
   const { data: catalog } = useQuery(productsQuery);
   const mediaId =
@@ -103,6 +129,22 @@ function ProductPage() {
   const { data: media } = useQuery(productMediaQuery(mediaId));
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
   const { data: reviews } = useQuery(reviewsQuery(mediaId));
+  const model = (media ?? []).find((m) => m.media_type === "model");
+  const videos = (media ?? []).filter((m) => m.media_type === "video");
+  const modelUrl = model?.url ?? product?.model_url ?? null;
+
+  useEffect(() => {
+    setActiveMediaTab("foto");
+  }, [slug]);
+
+  useEffect(() => {
+    if (
+      (activeMediaTab === "modelo" && !modelUrl) ||
+      (activeMediaTab === "video" && videos.length === 0)
+    ) {
+      setActiveMediaTab("foto");
+    }
+  }, [activeMediaTab, modelUrl, videos.length]);
 
   useEffect(() => {
     track({ name: "view_product", slug });
@@ -124,12 +166,14 @@ function ProductPage() {
   }
 
   const p = product;
-  const model = (media ?? []).find((m) => m.media_type === "model");
-  const gallery = (media ?? []).filter((m) => m.media_type !== "model");
+  const photos = (media ?? []).filter((m) => m.media_type === "image");
   const { variant } = getVariant(p.slug, p.name);
   const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
   const related = (catalog ?? []).filter((x) => x.is_active && x.slug !== p.slug).slice(0, 4);
   const photo = productPhoto(p);
+  const galleryPhotos = photos.filter(
+    (m) => m.url !== photo && !photo.includes(m.storage_path) && m.storage_path !== photo,
+  );
   const avg = averageRating(reviews);
   const buyable = Boolean(variant?.availableForSale);
 
@@ -165,51 +209,105 @@ function ProductPage() {
 
       <div className="mt-6 grid items-start gap-12 md:grid-cols-2">
         <div className="space-y-4">
-          {photo ? (
-            <PhotoSpotlight
-              src={photo}
-              alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
-              className="min-h-[240px] w-full"
-            />
-          ) : null}
-          {model ? (
-            <ModelViewer url={model.url} />
-          ) : (
-            <JarViewer
-              jarColor={p.jar_color}
-              lidColor={p.lid_color}
-              capsuleColor={p.capsule_color}
-              capsuleCount={p.capsule_count}
-              name={p.name}
-              dosage={p.dosage ?? undefined}
-              subtitle={p.subtitle ?? undefined}
-              imageUrl={p.image_url ?? undefined}
-            />
+          <div className="flex gap-1 rounded-full bg-muted/50 p-1" role="tablist" aria-label="Mídia do produto">
+            {(
+              [
+                ["foto", "Foto", true],
+                ["modelo", "3D", Boolean(modelUrl)],
+                ["video", "Vídeo", videos.length > 0],
+              ] as const
+            ).map(([value, label, available]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={activeMediaTab === value}
+                aria-controls={`product-media-${value}`}
+                disabled={!available}
+                onClick={() => setActiveMediaTab(value)}
+                className={`flex-1 rounded-full px-3 py-2 text-sm transition-colors ${
+                  activeMediaTab === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                } ${!available ? "cursor-not-allowed opacity-45" : "hover:text-foreground"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-          )}
-          {gallery.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {gallery.map((m) =>
-                m.media_type === "video" ? (
-                  <video
-                    key={m.id}
-                    src={m.url}
-                    controls
-                    playsInline
-                    className="w-full rounded-xl bg-sand"
+          <div id={`product-media-${activeMediaTab}`} role="tabpanel">
+            {activeMediaTab === "foto" ? (
+              <>
+                {photo ? (
+                  <PhotoSpotlight
+                    src={photo}
+                    alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                    className="min-h-[240px] w-full"
                   />
                 ) : (
-                  <img
-                    key={m.id}
-                    src={m.url}
-                    alt={m.alt ?? p.name}
-                    loading="lazy"
-                    className="w-full rounded-xl bg-sand object-cover"
+                  <JarViewer
+                    jarColor={p.jar_color}
+                    lidColor={p.lid_color}
+                    capsuleColor={p.capsule_color}
+                    capsuleCount={p.capsule_count}
+                    name={p.name}
+                    dosage={p.dosage ?? undefined}
+                    subtitle={p.subtitle ?? undefined}
+                    imageUrl={p.image_url ?? undefined}
                   />
-                ),
-              )}
-            </div>
-          ) : null}
+                )}
+                {galleryPhotos.length > 0 ? (
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {galleryPhotos.map((m) => (
+                      <img
+                        key={m.id}
+                        src={m.url}
+                        alt={m.alt ?? p.name}
+                        loading="lazy"
+                        className="w-full rounded-xl bg-sand object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+            {activeMediaTab === "modelo" ? (
+              modelUrl ? (
+                <ModelViewer
+                  url={modelUrl}
+                  fallback={
+                    <JarViewer
+                      jarColor={p.jar_color}
+                      lidColor={p.lid_color}
+                      capsuleColor={p.capsule_color}
+                      capsuleCount={p.capsule_count}
+                      name={p.name}
+                      dosage={p.dosage ?? undefined}
+                      subtitle={p.subtitle ?? undefined}
+                      imageUrl={photo || p.image_url || undefined}
+                    />
+                  }
+                />
+              ) : (
+                <JarViewer
+                  jarColor={p.jar_color}
+                  lidColor={p.lid_color}
+                  capsuleColor={p.capsule_color}
+                  capsuleCount={p.capsule_count}
+                  name={p.name}
+                  dosage={p.dosage ?? undefined}
+                  subtitle={p.subtitle ?? undefined}
+                  imageUrl={photo || p.image_url || undefined}
+                />
+              )
+            ) : null}
+            {activeMediaTab === "video" ? (
+              <div className="space-y-4">
+                {videos.map((video) => (
+                  <ProductVideo key={video.id} src={video.url} alt={video.alt ?? `Vídeo de ${p.name}`} />
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div>

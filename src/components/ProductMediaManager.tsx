@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Box,
   Film,
   GripVertical as DragHandle,
   ImagePlus as PhotoPlus,
@@ -19,38 +20,53 @@ import {
   productMediaQuery as mediaQuery,
   publicMediaUrl as coverPublicUrl,
   reorderProductMedia as saveMediaOrder,
+  replaceProductMedia,
   setProductCover as saveCover,
+  updateProductMediaAlt,
   uploadProductMedia,
+  type MediaUploadProgress,
   type ProductMedia,
 } from "@/lib/media";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ModelViewer } from "@/components/ModelViewer";
 
-type Slot = "photo" | "video";
+type Slot = "photo" | "video" | "model";
+type UploadFileInfo = { name: string; size: number };
 
 export function ProductMediaManager({
   productId,
   coverUrl,
   onCoverChange,
+  uploadDropAreaRef,
+  showModel = false,
 }: {
   productId?: string;
   coverUrl?: string | null;
   onCoverChange?: (url: string) => void;
+  uploadDropAreaRef?: React.RefObject<HTMLDivElement | null>;
+  showModel?: boolean;
 }) {
   const qc = useQueryClient();
   const photoInput = useRef<HTMLInputElement>(null);
   const videoInput = useRef<HTMLInputElement>(null);
+  const modelInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [over, setOver] = useState<Slot | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<MediaUploadProgress | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadFileInfo, setUploadFileInfo] = useState<UploadFileInfo | null>(null);
   const catalogId = isCatalogId(productId) ? productId : undefined;
-  const { data: media } = useQuery(mediaQuery(catalogId));
+  const { data: media, isLoading: mediaLoading } = useQuery(mediaQuery(catalogId));
+  const frameBusy = busy || mediaLoading;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["product-media", catalogId] });
+    qc.invalidateQueries({ queryKey: ["admin-products"] });
     qc.invalidateQueries({ queryKey: ["products"] });
     if (catalogId) qc.invalidateQueries({ queryKey: ["product"] });
   };
@@ -59,6 +75,15 @@ export function ProductMediaManager({
     mutationFn: (item: ProductMedia) => deleteProductMedia(item),
     onSuccess: () => {
       toast.success("Arquivo removido");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveAlt = useMutation({
+    mutationFn: ({ id, alt }: { id: string; alt: string }) => updateProductMediaAlt(id, alt),
+    onSuccess: () => {
+      toast.success("Texto alternativo salvo");
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -75,39 +100,81 @@ export function ProductMediaManager({
 
   async function ingest(files: FileList | File[] | null, slot: Slot) {
     if (!catalogId || !files?.length) return;
-    const { images, videos, models } = partitionMediaFiles(Array.from(files));
-    if (slot === "photo" && !images.length && videos.length) {
-      toast.message("O vídeo foi para o quadro da direita.");
+    const { images, videos, models, invalid } = partitionMediaFiles(Array.from(files));
+    const queue = slot === "photo" ? images : slot === "video" ? videos : models;
+    const ignored = Array.from(files).length - queue.length - invalid.length;
+    if (invalid.length) {
+      const message = "Apenas modelos .glb são aceitos nesta área.";
+      setUploadError(message);
+      toast.error(message);
     }
-    if (slot === "video" && !videos.length && images.length) {
-      toast.message("A foto foi para o quadro da esquerda.");
+    if (ignored > 0) {
+      toast.message(
+        slot === "photo"
+          ? "Só fotos foram adicionadas nesta área."
+          : slot === "video"
+            ? "Só vídeos foram adicionados nesta área."
+            : "Só modelos .glb foram adicionados nesta área.",
+      );
     }
-    const queue = slot === "video" ? [...videos, ...images, ...models] : [...images, ...videos, ...models];
     if (!queue.length) return;
     setBusy(true);
+    setUploadError(null);
+    setUploadFileInfo({ name: queue[0]?.name ?? "arquivo", size: queue[0]?.size ?? 0 });
+    setUploadProgress({ stage: "validating", progress: 0 });
     try {
       let firstImagePath: string | null = null;
       let uploadedVideo = false;
-      for (const file of queue) {
-        const { type, path } = await uploadProductMedia(catalogId, file);
+      let replacedCover = false;
+      const replacement =
+        queue.length === 1
+          ? slot === "photo"
+            ? cover
+            : slot === "video"
+              ? featureVideo
+              : model
+          : undefined;
+      for (const [index, file] of queue.entries()) {
+        const progress = (next: MediaUploadProgress) =>
+          setUploadProgress({
+            ...next,
+            progress: Math.min(99, Math.round((index / queue.length) * 100 + next.progress / queue.length)),
+          });
+        const result = replacement
+          ? await replaceProductMedia(catalogId, replacement, file, {
+              onProgress: progress,
+              setCover: replacement.media_type === "image",
+            })
+          : await uploadProductMedia(catalogId, file, { onProgress: progress });
+        const { type, path } = result;
         if (type === "image" && !firstImagePath) firstImagePath = path;
         if (type === "video") uploadedVideo = true;
+        replacedCover = Boolean(replacement && replacement.media_type === "image");
       }
-      if (firstImagePath && (slot === "photo" || !coverUrl)) await applyCover(firstImagePath, true);
+      if (firstImagePath && !replacedCover && (slot === "photo" || !coverUrl)) {
+        await applyCover(firstImagePath, true);
+      }
       else invalidate();
+      setUploadProgress({ stage: "complete", progress: 100 });
       toast.success(
-        firstImagePath && uploadedVideo
-          ? "Foto e vídeo lado a lado"
+        slot === "model"
+          ? "Modelo 3D enviado"
+          : firstImagePath && uploadedVideo
+            ? "Foto e vídeo enviados"
           : firstImagePath
             ? "Foto enviada"
             : "Vídeo enviado",
       );
     } catch (e) {
-      toast.error((e as Error).message);
+      const message = e instanceof Error ? e.message : "Não foi possível enviar o arquivo.";
+      setUploadError(message);
+      setUploadProgress(null);
+      toast.error(message);
     } finally {
       setBusy(false);
       if (photoInput.current) photoInput.current.value = "";
       if (videoInput.current) videoInput.current.value = "";
+      if (modelInput.current) modelInput.current.value = "";
     }
   }
 
@@ -145,7 +212,7 @@ export function ProductMediaManager({
   if (!productId) {
     return (
       <p className="text-sm text-muted-foreground">
-        Salve o produto uma vez para abrir os quadros de foto e vídeo.
+        Salve o produto uma vez para abrir os quadros de mídia.
       </p>
     );
   }
@@ -153,23 +220,22 @@ export function ProductMediaManager({
   if (!catalogId) {
     return (
       <p className="text-sm text-muted-foreground">
-        Este item ainda existe só na Shopify. Salve no catálogo da loja para enviar foto e vídeo.
+        Este item ainda existe só na Shopify. Salve no catálogo da loja para enviar mídia.
       </p>
     );
   }
 
   const photos = (media ?? []).filter((item) => item.media_type === "image");
   const videos = (media ?? []).filter((item) => item.media_type === "video");
-  const extras = (media ?? []).filter((item) => item.media_type === "model");
+  const models = (media ?? []).filter((item) => item.media_type === "model");
+  const model = models[0];
   const cover =
     photos.find((item) => coverUrl && (coverUrl === item.url || coverUrl.includes(item.storage_path))) ??
     photos[0];
   const featureVideo = videos[0];
-  const rest = [
-    ...photos.filter((item) => item.id !== cover?.id),
-    ...videos.filter((item) => item.id !== featureVideo?.id),
-    ...extras,
-  ];
+  const rest = showModel
+    ? []
+    : [...photos.filter((item) => item.id !== cover?.id), ...videos.filter((item) => item.id !== featureVideo?.id)];
 
   function onSlotDrag(e: React.DragEvent, slot: Slot) {
     const types = [...e.dataTransfer.types];
@@ -182,97 +248,170 @@ export function ProductMediaManager({
   return (
     <section className="space-y-4">
       <div>
-        <h3 className="text-base font-semibold tracking-tight">Foto e vídeo</h3>
+        <h3 className="text-base font-semibold tracking-tight">{showModel ? "Modelo 3D" : "Mídia do produto"}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Arraste a foto de perfil à esquerda e o vídeo à direita. Se soltar os dois juntos, cada
-          um cai no seu quadro.
+          {showModel
+            ? "Envie um modelo GLB para usar na visualização 3D do produto."
+            : "Organize a foto principal e o vídeo em áreas separadas."}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <DropFrame
-          label="Foto de perfil"
-          hint="JPEG, PNG ou WebP · até 8 MB"
-          active={over === "photo"}
-          busy={busy}
-          filled={Boolean(cover?.url || coverUrl)}
-          onBrowse={() => photoInput.current?.click()}
-          onDragOver={(e) => onSlotDrag(e, "photo")}
-          onDragLeave={() => setOver((s) => (s === "photo" ? null : s))}
-          onDrop={(e) => {
-            e.preventDefault();
-            setOver(null);
-            void ingest(e.dataTransfer.files, "photo");
-          }}
-        >
-          {cover?.url || coverUrl ? (
-            <img
-              src={cover?.url || coverUrl || ""}
-              alt={cover?.alt ?? "Foto de perfil"}
-              className="size-full object-contain p-3"
-            />
-          ) : (
-            <EmptySlot icon={PhotoPlus} text="Solte a foto do pote" />
-          )}
-        </DropFrame>
+      <div className={cn("grid grid-cols-1 gap-2 sm:grid-cols-2", showModel && "max-w-sm")}>
+        {!showModel ? (
+          <>
+            <DropFrame
+              {...(uploadDropAreaRef ? { dropAreaRef: uploadDropAreaRef } : {})}
+              label="Foto"
+              hint="JPEG, PNG ou WebP · até 8 MB"
+              active={over === "photo"}
+              busy={frameBusy}
+              filled={Boolean(cover?.url || coverUrl)}
+              onBrowse={() => photoInput.current?.click()}
+              onDragOver={(e) => onSlotDrag(e, "photo")}
+              onDragLeave={() => setOver((s) => (s === "photo" ? null : s))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOver(null);
+                void ingest(e.dataTransfer.files, "photo");
+              }}
+              altValue={cover?.alt ?? ""}
+              onAltSave={cover ? (alt) => saveAlt.mutate({ id: cover.id, alt }) : undefined}
+            >
+              {cover?.url || coverUrl ? (
+                <img
+                  src={cover?.url || coverUrl || ""}
+                  alt={cover?.alt ?? "Foto de perfil"}
+                  className="size-full object-contain p-3"
+                />
+              ) : (
+                <EmptySlot icon={PhotoPlus} text="Solte a foto do pote" />
+              )}
+            </DropFrame>
 
-        <DropFrame
-          label="Vídeo"
-          hint="MP4 ou WebM · até 50 MB"
-          active={over === "video"}
-          busy={busy}
-          filled={Boolean(featureVideo?.url)}
-          onBrowse={() => videoInput.current?.click()}
-          onDragOver={(e) => onSlotDrag(e, "video")}
-          onDragLeave={() => setOver((s) => (s === "video" ? null : s))}
-          onDrop={(e) => {
-            e.preventDefault();
-            setOver(null);
-            void ingest(e.dataTransfer.files, "video");
-          }}
-        >
-          {featureVideo?.url ? (
-            <video src={featureVideo.url} className="size-full object-cover" muted playsInline controls />
-          ) : (
-            <EmptySlot icon={Film} text="Solte o vídeo ao lado" />
-          )}
-        </DropFrame>
+            <DropFrame
+              label="Vídeo"
+              hint="MP4 ou WebM · até 50 MB"
+              active={over === "video"}
+              busy={frameBusy}
+              filled={Boolean(featureVideo?.url)}
+              onBrowse={() => videoInput.current?.click()}
+              onDragOver={(e) => onSlotDrag(e, "video")}
+              onDragLeave={() => setOver((s) => (s === "video" ? null : s))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOver(null);
+                void ingest(e.dataTransfer.files, "video");
+              }}
+            >
+              {featureVideo?.url ? (
+                <video src={featureVideo.url} className="size-full object-cover" muted playsInline controls />
+              ) : (
+                <EmptySlot icon={Film} text="Solte o vídeo ao lado" />
+              )}
+            </DropFrame>
+          </>
+        ) : (
+          <DropFrame
+            label="Modelo 3D / GLB"
+            hint="Somente .glb · até 50 MB"
+            active={over === "model"}
+            busy={frameBusy}
+            filled={Boolean(model?.url)}
+            onBrowse={() => modelInput.current?.click()}
+            onDragOver={(e) => onSlotDrag(e, "model")}
+            onDragLeave={() => setOver((s) => (s === "model" ? null : s))}
+            onDrop={(e) => {
+              e.preventDefault();
+              setOver(null);
+              void ingest(e.dataTransfer.files, "model");
+            }}
+          >
+            {model?.url ? (
+              <div className="size-full">
+                <ModelViewer url={model.url} className="size-full" compact />
+                <p className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-card/80 px-2 py-1 text-[10px] text-muted-foreground">
+                  GLB interativo
+                </p>
+              </div>
+            ) : (
+              <EmptySlot icon={Box} text="Solte o modelo .glb" />
+            )}
+          </DropFrame>
+        )}
       </div>
 
-      <input
-        ref={photoInput}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-        multiple
-        className="hidden"
-        onChange={(e) => void ingest(e.target.files, "photo")}
-      />
-      <input
-        ref={videoInput}
-        type="file"
-        accept="video/mp4,video/webm,.glb,.gltf"
-        multiple
-        className="hidden"
-        onChange={(e) => void ingest(e.target.files, "video")}
-      />
-
-      <div className="space-y-1.5">
-        <Label htmlFor="video-url">Ou cole o link do vídeo (.mp4 / .webm)</Label>
-        <div className="flex gap-2">
-          <Input
-            id="video-url"
-            value={videoUrl}
-            placeholder="https://…"
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-          <Button type="button" variant="outline" disabled={busy || !videoUrl.trim()} onClick={() => void addUrl()}>
-            <LinkIcon className="size-4" />
-            Colocar ao lado
-          </Button>
+      {uploadProgress ? (
+        <div className="rounded-xl border border-border/70 bg-muted/30 p-3" aria-live="polite">
+          <div className="flex items-center justify-between text-xs">
+            <span>
+              {uploadProgress.stage === "validating"
+                ? "Validando arquivo…"
+                : uploadProgress.stage === "uploading"
+                  ? "Enviando arquivo…"
+                  : uploadProgress.stage === "saving"
+                    ? "Salvando mídia…"
+                    : "Mídia pronta"}
+            </span>
+            <span>{uploadProgress.progress}%</span>
+          </div>
+          {uploadFileInfo ? (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {uploadFileInfo.name} · {formatBytes(uploadFileInfo.size)}
+            </p>
+          ) : null}
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-accent transition-[width]" style={{ width: `${uploadProgress.progress}%` }} />
+          </div>
         </div>
-      </div>
+      ) : null}
+      {uploadError ? <p className="text-sm text-destructive">{uploadError}</p> : null}
 
-      {rest.length > 0 ? (
+      {!showModel ? (
+        <>
+          <input
+            ref={photoInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+            multiple
+            className="hidden"
+            onChange={(e) => void ingest(e.target.files, "photo")}
+          />
+          <input
+            ref={videoInput}
+            type="file"
+            accept="video/mp4,video/webm"
+            multiple
+            className="hidden"
+            onChange={(e) => void ingest(e.target.files, "video")}
+          />
+          <div className="space-y-1.5">
+            <Label htmlFor="video-url">Ou cole o link do vídeo (.mp4 / .webm)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="video-url"
+                value={videoUrl}
+                placeholder="https://…"
+                onChange={(e) => setVideoUrl(e.target.value)}
+              />
+            <Button type="button" variant="outline" disabled={frameBusy || !videoUrl.trim()} onClick={() => void addUrl()}>
+                <LinkIcon className="size-4" />
+                Colocar ao lado
+              </Button>
+            </div>
+          </div>
+        </>
+      ) : null}
+      {showModel ? (
+        <input
+          ref={modelInput}
+          type="file"
+          accept=".glb,model/gltf-binary,application/octet-stream"
+          className="hidden"
+          onChange={(e) => void ingest(e.target.files, "model")}
+        />
+      ) : null}
+
+      {!showModel && rest.length > 0 ? (
         <div className="space-y-2">
           <p className="text-sm font-medium">Galeria extra</p>
           <ul className="grid grid-cols-3 gap-2">
@@ -287,9 +426,12 @@ export function ProductMediaManager({
                   if (draggingId) void onReorder(draggingId, item.id);
                   setDraggingId(null);
                 }}
-                onCover={
-                  item.media_type === "image" ? () => void applyCover(item.storage_path) : undefined
-                }
+                {...(item.media_type === "image"
+                  ? {
+                      onCover: () => void applyCover(item.storage_path),
+                      onAltSave: (alt: string) => saveAlt.mutate({ id: item.id, alt }),
+                    }
+                  : {})}
                 onRemove={() => remove.mutate(item)}
               />
             ))}
@@ -297,7 +439,20 @@ export function ProductMediaManager({
         </div>
       ) : null}
 
-      {cover || featureVideo ? (
+      {showModel ? (
+        model ? (
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="ghost" disabled={remove.isPending} onClick={() => remove.mutate(model)}>
+              <Trash2 className="size-3.5" />
+              Tirar modelo
+            </Button>
+            <Button type="button" size="sm" variant="secondary" disabled={frameBusy} onClick={() => modelInput.current?.click()}>
+              <Upload className="size-3.5" />
+              Trocar modelo
+            </Button>
+          </div>
+        ) : null
+      ) : cover || featureVideo ? (
         <div className="flex flex-wrap gap-2">
           {cover ? (
             <Button
@@ -327,12 +482,18 @@ export function ProductMediaManager({
             type="button"
             size="sm"
             variant="secondary"
-            disabled={busy}
+            disabled={frameBusy}
             onClick={() => photoInput.current?.click()}
           >
             {busy ? <Spinner className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
             Trocar foto
           </Button>
+          {featureVideo ? (
+            <Button type="button" size="sm" variant="secondary" disabled={frameBusy} onClick={() => videoInput.current?.click()}>
+              <Upload className="size-3.5" />
+              Trocar vídeo
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </section>
@@ -340,6 +501,7 @@ export function ProductMediaManager({
 }
 
 function DropFrame({
+  dropAreaRef,
   label,
   hint,
   active,
@@ -350,7 +512,10 @@ function DropFrame({
   onDragOver,
   onDragLeave,
   onDrop,
+  altValue,
+  onAltSave,
 }: {
+  dropAreaRef?: React.RefObject<HTMLDivElement | null>;
   label: string;
   hint: string;
   active: boolean;
@@ -361,11 +526,16 @@ function DropFrame({
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
+  altValue?: string;
+  onAltSave?: (alt: string) => void;
 }) {
   return (
     <div className="min-w-0">
       <p className="mb-1.5 text-sm font-medium">{label}</p>
       <div
+        ref={dropAreaRef}
+        tabIndex={-1}
+        aria-label={`${label} — área para envio`}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
@@ -391,6 +561,7 @@ function DropFrame({
         ) : null}
       </div>
       <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{hint}</p>
+      {onAltSave ? <AltEditor value={altValue ?? ""} onSave={onAltSave} /> : null}
     </div>
   );
 }
@@ -404,6 +575,11 @@ function EmptySlot({ icon: Icon, text }: { icon: typeof PhotoPlus; text: string 
   );
 }
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function GalleryTile({
   item,
   dragging,
@@ -411,6 +587,7 @@ function GalleryTile({
   onDragEnd,
   onDropOn,
   onCover,
+  onAltSave,
   onRemove,
 }: {
   item: ProductMedia;
@@ -419,6 +596,7 @@ function GalleryTile({
   onDragEnd: () => void;
   onDropOn: () => void;
   onCover?: () => void;
+  onAltSave?: (alt: string) => void;
   onRemove: () => void;
 }) {
   return (
@@ -430,15 +608,14 @@ function GalleryTile({
       onDrop={onDropOn}
       className={cn("group relative overflow-hidden rounded-xl bg-sand", dragging && "opacity-60")}
     >
-      {item.media_type === "model" ? (
-        <div className="flex aspect-square items-center justify-center p-2 text-center text-[10px] text-muted-foreground">
-          Modelo 3D
-        </div>
-      ) : item.media_type === "video" ? (
-        <video src={item.url} className="aspect-square size-full object-cover" muted />
-      ) : (
-        <img src={item.url} alt={item.alt ?? ""} className="aspect-square size-full object-cover" />
-      )}
+      <div className="aspect-square">
+        {item.media_type === "video" ? (
+          <video src={item.url} className="size-full object-cover" muted />
+        ) : (
+          <img src={item.url} alt={item.alt ?? ""} className="size-full object-cover" />
+        )}
+      </div>
+      {onAltSave ? <AltEditor value={item.alt ?? ""} onSave={onAltSave} /> : null}
       <span className="absolute left-1 top-1 rounded bg-card/80 p-0.5 text-muted-foreground">
         <DragHandle className="size-3" />
       </span>
@@ -458,5 +635,31 @@ function GalleryTile({
         </Button>
       </div>
     </li>
+  );
+}
+
+function AltEditor({ value, onSave }: { value: string; onSave: (value: string) => void }) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => setDraft(value), [value]);
+
+  return (
+    <div className="space-y-1 bg-card/95 p-1.5">
+      <Label className="sr-only">Texto alternativo da imagem</Label>
+      <Input
+        value={draft}
+        placeholder="Texto alternativo"
+        aria-label="Texto alternativo da imagem"
+        className="h-7 text-[11px]"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onSave(draft);
+          }
+        }}
+        onBlur={() => onSave(draft)}
+      />
+    </div>
   );
 }

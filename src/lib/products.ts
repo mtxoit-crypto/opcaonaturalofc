@@ -19,13 +19,14 @@ export type Product = {
   jar_color: string;
   lid_color: string;
   image_url: string | null;
+  model_url: string | null;
   in_stock: boolean;
   is_active: boolean;
   sort_order: number;
 };
 
 const COLUMNS =
-  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,in_stock,is_active,sort_order";
+  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,model_url,in_stock,is_active,sort_order";
 
 const LOCAL: Array<{
   slug: string;
@@ -291,6 +292,7 @@ function localCatalog(): Product[] {
     jar_color: "#F4F3F0",
     lid_color: p.slug === "maracuja" ? "#2F4A8A" : p.slug === "gaba" ? "#F4F3F0" : "#A8D4B8",
     image_url: `/produtos/${p.slug}.png`,
+    model_url: null,
     in_stock: true,
     is_active: true,
     sort_order: i + 1,
@@ -315,6 +317,7 @@ function fromShopify(edge: ShopifyProduct, index: number): Product {
     jar_color: "#F4F3F0",
     lid_color: n.handle === "maracuja" ? "#2F4A8A" : n.handle === "gaba" ? "#F4F3F0" : "#A8D4B8",
     image_url: `/produtos/${n.handle}.png`,
+    model_url: null,
     in_stock: Boolean(firstVariant(edge)?.availableForSale),
     is_active: true,
     sort_order: index + 1,
@@ -353,6 +356,22 @@ export const productsQuery = {
     return [...db, ...store.filter((p) => !seen.has(p.slug))];
   },
 };
+
+export const adminProductsQuery = (enabled = false) => ({
+  queryKey: ["admin-products"],
+  enabled,
+  queryFn: async (): Promise<Product[]> => {
+    const { data, error } = await supabase.from("products").select(COLUMNS).order("sort_order", {
+      ascending: true,
+    });
+    if (error) throw error;
+    const store = await storefrontCatalog();
+    if (!data?.length) return store;
+    const db = data as Product[];
+    const seen = new Set(db.map((p) => p.slug));
+    return [...db, ...store.filter((p) => !seen.has(p.slug))];
+  },
+});
 
 export const productQuery = (slug: string) => ({
   queryKey: ["product", slug],

@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { productsQuery } from "@/lib/products";
+import { adminProductsQuery } from "@/lib/products";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
 type ReviewRow = {
@@ -55,7 +56,8 @@ function ReviewCard({
 
 export function AdminReviews() {
   const qc = useQueryClient();
-  const { data: products } = useQuery(productsQuery);
+  const { isAdmin } = useAuth();
+  const { data: products } = useQuery(adminProductsQuery(isAdmin));
   const names = Object.fromEntries((products ?? []).map((p) => [p.id, p.name]));
 
   const { data = [], isLoading } = useQuery({

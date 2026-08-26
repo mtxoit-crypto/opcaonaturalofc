@@ -1,23 +1,44 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import {
+  assertMediaFile,
+  assertVideoUrl,
+  mediaMimeTypeFor,
+} from "./media-validation";
+import type { MediaType } from "./media-validation";
+
+export {
+  assertMediaFile,
+  assertVideoUrl,
+  IMAGE_MAX_BYTES,
+  mediaMimeTypeFor,
+  mediaTypeFor,
+  MODEL_MAX_BYTES,
+  partitionMediaFiles,
+  VIDEO_MAX_BYTES,
+} from "./media-validation";
+export type { MediaFile, MediaType } from "./media-validation";
+
 export type ProductMedia = {
   id: string;
   product_id: string;
   storage_path: string;
-  media_type: string;
+  media_type: MediaType;
   alt: string | null;
   sort_order: number;
   url: string;
 };
 
+export type MediaUploadStage = "validating" | "uploading" | "saving" | "complete";
+export type MediaUploadProgress = {
+  stage: MediaUploadStage;
+  progress: number;
+};
+export type MediaUploadOptions = {
+  onProgress?: (progress: MediaUploadProgress) => void;
+};
+
 export const MEDIA_BUCKET = "produtos-midia";
-
-export const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
-export const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
-export const MODEL_MAX_BYTES = 50 * 1024 * 1024;
-
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
-const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 
 export function isRemoteMediaPath(path: string) {
   return /^https:\/\//i.test(path);
@@ -29,84 +50,7 @@ export function isDatabaseProductId(id: string | undefined | null) {
   );
 }
 
-function sniffType(file: File) {
-  if (file.type) return file.type;
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (["jpg", "jpeg"].includes(ext)) return "image/jpeg";
-  if (ext === "png") return "image/png";
-  if (ext === "webp") return "image/webp";
-  if (ext === "gif") return "image/gif";
-  if (ext === "avif") return "image/avif";
-  if (ext === "mp4") return "video/mp4";
-  if (ext === "webm") return "video/webm";
-  return "";
-}
-
-export function mediaTypeFor(file: File) {
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "glb" || ext === "gltf") return "model";
-  if (sniffType(file).startsWith("video")) return "video";
-  return "image";
-}
-
-export function partitionMediaFiles(files: Iterable<File>) {
-  const images: File[] = [];
-  const videos: File[] = [];
-  const models: File[] = [];
-  for (const file of files) {
-    const type = mediaTypeFor(file);
-    if (type === "video") videos.push(file);
-    else if (type === "model") models.push(file);
-    else images.push(file);
-  }
-  return { images, videos, models };
-}
-
-export function assertMediaFile(file: File) {
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "svg" || sniffType(file) === "image/svg+xml") {
-    throw new Error(`${file.name}: SVG não é permitido.`);
-  }
-  const type = mediaTypeFor(file);
-  if (type === "model") {
-    if (file.size > MODEL_MAX_BYTES) throw new Error(`${file.name}: modelo até 50 MB.`);
-    return type;
-  }
-  if (type === "video") {
-    if (!VIDEO_TYPES.has(sniffType(file))) {
-      throw new Error(`${file.name}: use MP4 ou WebM.`);
-    }
-    if (file.size > VIDEO_MAX_BYTES) throw new Error(`${file.name}: vídeo até 50 MB.`);
-    return type;
-  }
-  if (!IMAGE_TYPES.has(sniffType(file))) {
-    throw new Error(`${file.name}: use JPEG, PNG, WebP, GIF ou AVIF.`);
-  }
-  if (file.size > IMAGE_MAX_BYTES) throw new Error(`${file.name}: foto até 8 MB.`);
-  return type;
-}
-
-export function assertVideoUrl(raw: string) {
-  const trimmed = raw.trim();
-  if (!trimmed) throw new Error("Cole um endereço https do vídeo.");
-  if (trimmed.length > 2048) throw new Error("O endereço do vídeo é longo demais.");
-  let url: URL;
-  try {
-    url = new URL(trimmed);
-  } catch {
-    throw new Error("Endereço de vídeo inválido.");
-  }
-  if (url.protocol !== "https:") throw new Error("Use um endereço https.");
-  const path = url.pathname.toLowerCase();
-  if (!/\.(mp4|webm)(\?|$)/.test(path) && !/\.(mp4|webm)(\?|$)/.test(url.search.toLowerCase())) {
-    if (!path.endsWith(".mp4") && !path.endsWith(".webm")) {
-      throw new Error("Use um arquivo .mp4 ou .webm (não YouTube/Vimeo).");
-    }
-  }
-  return url.toString();
-}
-
-async function withUrls(rows: Omit<ProductMedia, "url">[] | null): Promise<ProductMedia[]> {
+async function withUrls(rows: Array<Omit<ProductMedia, "url">> | null): Promise<ProductMedia[]> {
   if (!rows?.length) return [];
   const stored = rows.filter((r) => !isRemoteMediaPath(r.storage_path));
   const { data } = stored.length
@@ -141,6 +85,19 @@ export const productMediaQuery = (productId: string | undefined) => ({
   },
 });
 
+export const productMediaLibraryQuery = (enabled = true) => ({
+  queryKey: ["product-media-library"],
+  enabled,
+  queryFn: async (): Promise<ProductMedia[]> => {
+    const { data, error } = await supabase
+      .from("product_media")
+      .select("id,product_id,storage_path,media_type,alt,sort_order")
+      .order("sort_order", { ascending: true });
+    if (error) throw error;
+    return withUrls((data ?? []) as Omit<ProductMedia, "url">[]);
+  },
+});
+
 async function nextSortOrder(productId: string) {
   const { data } = await supabase
     .from("product_media")
@@ -151,16 +108,25 @@ async function nextSortOrder(productId: string) {
   return (data?.[0]?.sort_order ?? -1) + 1;
 }
 
-export async function uploadProductMedia(productId: string, file: File) {
+export async function uploadProductMedia(
+  productId: string,
+  file: File,
+  options: MediaUploadOptions = {},
+) {
+  const report = (stage: MediaUploadStage, progress: number) =>
+    options.onProgress?.({ stage, progress });
+  report("validating", 0);
   const type = assertMediaFile(file);
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
   const path = `${productId}/${crypto.randomUUID()}.${ext}`;
   const sort_order = await nextSortOrder(productId);
+  report("uploading", 20);
   const { error: upErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
-    contentType: type === "model" ? "model/gltf-binary" : sniffType(file) || file.type,
+    contentType: type === "model" ? "model/gltf-binary" : mediaMimeTypeFor(file) || file.type,
     upsert: false,
   });
   if (upErr) throw upErr;
+  report("saving", 75);
   const { error } = await supabase.from("product_media").insert({
     product_id: productId,
     storage_path: path,
@@ -168,7 +134,11 @@ export async function uploadProductMedia(productId: string, file: File) {
     alt: file.name,
     sort_order,
   });
-  if (error) throw error;
+  if (error) {
+    await supabase.storage.from(MEDIA_BUCKET).remove([path]);
+    throw error;
+  }
+  report("complete", 100);
   return { type, path };
 }
 
@@ -195,6 +165,14 @@ export async function reorderProductMedia(orderedIds: string[]) {
   if (failed?.error) throw failed.error;
 }
 
+export async function updateProductMediaAlt(mediaId: string, alt: string) {
+  const { error } = await supabase
+    .from("product_media")
+    .update({ alt: alt.trim() || null })
+    .eq("id", mediaId);
+  if (error) throw error;
+}
+
 export async function setProductCover(productId: string, imageUrl: string) {
   const { error } = await supabase.from("products").update({ image_url: imageUrl }).eq("id", productId);
   if (error) throw error;
@@ -206,10 +184,41 @@ export async function publicMediaUrl(storagePath: string) {
   return data.publicUrl;
 }
 
-export async function deleteProductMedia(media: ProductMedia) {
-  if (!isRemoteMediaPath(media.storage_path)) {
-    await supabase.storage.from(MEDIA_BUCKET).remove([media.storage_path]);
+export async function replaceProductMedia(
+  productId: string,
+  previous: ProductMedia,
+  file: File,
+  options: MediaUploadOptions & { setCover?: boolean } = {},
+) {
+  const uploaded = await uploadProductMedia(productId, file, options);
+  let coverUpdated = false;
+  try {
+    if (options.setCover) {
+      await setProductCover(productId, await publicMediaUrl(uploaded.path));
+      coverUpdated = true;
+    }
+    await deleteProductMedia(previous);
+  } catch (error) {
+    // Keep a successfully published replacement if only cleanup of the old
+    // object failed; rolling it back would leave the cover pointing nowhere.
+    if (!coverUpdated) {
+      await supabase
+        .from("product_media")
+        .delete()
+        .eq("product_id", productId)
+        .eq("storage_path", uploaded.path);
+      await supabase.storage.from(MEDIA_BUCKET).remove([uploaded.path]);
+    }
+    throw error;
   }
+  return uploaded;
+}
+
+export async function deleteProductMedia(media: ProductMedia) {
   const { error } = await supabase.from("product_media").delete().eq("id", media.id);
   if (error) throw error;
+  if (!isRemoteMediaPath(media.storage_path)) {
+    const { error: storageError } = await supabase.storage.from(MEDIA_BUCKET).remove([media.storage_path]);
+    if (storageError) throw storageError;
+  }
 }

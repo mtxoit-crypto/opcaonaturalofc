@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { adminKitsQuery, slugify, type Kit, type KitItem } from "@/lib/kits";
-import { productsQuery, formatPrice, type Product } from "@/lib/products";
+import { adminProductsQuery, formatPrice, type Product } from "@/lib/products";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +37,9 @@ const emptyKit: KitForm = {
 
 export function AdminKits() {
   const qc = useQueryClient();
+  const { isAdmin } = useAuth();
   const { data: kits } = useQuery(adminKitsQuery);
-  const { data: products } = useQuery(productsQuery);
+  const { data: products } = useQuery(adminProductsQuery(isAdmin));
   const [form, setForm] = useState<KitForm>(emptyKit);
   const [addProductId, setAddProductId] = useState("");
 
