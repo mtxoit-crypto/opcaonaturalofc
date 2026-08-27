@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import {
   addProductVideoUrl as addVideoLink,
+  assertMediaFile,
   deleteProductMedia,
   isDatabaseProductId as isCatalogId,
   partitionMediaFiles,
@@ -60,9 +61,28 @@ export function ProductMediaManager({
   const [uploadProgress, setUploadProgress] = useState<MediaUploadProgress | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadFileInfo, setUploadFileInfo] = useState<UploadFileInfo | null>(null);
+  const [pendingPhotoFiles, setPendingPhotoFiles] = useState<File[]>([]);
+  const [pendingPhotoPreview, setPendingPhotoPreview] = useState<string | null>(null);
   const catalogId = isCatalogId(productId) ? productId : undefined;
   const { data: media, isLoading: mediaLoading } = useQuery(mediaQuery(catalogId));
   const frameBusy = busy || mediaLoading;
+
+  useEffect(() => {
+    setPendingPhotoFiles([]);
+    setUploadError(null);
+    if (photoInput.current) photoInput.current.value = "";
+  }, [productId]);
+
+  useEffect(() => {
+    const file = pendingPhotoFiles[0];
+    if (!file) {
+      setPendingPhotoPreview(null);
+      return;
+    }
+    const preview = URL.createObjectURL(file);
+    setPendingPhotoPreview(preview);
+    return () => URL.revokeObjectURL(preview);
+  }, [pendingPhotoFiles]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["product-media", catalogId] });
@@ -156,6 +176,7 @@ export function ProductMediaManager({
       }
       else invalidate();
       setUploadProgress({ stage: "complete", progress: 100 });
+      if (slot === "photo") setPendingPhotoFiles([]);
       toast.success(
         slot === "model"
           ? "Modelo 3D enviado"
@@ -176,6 +197,24 @@ export function ProductMediaManager({
       if (videoInput.current) videoInput.current.value = "";
       if (modelInput.current) modelInput.current.value = "";
     }
+  }
+
+  function stagePhoto(files: FileList | File[] | null) {
+    if (!files?.length) return;
+    const { images, videos, models, invalid } = partitionMediaFiles(Array.from(files));
+    const validImages: File[] = [];
+    for (const file of images) {
+      try {
+        if (assertMediaFile(file) === "image") validImages.push(file);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : `${file.name}: foto inválida.`);
+      }
+    }
+    if (invalid.length) toast.error("Apenas modelos .glb são aceitos na área 3D.");
+    if (videos.length || models.length) toast.message("Para enviar vídeo ou modelo, use a área correspondente.");
+    if (!validImages.length) return;
+    setUploadError(null);
+    setPendingPhotoFiles(validImages);
   }
 
   async function addUrl() {
@@ -219,9 +258,13 @@ export function ProductMediaManager({
 
   if (!catalogId) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Este item ainda existe só na Shopify. Salve no catálogo da loja para enviar mídia.
-      </p>
+      <div className="rounded-xl border border-clay/30 bg-clay/5 p-4 text-sm">
+        <p className="font-medium">Este produto ainda está somente na Shopify.</p>
+        <p className="mt-1 text-muted-foreground">
+          Para trocar a foto, volte em <strong>Geral</strong>, clique em <strong>Salvar produto</strong> e
+          depois abra <strong>Mídia</strong> novamente. Isso cria o registro local sem alterar o preço do checkout.
+        </p>
+      </div>
     );
   }
 
@@ -265,19 +308,22 @@ export function ProductMediaManager({
               hint="JPEG, PNG ou WebP · até 8 MB"
               active={over === "photo"}
               busy={frameBusy}
-              filled={Boolean(cover?.url || coverUrl)}
+              filled={Boolean(pendingPhotoPreview || cover?.url || coverUrl)}
               onBrowse={() => photoInput.current?.click()}
               onDragOver={(e) => onSlotDrag(e, "photo")}
               onDragLeave={() => setOver((s) => (s === "photo" ? null : s))}
               onDrop={(e) => {
                 e.preventDefault();
                 setOver(null);
-                void ingest(e.dataTransfer.files, "photo");
+                stagePhoto(e.dataTransfer.files);
               }}
+              replaceLabel="Trocar foto"
               altValue={cover?.alt ?? ""}
-              onAltSave={cover ? (alt) => saveAlt.mutate({ id: cover.id, alt }) : undefined}
+              {...(cover ? { onAltSave: (alt: string) => saveAlt.mutate({ id: cover.id, alt }) } : {})}
             >
-              {cover?.url || coverUrl ? (
+              {pendingPhotoPreview ? (
+                <img src={pendingPhotoPreview} alt="Prévia da nova foto de perfil" className="size-full object-contain p-3" />
+              ) : cover?.url || coverUrl ? (
                 <img
                   src={cover?.url || coverUrl || ""}
                   alt={cover?.alt ?? "Foto de perfil"}
@@ -374,7 +420,7 @@ export function ProductMediaManager({
             accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
             multiple
             className="hidden"
-            onChange={(e) => void ingest(e.target.files, "photo")}
+            onChange={(e) => stagePhoto(e.target.files)}
           />
           <input
             ref={videoInput}
@@ -496,6 +542,44 @@ export function ProductMediaManager({
           ) : null}
         </div>
       ) : null}
+      {!showModel && pendingPhotoFiles.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent/5 p-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Prévia pronta</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {pendingPhotoFiles.length === 1
+                ? pendingPhotoFiles[0]?.name
+                : `${pendingPhotoFiles.length} fotos selecionadas`}
+              {" · "}
+              toque em Enviar para atualizar o perfil
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={frameBusy}
+              onClick={() => {
+                setPendingPhotoFiles([]);
+                setUploadError(null);
+                if (photoInput.current) photoInput.current.value = "";
+              }}
+            >
+              Escolher outra
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={frameBusy}
+              onClick={() => void ingest(pendingPhotoFiles, "photo")}
+            >
+              {busy ? <Spinner className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+              Enviar foto
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -512,6 +596,7 @@ function DropFrame({
   onDragOver,
   onDragLeave,
   onDrop,
+  replaceLabel,
   altValue,
   onAltSave,
 }: {
@@ -526,6 +611,7 @@ function DropFrame({
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
+  replaceLabel?: string;
   altValue?: string;
   onAltSave?: (alt: string) => void;
 }) {
@@ -553,6 +639,18 @@ function DropFrame({
             className="absolute inset-0"
             aria-label={label}
           />
+        ) : null}
+        {filled && replaceLabel ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onBrowse}
+            className="absolute inset-0 flex items-end justify-center p-2"
+          >
+            <span className="rounded-full bg-card/90 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-card">
+              {replaceLabel}
+            </span>
+          </button>
         ) : null}
         {busy ? (
           <span className="pointer-events-none absolute inset-0 grid place-items-center bg-card/70">
