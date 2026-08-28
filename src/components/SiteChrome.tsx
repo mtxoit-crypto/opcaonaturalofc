@@ -5,7 +5,7 @@ import { Leaf, LogOut, Menu, ShieldCheck, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { storeSettingsQuery } from "@/lib/store";
+import { storeSettingsQuery, whatsappDigits } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
@@ -13,13 +13,6 @@ import { cn } from "@/lib/utils";
 
 const navClass =
   "rounded-full px-3 py-2 text-sm tracking-[0.14em] text-muted-foreground transition-[color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [@media(hover:hover)_and_(pointer:fine)]:hover:bg-secondary [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground";
-
-function realWhatsapp(value: string | undefined) {
-  const digits = (value ?? "").replace(/\D/g, "");
-  if (digits.length < 10) return null;
-  if (digits.includes("000000")) return null;
-  return digits;
-}
 
 export function SiteHeader() {
   const { user, isAdmin } = useAuth();
@@ -162,7 +155,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const { data } = useQuery(storeSettingsQuery);
-  const wa = realWhatsapp(data?.whatsapp_number);
+  const wa = whatsappDigits(data?.whatsapp_number);
 
   return (
     <footer className="mt-0 border-t border-border/60 bg-sand">

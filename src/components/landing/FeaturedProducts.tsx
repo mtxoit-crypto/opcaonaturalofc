@@ -59,7 +59,7 @@ export function FeaturedProducts({
               >
                 <PhotoSpotlight
                   src={productPhoto(p)}
-                  alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                  alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
                   className={featured ? "h-44 rounded-xl lg:h-full lg:min-h-52 lg:w-1/2" : "h-36 rounded-xl"}
                   imgClassName={featured ? "h-44 p-2 lg:h-52" : "h-36 p-2"}
                 />

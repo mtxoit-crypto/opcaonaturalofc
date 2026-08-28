@@ -25,16 +25,16 @@ export const Route = createFileRoute("/produtos/")({
     typeof search["q"] === "string" ? { q: search["q"] } : {},
   head: () => ({
     meta: [
-      { title: "Produtos · Opção Natural suplementos naturais" },
+      { title: "Catálogo de suplementos naturais | Opção Natural" },
       {
         name: "description",
         content:
-          "Catálogo de suplementos naturais Opção Natural em cápsulas. Finalize no checkout seguro da Shopify.",
+          "Veja o catálogo Opção Natural: cápsulas e kits com preço claro, estoque atualizado e pagamento seguro no checkout da Shopify.",
       },
-      { property: "og:title", content: "Produtos · Opção Natural suplementos naturais" },
+      { property: "og:title", content: "Catálogo de suplementos naturais | Opção Natural" },
       {
         property: "og:description",
-        content: "Suplementos naturais em cápsulas, com pote 3D interativo e checkout seguro.",
+        content: "Cápsulas e kits com preço e estoque claros. Checkout seguro pela Shopify.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://opcaonaturalofc.lovable.app/produtos" },
@@ -293,7 +293,7 @@ function ProductsPage() {
                 <Link to="/produtos/$slug" params={{ slug: p.slug }} className="group">
                   <PhotoSpotlight
                     src={productPhoto(p)}
-                    alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                    alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
                     className="h-44 rounded-xl transition-transform duration-300 group-hover/card:scale-[1.03]"
                     imgClassName="h-44 p-2"
                   />

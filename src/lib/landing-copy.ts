@@ -1,9 +1,14 @@
 export const landing = {
   hero: {
-    title: "Sua rotina natural começa com a escolha certa.",
-    text: "Cápsulas no catálogo, com preço e estoque claros. Entrega para todo o Brasil.",
+    title: "Suplementos naturais para energia, vitalidade e bem-estar no dia a dia",
+    text: "Encontre cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil.",
     primary: "Encontrar meu suplemento",
     secondary: "Ver kits",
+    highlights: [
+      "Pagamento seguro pela Shopify",
+      "Entrega para todo o Brasil",
+      "Atendimento pelo WhatsApp",
+    ],
   },
   trust: [
     { title: "Checkout seguro", detail: "Pagamento somente na Shopify." },
@@ -19,31 +24,31 @@ export const landing = {
   faq: [
     {
       q: "Como escolher um produto?",
-      a: "Use a busca e os benefícios listados em cada item. Abra a página do produto para ver descrição, quantidade de cápsulas e disponibilidade.",
+      a: "Compare nome, benefícios cadastrados e descrição em cada página. Confira também a quantidade de cápsulas, o modo de uso e se o item está disponível antes de adicionar ao carrinho.",
     },
     {
       q: "Quantas cápsulas vêm no frasco?",
-      a: "A quantidade aparece em cada produto, em geral 60 cápsulas. Confira o campo Conteúdo na página do item.",
+      a: "A quantidade está em cada produto, no campo Conteúdo. Na maior parte do catálogo são 60 cápsulas; quando for diferente, isso aparece na página do item.",
     },
     {
       q: "Como consultar o frete?",
-      a: "Na página do produto e no carrinho há um cálculo por CEP. O valor final do envio é confirmado no checkout da Shopify.",
+      a: "Use o cálculo por CEP na página do produto ou no carrinho. O valor e o prazo finais são confirmados no checkout da Shopify.",
     },
     {
       q: "Onde o pagamento é realizado?",
-      a: "Somente no checkout seguro da Shopify. O site da Opção Natural não processa cartão nem Pix internamente.",
+      a: "Somente no checkout seguro da Shopify. Cartão, Pix e demais opções ficam lá; este site não processa pagamento.",
     },
     {
       q: "Vocês entregam em todo o Brasil?",
-      a: "Sim. O envio cobre todo o Brasil. Prazo e valor dependem do CEP informado no checkout.",
+      a: "Sim. Atendemos todo o Brasil. Prazo e frete variam conforme o CEP informado no checkout.",
     },
     {
       q: "Como acompanho meu pedido?",
-      a: "Após o pagamento, o acompanhamento fica no e-mail e na conta da Shopify usados na compra.",
+      a: "Depois do pagamento, acompanhe pelo e-mail e pela conta da Shopify usados na compra. As atualizações de envio chegam por lá.",
     },
     {
       q: "Suplementos substituem alimentação equilibrada?",
-      a: "Não. Suplementos não substituem uma alimentação equilibrada nem acompanhamento profissional.",
+      a: "Não. Suplementos não substituem uma alimentação equilibrada nem o acompanhamento de um profissional de saúde.",
     },
   ],
   close: {

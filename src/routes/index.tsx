@@ -16,16 +16,22 @@ import { ClosingCta } from "@/components/landing/ClosingCta";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Opção Natural · Suplementos naturais em cápsulas" },
+      {
+        title: "Opção Natural | Suplementos naturais para energia, vitalidade e bem-estar",
+      },
       {
         name: "description",
         content:
-          "Suplementos naturais em cápsulas para a rotina. Catálogo com preço e estoque, envio para todo o Brasil e pagamento no checkout seguro da Shopify.",
+          "Compre suplementos naturais em cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil. Pagamento seguro no checkout da Shopify.",
       },
-      { property: "og:title", content: "Opção Natural · Suplementos naturais em cápsulas" },
+      {
+        property: "og:title",
+        content: "Opção Natural | Suplementos naturais para energia, vitalidade e bem-estar",
+      },
       {
         property: "og:description",
-        content: "Escolha suplementos em cápsulas e finalize a compra no checkout seguro da Shopify.",
+        content:
+          "Cápsulas e kits com preço e estoque claros. Entrega nacional e pagamento seguro pela Shopify.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: absoluteUrl("/") },

@@ -23,3 +23,19 @@ export const storeSettingsQuery = {
     );
   },
 };
+
+/** Digits for wa.me when a real store WhatsApp is configured; otherwise null. */
+export function whatsappDigits(value: string | undefined | null) {
+  const digits = (value ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  if (/^55?0+$/.test(digits) || digits.includes("000000")) return null;
+  return digits;
+}
+
+export function whatsappHref(value: string | undefined | null, text?: string) {
+  const digits = whatsappDigits(value);
+  if (!digits) return null;
+  const base = `https://wa.me/${digits}`;
+  if (!text?.trim()) return base;
+  return `${base}?text=${encodeURIComponent(text.trim())}`;
+}

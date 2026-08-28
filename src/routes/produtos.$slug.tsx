@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ShoppingBag, Loader2 } from "lucide-react";
+import { Check, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { productQuery, productsQuery, productPhoto } from "@/lib/products";
 import { productMediaQuery } from "@/lib/media";
@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { reviewsQuery, averageRating } from "@/lib/reviews";
 import { track } from "@/lib/analytics";
 import { absoluteUrl, SITE_ORIGIN } from "@/lib/site";
+import { storeSettingsQuery, whatsappHref } from "@/lib/store";
 
 export const Route = createFileRoute("/produtos/$slug")({
   loader: async ({ context, params }) =>
@@ -25,19 +26,44 @@ export const Route = createFileRoute("/produtos/$slug")({
     const p = loaderData ?? null;
     const url = absoluteUrl(`/produtos/${params.slug}`);
     const photo = p ? productPhoto(p) : "";
-    const image = photo.startsWith("http") ? photo : absoluteUrl(photo);
+    const image = photo.startsWith("http") ? photo : photo ? absoluteUrl(photo) : "";
     const name = p?.name ?? params.slug.replace(/-/g, " ");
+    const capsuleBit = p?.capsule_count ? `${p.capsule_count} cápsulas. ` : "";
     const description =
-      p?.description ??
-      p?.subtitle ??
-      "Veja este suplemento natural em 3D: gire o pote, abra a tampa e compre no checkout seguro da Shopify, com entrega em todo o Brasil.";
+      p?.description?.trim() ||
+      p?.subtitle?.trim() ||
+      `${name}: suplemento natural em cápsulas Opção Natural. ${capsuleBit}Preço e estoque no catálogo; pagamento no checkout seguro da Shopify.`;
+    const title = p?.name
+      ? `${p.name} em cápsulas | Opção Natural`
+      : `${name} | Opção Natural`;
+    const canOffer = p != null && p.name && p.price != null;
+    const productLd = canOffer
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          description,
+          ...(image ? { image } : {}),
+          brand: { "@type": "Brand", name: "Opção Natural" },
+          url,
+          offers: {
+            "@type": "Offer",
+            price: p.price,
+            priceCurrency: "BRL",
+            availability: p.in_stock
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            url,
+          },
+        }
+      : null;
 
     return {
       meta: [
-        { title: `${name} · Opção Natural` },
-        { name: "description", content: description },
-        { property: "og:title", content: `Opção Natural · ${name}` },
-        { property: "og:description", content: description },
+        { title },
+        { name: "description", content: description.slice(0, 160) },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description.slice(0, 200) },
         { property: "og:type", content: "product" },
         { property: "og:url", content: url },
         ...(image
@@ -46,6 +72,7 @@ export const Route = createFileRoute("/produtos/$slug")({
               { name: "twitter:image", content: image },
             ]
           : []),
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: p
@@ -53,28 +80,7 @@ export const Route = createFileRoute("/produtos/$slug")({
             {
               type: "application/ld+json",
               children: JSON.stringify([
-                {
-                "@context": "https://schema.org",
-                "@type": "Product",
-                name: p.name,
-                description,
-                ...(image ? { image } : {}),
-                brand: { "@type": "Brand", name: "Opção Natural" },
-                url,
-                ...(p.price != null
-                  ? {
-                      offers: {
-                        "@type": "Offer",
-                        price: p.price,
-                        priceCurrency: "BRL",
-                        availability: p.in_stock
-                          ? "https://schema.org/InStock"
-                          : "https://schema.org/OutOfStock",
-                        url,
-                      },
-                    }
-                  : {}),
-                },
+                ...(productLd ? [productLd] : []),
                 {
                   "@context": "https://schema.org",
                   "@type": "BreadcrumbList",
@@ -124,6 +130,7 @@ function ProductPage() {
   const [activeMediaTab, setActiveMediaTab] = useState<MediaTab>("foto");
   const { data: product, isLoading } = useQuery(productQuery(slug));
   const { data: catalog } = useQuery(productsQuery);
+  const { data: store } = useQuery(storeSettingsQuery);
   const mediaId =
     product?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(product.id) ? product.id : undefined;
   const { data: media } = useQuery(productMediaQuery(mediaId));
@@ -151,7 +158,20 @@ function ProductPage() {
   }, [slug]);
 
   if (isLoading) {
-    return <div className="mx-auto max-w-6xl px-5 py-20 text-muted-foreground">Carregando…</div>;
+    return (
+      <div className="mx-auto max-w-6xl px-5 py-20" aria-busy="true" aria-live="polite">
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="aspect-[4/5] animate-pulse rounded-2xl bg-muted" />
+          <div className="space-y-4">
+            <div className="h-10 w-2/3 animate-pulse rounded-md bg-muted" />
+            <div className="h-4 w-full animate-pulse rounded-md bg-muted" />
+            <div className="h-4 w-5/6 animate-pulse rounded-md bg-muted" />
+            <div className="mt-8 h-12 w-40 animate-pulse rounded-md bg-muted" />
+          </div>
+        </div>
+        <p className="sr-only">Carregando produto…</p>
+      </div>
+    );
   }
 
   if (!product) {
@@ -176,6 +196,11 @@ function ProductPage() {
   );
   const avg = averageRating(reviews);
   const buyable = Boolean(variant?.availableForSale);
+  const benefits = Array.isArray(p.benefits) ? p.benefits.filter((b) => b.trim()) : [];
+  const waLink = whatsappHref(
+    store?.whatsapp_number,
+    `Olá! Tenho uma dúvida sobre ${p.name} na Opção Natural.`,
+  );
 
   async function buy(now: boolean) {
     const ok = await addToCart(p.slug, p.name);
@@ -207,7 +232,7 @@ function ProductPage() {
         </ol>
       </nav>
 
-      <div className="mt-6 grid items-start gap-12 md:grid-cols-2">
+      <div className="mt-6 grid items-start gap-10 md:grid-cols-2 md:gap-12">
         <div className="space-y-4">
           <div className="flex gap-1 rounded-full bg-muted/50 p-1" role="tablist" aria-label="Mídia do produto">
             {(
@@ -240,7 +265,7 @@ function ProductPage() {
                 {photo ? (
                   <PhotoSpotlight
                     src={photo}
-                    alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
+                    alt={`Foto do pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
                     className="min-h-[240px] w-full"
                   />
                 ) : (
@@ -257,11 +282,14 @@ function ProductPage() {
                 )}
                 {galleryPhotos.length > 0 ? (
                   <div className="mt-4 grid grid-cols-2 gap-3">
-                    {galleryPhotos.map((m) => (
+                    {galleryPhotos.map((m, index) => (
                       <img
                         key={m.id}
                         src={m.url}
-                        alt={m.alt ?? p.name}
+                        alt={
+                          m.alt?.trim() ||
+                          `Foto adicional ${index + 1} do pote de ${p.name}`
+                        }
                         loading="lazy"
                         className="w-full rounded-xl bg-sand object-cover"
                       />
@@ -302,72 +330,128 @@ function ProductPage() {
             ) : null}
             {activeMediaTab === "video" ? (
               <div className="space-y-4">
-                {videos.map((video) => (
-                  <ProductVideo key={video.id} src={video.url} alt={video.alt ?? `Vídeo de ${p.name}`} />
+                {videos.map((video, index) => (
+                  <ProductVideo
+                    key={video.id}
+                    src={video.url}
+                    alt={video.alt?.trim() || `Vídeo ${index + 1} de ${p.name}`}
+                  />
                 ))}
               </div>
             ) : null}
           </div>
         </div>
 
-        <div>
-          <h1 className="text-4xl">{p.name}</h1>
-          {avg != null ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Avaliação média {avg.toFixed(1)} de 5
-              {reviews?.length ? ` · ${reviews.length} avaliações` : ""}
-            </p>
+        <div className="space-y-8">
+          <header>
+            <h1 className="text-4xl leading-tight tracking-tight">{p.name}</h1>
+            {avg != null ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Avaliação média {avg.toFixed(1)} de 5
+                {reviews?.length ? ` · ${reviews.length} avaliações` : ""}
+              </p>
+            ) : null}
+            {p.subtitle ? <p className="mt-2 text-muted-foreground">{p.subtitle}</p> : null}
+            {p.description ? (
+              <p className="mt-5 text-base leading-relaxed text-foreground/90">{p.description}</p>
+            ) : null}
+          </header>
+
+          {benefits.length > 0 ? (
+            <section aria-labelledby="product-benefits">
+              <h2 id="product-benefits" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Benefícios cadastrados
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {benefits.map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
-          <p className="mt-1 text-muted-foreground">{p.subtitle}</p>
-          <p className="mt-6 text-lg leading-relaxed">{p.description}</p>
 
-          <ul className="mt-6 space-y-2">
-            {Array.isArray(p.benefits)
-              ? p.benefits.map((b) => (
-              <li key={b} className="flex items-start gap-2 text-sm">
-                <Check className="mt-0.5 size-4 text-accent" />
-                <span>{b}</span>
-              </li>
-                ))
-              : null}
-          </ul>
-
-          <dl className="mt-8 grid grid-cols-2 gap-4">
+          <section aria-labelledby="product-details" className="grid grid-cols-2 gap-3">
+            <h2 id="product-details" className="sr-only">
+              Quantidade e modo de uso
+            </h2>
             <div className="surface-card p-4">
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Conteúdo</dt>
-              <dd className="mt-1 text-lg">{p.capsule_count} cápsulas</dd>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Quantidade</p>
+              <p className="mt-1 text-lg font-medium">{p.capsule_count} cápsulas</p>
             </div>
             {p.dosage ? (
-            <div className="surface-card p-4">
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Modo de uso</dt>
-              <dd className="mt-1 text-lg">{p.dosage}</dd>
-            </div>
+              <div className="surface-card p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Modo de uso</p>
+                <p className="mt-1 text-lg font-medium leading-snug">{p.dosage}</p>
+              </div>
             ) : null}
-          </dl>
+          </section>
 
-          <p className="mt-8 text-3xl text-accent">{formatMoney(price)}</p>
-          <p className="text-sm font-medium">{buyable ? "Disponível" : "Esgotado"}</p>
-          <p className="text-sm text-muted-foreground">
-            Pagamento somente no checkout seguro da Shopify. Frete confirmado no checkout.
-          </p>
+          <section aria-labelledby="product-care" className="rounded-xl border border-border/70 bg-sand/40 p-4">
+            <h2 id="product-care" className="text-sm font-semibold">
+              Cuidados
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Suplementos não substituem uma alimentação equilibrada nem o acompanhamento de um
+              profissional de saúde. Em caso de dúvida sobre uso, fale conosco antes de comprar.
+            </p>
+          </section>
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button size="lg" variant="outline" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(false)}>
-              {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
-              Adicionar ao carrinho
-            </Button>
-            <Button size="lg" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
-              Comprar agora
-            </Button>
-          </div>
-          {!buyable ? (
-            <p className="mt-3 text-sm text-muted-foreground">Produto temporariamente esgotado.</p>
+          <section aria-labelledby="product-buy" className="space-y-3 border-t border-border pt-6">
+            <h2 id="product-buy" className="sr-only">
+              Compra
+            </h2>
+            <p className="text-3xl font-semibold tracking-tight text-accent">{formatMoney(price)}</p>
+            <p className={`text-sm font-medium ${buyable ? "text-foreground" : "text-muted-foreground"}`}>
+              {buyable ? "Disponível" : "Esgotado"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Pagamento seguro no checkout da Shopify. Frete confirmado no checkout.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Button
+                size="lg"
+                variant="outline"
+                className="min-h-11"
+                disabled={!buyable || cartLoading}
+                onClick={() => buy(false)}
+              >
+                {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
+                Adicionar ao carrinho
+              </Button>
+              <Button size="lg" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
+                Comprar agora
+              </Button>
+            </div>
+            {!buyable ? (
+              <p className="text-sm text-muted-foreground">Produto temporariamente esgotado.</p>
+            ) : null}
+          </section>
+
+          <section aria-labelledby="product-shipping">
+            <h2 id="product-shipping" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Entrega
+            </h2>
+            <div className="mt-3">
+              <ShippingCalculator />
+            </div>
+          </section>
+
+          {waLink ? (
+            <aside className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-medium">Ainda está em dúvida? Fale com a gente no WhatsApp</p>
+              <Button asChild variant="outline" className="mt-3 min-h-11">
+                <a href={waLink} target="_blank" rel="noreferrer">
+                  <MessageCircle className="size-4" />
+                  Conversar no WhatsApp
+                </a>
+              </Button>
+            </aside>
           ) : null}
 
-          <div className="mt-8">
-            <ShippingCalculator />
-          </div>
-          <Accordion type="single" collapsible className="mt-8">
+          <Accordion type="single" collapsible>
             <AccordionItem value="pagamento">
               <AccordionTrigger>Formas de pagamento e troca</AccordionTrigger>
               <AccordionContent className="space-y-2 text-sm text-muted-foreground">
@@ -401,7 +485,7 @@ function ProductPage() {
               >
                 <PhotoSpotlight
                   src={productPhoto(r)}
-                  alt={r.name}
+                  alt={`Pote de ${r.name}, suplemento natural Opção Natural`}
                   className="h-28 rounded-xl"
                   imgClassName="h-28 p-2"
                 />
@@ -413,18 +497,19 @@ function ProductPage() {
         </section>
       ) : null}
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 p-3 backdrop-blur md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
-          <p className="min-w-0 flex-1 truncate text-sm">
-            <span className="font-medium">{p.name}</span>
-            <span className="ml-2 text-accent">{formatMoney(price)}</span>
-          </p>
-          <Button size="sm" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{p.name}</p>
+            <p className="text-sm text-accent">{formatMoney(price)}</p>
+          </div>
+          <Button size="lg" className="min-h-11 shrink-0 px-5" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
+            {cartLoading ? <Loader2 className="size-4 animate-spin" /> : null}
             Comprar
           </Button>
         </div>
       </div>
-      <div className="h-16 md:hidden" />
+      <div className="h-20 md:hidden" aria-hidden />
     </div>
   );
 }

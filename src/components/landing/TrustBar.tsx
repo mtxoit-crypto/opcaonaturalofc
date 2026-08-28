@@ -1,20 +1,13 @@
 import { ShieldCheck, Truck, RefreshCw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { storeSettingsQuery } from "@/lib/store";
+import { storeSettingsQuery, whatsappDigits } from "@/lib/store";
 import { landing } from "@/lib/landing-copy";
-
-function realWhatsapp(value: string | undefined) {
-  const digits = (value ?? "").replace(/\D/g, "");
-  if (digits.length < 10) return null;
-  if (/^55?0+$/.test(digits) || digits.includes("000000")) return null;
-  return digits;
-}
 
 const ICONS = [ShieldCheck, Truck, RefreshCw] as const;
 
 export function TrustBar() {
   const { data } = useQuery(storeSettingsQuery);
-  const wa = realWhatsapp(data?.whatsapp_number);
+  const wa = whatsappDigits(data?.whatsapp_number);
   const items = [
     ...landing.trust,
     ...(wa ? [{ title: "Atendimento", detail: "WhatsApp no rodapé." }] : []),
