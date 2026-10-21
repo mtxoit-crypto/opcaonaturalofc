@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       admin_invites: {
         Row: {
           created_at: string
@@ -368,11 +401,13 @@ export type Database = {
           is_active: boolean
           jar_color: string
           lid_color: string
+          low_stock_threshold: number | null
           model_url: string | null
           name: string
           price: number | null
           slug: string
           sort_order: number
+          stock_quantity: number | null
           subtitle: string | null
           updated_at: string
         }
@@ -389,11 +424,13 @@ export type Database = {
           is_active?: boolean
           jar_color?: string
           lid_color?: string
+          low_stock_threshold?: number | null
           model_url?: string | null
           name: string
           price?: number | null
           slug: string
           sort_order?: number
+          stock_quantity?: number | null
           subtitle?: string | null
           updated_at?: string
         }
@@ -410,11 +447,13 @@ export type Database = {
           is_active?: boolean
           jar_color?: string
           lid_color?: string
+          low_stock_threshold?: number | null
           model_url?: string | null
           name?: string
           price?: number | null
           slug?: string
           sort_order?: number
+          stock_quantity?: number | null
           subtitle?: string | null
           updated_at?: string
         }
