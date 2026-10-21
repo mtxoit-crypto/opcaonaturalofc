@@ -81,11 +81,11 @@ function mergeAdminSearch(
 
 export const Route = createFileRoute("/admin/")({
   validateSearch: (search: Record<string, unknown>): AdminSearch => {
-    const tab = search.tab;
-    const product = search.product;
-    const section = search.section;
-    const q = search.q;
-    const filter = search.filter;
+    const tab = search["tab"];
+    const product = search["product"];
+    const section = search["section"];
+    const q = search["q"];
+    const filter = search["filter"];
     const normalizedTab = typeof tab === "string" ? normalizeAdminTab(tab) : undefined;
     return {
       ...(normalizedTab ? { tab: normalizedTab } : {}),

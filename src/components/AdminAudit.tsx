@@ -58,7 +58,11 @@ export function AdminAudit({ products }: { products: Product[] }) {
       </div>
       <div className="space-y-2">
         {data.map((row) => (
-          <AuditCard key={row.id} row={row} productName={names.get(row.entity_id)} />
+          <AuditCard
+            key={row.id}
+            row={row}
+            {...(names.get(row.entity_id) ? { productName: names.get(row.entity_id) } : {})}
+          />
         ))}
       </div>
     </section>
