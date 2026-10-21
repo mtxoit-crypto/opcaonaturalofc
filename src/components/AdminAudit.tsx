@@ -69,7 +69,7 @@ export function AdminAudit({ products }: { products: Product[] }) {
   );
 }
 
-function AuditCard({ row, productName }: { row: AuditRow; productName?: string }) {
+function AuditCard({ row, productName }: { row: AuditRow; productName?: string | undefined }) {
   const entityLabel = productName ?? `${row.entity_type} · ${row.entity_id.slice(0, 8)}`;
   return (
     <article className="surface-card p-4">
