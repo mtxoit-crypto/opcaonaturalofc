@@ -64,8 +64,11 @@ export function ViewerStage({ children, camera, shadows, hint, compact, controls
 
   const rotate = () => {
     markInteraction();
-    controlsRef.current?.rotateLeft(Math.PI / 4);
-    controlsRef.current?.update();
+    const controlsApi = controlsRef.current as (OrbitControlsImpl & { rotateLeft: (angle: number) => void }) | null;
+    if (controlsApi) {
+      controlsApi.rotateLeft(Math.PI / 4);
+      controlsApi.update();
+    }
     finishInteraction();
   };
 

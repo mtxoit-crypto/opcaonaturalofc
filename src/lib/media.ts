@@ -44,7 +44,7 @@ export function isRemoteMediaPath(path: string) {
   return /^https:\/\//i.test(path);
 }
 
-export function isDatabaseProductId(id: string | undefined | null) {
+export function isDatabaseProductId(id: string | undefined | null): id is string {
   return Boolean(
     id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id),
   );

@@ -16,13 +16,13 @@ type ErrorBoundaryProps = { fallback: ReactNode; children: ReactNode };
 type ErrorBoundaryState = { hasError: boolean };
 
 class ModelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+  override state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
   }
 
-  render() {
+  override render() {
     return this.state.hasError ? this.props.fallback : this.props.children;
   }
 }
