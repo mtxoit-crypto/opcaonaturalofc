@@ -8,6 +8,13 @@
       "when": 1792626116393,
       "tag": "0000_products_stock_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792626131873,
+      "tag": "0001_catalog_audit_trigger",
+      "breakpoints": true
     }
   ]
 }
