@@ -19,7 +19,10 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TrocasRouteImport } from './routes/trocas'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
+import { Route as AdminMidiaRouteImport } from './routes/admin.midia'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
+import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as KitsIndexRouteImport } from './routes/kits.index'
 import { Route as ProdutosIndexRouteImport } from './routes/produtos.index'
 import { Route as ProdutosSlugRouteImport } from './routes/produtos.$slug'
@@ -74,9 +77,24 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEstoqueRoute = AdminEstoqueRouteImport.update({
+  id: '/admin/estoque',
+  path: '/admin/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMidiaRoute = AdminMidiaRouteImport.update({
+  id: '/admin/midia',
+  path: '/admin/midia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
   id: '/admin/pedidos',
   path: '/admin/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProdutosRoute = AdminProdutosRouteImport.update({
+  id: '/admin/produtos',
+  path: '/admin/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KitsIndexRoute = KitsIndexRouteImport.update({
@@ -105,7 +123,10 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/kits/': typeof KitsIndexRoute
@@ -121,7 +142,10 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin': typeof AdminIndexRoute
   '/kits': typeof KitsIndexRoute
@@ -138,7 +162,10 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/admin/estoque': typeof AdminEstoqueRoute
+  '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/produtos/$slug': typeof ProdutosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/kits/': typeof KitsIndexRoute
@@ -156,7 +183,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/admin/estoque'
+    | '/admin/midia'
     | '/admin/pedidos'
+    | '/admin/produtos'
     | '/produtos/$slug'
     | '/admin/'
     | '/kits/'
@@ -172,7 +202,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/admin/estoque'
+    | '/admin/midia'
     | '/admin/pedidos'
+    | '/admin/produtos'
     | '/produtos/$slug'
     | '/admin'
     | '/kits'
@@ -188,7 +221,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/admin/estoque'
+    | '/admin/midia'
     | '/admin/pedidos'
+    | '/admin/produtos'
     | '/produtos/$slug'
     | '/admin/'
     | '/kits/'
@@ -205,7 +241,10 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   TrocasRoute: typeof TrocasRoute
+  AdminEstoqueRoute: typeof AdminEstoqueRoute
+  AdminMidiaRoute: typeof AdminMidiaRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
+  AdminProdutosRoute: typeof AdminProdutosRoute
   ProdutosSlugRoute: typeof ProdutosSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   KitsIndexRoute: typeof KitsIndexRoute
@@ -284,11 +323,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/estoque': {
+      id: '/admin/estoque'
+      path: '/admin/estoque'
+      fullPath: '/admin/estoque'
+      preLoaderRoute: typeof AdminEstoqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/midia': {
+      id: '/admin/midia'
+      path: '/admin/midia'
+      fullPath: '/admin/midia'
+      preLoaderRoute: typeof AdminMidiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/pedidos': {
       id: '/admin/pedidos'
       path: '/admin/pedidos'
       fullPath: '/admin/pedidos'
       preLoaderRoute: typeof AdminPedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/produtos': {
+      id: '/admin/produtos'
+      path: '/admin/produtos'
+      fullPath: '/admin/produtos'
+      preLoaderRoute: typeof AdminProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kits/': {
@@ -325,7 +385,10 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   TrocasRoute: TrocasRoute,
+  AdminEstoqueRoute: AdminEstoqueRoute,
+  AdminMidiaRoute: AdminMidiaRoute,
   AdminPedidosRoute: AdminPedidosRoute,
+  AdminProdutosRoute: AdminProdutosRoute,
   ProdutosSlugRoute: ProdutosSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   KitsIndexRoute: KitsIndexRoute,

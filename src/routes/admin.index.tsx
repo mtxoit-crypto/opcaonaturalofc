@@ -81,11 +81,11 @@ function mergeAdminSearch(
 
 export const Route = createFileRoute("/admin/")({
   validateSearch: (search: Record<string, unknown>): AdminSearch => {
-    const tab = search.tab;
-    const product = search.product;
-    const section = search.section;
-    const q = search.q;
-    const filter = search.filter;
+    const tab = search["tab"];
+    const product = search["product"];
+    const section = search["section"];
+    const q = search["q"];
+    const filter = search["filter"];
     const normalizedTab = typeof tab === "string" ? normalizeAdminTab(tab) : undefined;
     return {
       ...(normalizedTab ? { tab: normalizedTab } : {}),
@@ -238,6 +238,7 @@ function AdminPage() {
     if (isDirty) {
       if (!window.confirm("Há alterações não salvas. Descartar e abrir outro produto?")) {
         navigate({
+          to: "/admin",
           search: (previous) =>
             mergeAdminSearch(
               previous,
@@ -330,7 +331,7 @@ function AdminPage() {
   }
 
   function updateSearch(search: AdminSearchPatch, clear: Array<keyof AdminSearch> = []) {
-    navigate({ search: (previous) => mergeAdminSearch(previous, search, clear) });
+    navigate({ to: "/admin", search: (previous) => mergeAdminSearch(previous, search, clear) });
   }
 
   function confirmDiscard(message = "Há alterações não salvas. Descartar?") {
@@ -636,8 +637,8 @@ function AdminPage() {
           { id: "visao", label: "Visão geral" },
           { id: "catalogo", label: "Produtos", count: products?.length ?? 0 },
           { id: "estoque", label: "Estoque", ...(products ? { count: outOfStockCount } : {}) },
-          { id: "kits", label: "Kits", count: kits?.length },
-          { id: "avaliacoes", label: "Avaliações", count: pendingReviews },
+          { id: "kits", label: "Kits", ...(kits ? { count: kits.length } : {}) },
+          { id: "avaliacoes", label: "Avaliações", ...(pendingReviews != null ? { count: pendingReviews } : {}) },
           { id: "clientes", label: "Clientes" },
           { id: "cupons", label: "Cupons" },
           { id: "midia", label: "Mídias" },
