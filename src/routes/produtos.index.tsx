@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 type SortKey = "relevancia" | "menor-preco" | "maior-preco" | "nome";
 
@@ -123,6 +125,17 @@ function ProductsPage() {
   }, [active, query, sort, onlyInStock, products]);
 
   const hasFilters = query.trim().length > 0 || onlyInStock || sort !== "relevancia";
+
+  useWebMCP({
+    name: "list_visible_products",
+    description: "Consulta os produtos mostrados no catálogo aberto, respeitando a busca, os filtros e a ordem atuais.",
+    enabled: !isLoading && !cartLoading,
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () => runWebMCPTool("list_visible_products", () => {
+      if (!filtered.length) return "Nenhum produto mostrado.";
+      return filtered.slice(0, 50).map(p => `${p.slug}: ${p.name} — ${formatMoney(priceOf(p))} — ${availabilityOf(p) ? "Disponível" : "Esgotado"}`).join("\n");
+    }),
+  });
 
   function clearFilters() {
     setQuery("");

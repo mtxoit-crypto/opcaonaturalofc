@@ -17,3 +17,5 @@
 - Recent schema changes are applied through `drizzle/migrations/` (drizzle-kit) while older ones sit in `supabase/migrations/`. Check both before adding a migration, and never re-run an equivalent of a file that is already applied to the live database.
 - Invited administrator assignment runs through private auth lifecycle triggers only after email confirmation; member addition must treat unconfirmed accounts as invitations to prevent identity takeover.
 - The retired local create_order RPC is service-role-only; customer checkout uses the existing Shopify flow to prevent public creation of fake local orders.
+- Agent access uses OAuth-verified, caller-scoped read-only MCP tools in `src/lib/mcp/` with SDK-generated routes; preserve consent returns through every login method so integrations never bypass RLS or app permissions.
+- Browser WebMCP tools stay in the component owning the visible view and use static-name telemetry; this keeps registration, filtering, permissions and cleanup aligned with the normal UI.
