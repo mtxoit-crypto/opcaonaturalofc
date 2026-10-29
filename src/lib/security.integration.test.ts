@@ -14,7 +14,7 @@ test("retired order creation denies visitors and authenticated clients in both s
     CROSS JOIN (VALUES ('anon'), ('authenticated')) roles(role_name)
     WHERE n.nspname IN ('public', 'private') AND p.proname = 'create_order'`);
   assert.equal(rows.length, 4);
-  for (const row of rows) assert.equal(row.allowed, false, `${row.nspname}: ${row.role_name}`);
+  for (const row of rows) assert.equal(row['allowed'], false, `${row['nspname']}: ${row['role_name']}`);
 });
 
 test("invited admin assignment is private and bound to the email confirmation transition", () => {
