@@ -7,6 +7,10 @@ export const Route = createFileRoute("/privacidade")({
     meta: [
       { title: "Política de privacidade · Opção Natural" },
       { name: "description", content: "Como a Opção Natural trata dados pessoais neste site." },
+      { property: "og:title", content: "Política de privacidade · Opção Natural" },
+      { property: "og:description", content: "Como a Opção Natural trata dados pessoais neste site." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: `${SITE_ORIGIN}/privacidade` }],
   }),

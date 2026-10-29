@@ -7,6 +7,10 @@ export const Route = createFileRoute("/entrega")({
     meta: [
       { title: "Política de entrega · Opção Natural" },
       { name: "description", content: "Como funciona o envio dos pedidos Opção Natural." },
+      { property: "og:title", content: "Política de entrega · Opção Natural" },
+      { property: "og:description", content: "Como funciona o envio dos pedidos Opção Natural." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: `${SITE_ORIGIN}/entrega` }],
   }),

@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Acesse o painel administrativo do catálogo Opção Natural." },
       { property: "og:title", content: "Entrar · Opção Natural" },
       { property: "og:description", content: "Acesso ao painel administrativo do catálogo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

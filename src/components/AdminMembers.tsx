@@ -17,7 +17,7 @@ export function AdminMembers() {
       toast.success(
         status === "ativo"
           ? "Sócio adicionado com acesso total ao painel"
-          : "Convite salvo — o acesso libera assim que a pessoa criar a conta com esse e-mail",
+          : "Convite salvo — o acesso libera após a pessoa confirmar esse e-mail",
       );
       setEmail("");
       qc.invalidateQueries({ queryKey: ["admin-members"] });

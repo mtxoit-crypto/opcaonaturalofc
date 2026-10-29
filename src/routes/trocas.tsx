@@ -7,6 +7,10 @@ export const Route = createFileRoute("/trocas")({
     meta: [
       { title: "Trocas e devoluções · Opção Natural" },
       { name: "description", content: "Como solicitar troca ou devolução na Opção Natural." },
+      { property: "og:title", content: "Trocas e devoluções · Opção Natural" },
+      { property: "og:description", content: "Como solicitar troca ou devolução na Opção Natural." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: `${SITE_ORIGIN}/trocas` }],
   }),
