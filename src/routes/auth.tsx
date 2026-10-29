@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({ next: oauthReturnPath(search.next) }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } => ({ next: oauthReturnPath(search['next']) }),
   head: () => ({
     meta: [
       { title: "Entrar · Opção Natural" },
@@ -33,7 +33,7 @@ function AuthPage() {
   const [pending, setPending] = useState(false);
   const { user, isAdmin, isAdminLoading } = useAuth();
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
+  const { next = "/" } = Route.useSearch();
 
   useEffect(() => {
     if (!user || isAdminLoading) return;

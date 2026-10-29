@@ -6,7 +6,7 @@ import { loadConsent, decideConsent } from "@/lib/oauth-consent";
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({ authorization_id: typeof s.authorization_id === "string" ? s.authorization_id : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({ authorization_id: typeof s['authorization_id'] === "string" ? s['authorization_id'] : "" }),
   head: () => ({ meta: [
     { title: "Conectar agente · Opção Natural" },
     { name: "description", content: "Confirme ou cancele o acesso de um agente ao catálogo Opção Natural." },
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   pendingComponent: () => <main className="mx-auto max-w-lg px-5 py-20"><p role="status">Carregando solicitação…</p></main>,
   errorComponent: ({ error, reset }) => <main className="mx-auto max-w-lg px-5 py-20 space-y-5">
     <h1 className="text-3xl">Não foi possível conectar</h1>
-    <p role="alert">{error.message}</p>
+    <p role="alert">{error instanceof Error ? error.message : "Não foi possível carregar a solicitação."}</p>
     <Button variant="outline" onClick={reset}>Tentar novamente</Button>
   </main>,
   component: ConsentPage,

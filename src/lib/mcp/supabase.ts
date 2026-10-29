@@ -17,7 +17,7 @@ function publishableKey() {
       const parsed: unknown = JSON.parse(dictionary);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         const keys = parsed as Record<string, unknown>;
-        const key = [keys.default, ...Object.values(keys)].find((value): value is string => typeof value === "string" && value.startsWith("sb_publishable_"));
+        const key = [keys['default'], ...Object.values(keys)].find((value): value is string => typeof value === "string" && value.startsWith("sb_publishable_"));
         if (key) return key;
       }
     } catch { /* A legacy key may still be configured. */ }
