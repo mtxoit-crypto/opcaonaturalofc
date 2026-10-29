@@ -7,6 +7,6 @@
 
 ## Agent integrations
 
-- [ ] Enable delegated OAuth and preserve consent through existing sign-in methods.
-- [ ] Add bounded read-only MCP catalog tools and a browser-local catalog read tool.
-- [ ] Verify consent states, tool authorization, and extract the MCP manifest.
+- [x] Enable delegated OAuth and preserve consent through existing sign-in methods.
+- [x] Add bounded read-only MCP catalog tools and a browser-local catalog read tool.
+- [x] Verify consent states, tool authorization, and extract the MCP manifest. Real approve/deny and product read passed with current local revision served under the allowed origin; hosted revision awaits republish. Browser lacks native WebMCP, so native registration is unverified.
