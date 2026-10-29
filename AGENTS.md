@@ -15,3 +15,5 @@
 - Product inventory is numeric: `products.stock_quantity` and `products.low_stock_threshold` (nullable, non-negative). Stock reporting and the "low stock" count must use those columns and never infer quantities from the boolean `in_stock` flag.
 - Privileged database logic lives in the `private` schema; `public` exposes only thin `SECURITY INVOKER` wrappers. Keep new privileged functions, role checks and price/order calculations in `private` and grant execution only to the roles that need them.
 - Recent schema changes are applied through `drizzle/migrations/` (drizzle-kit) while older ones sit in `supabase/migrations/`. Check both before adding a migration, and never re-run an equivalent of a file that is already applied to the live database.
+- Invited administrator assignment runs through private auth lifecycle triggers only after email confirmation; member addition must treat unconfirmed accounts as invitations to prevent identity takeover.
+- The retired local create_order RPC is service-role-only; customer checkout uses the existing Shopify flow to prevent public creation of fake local orders.

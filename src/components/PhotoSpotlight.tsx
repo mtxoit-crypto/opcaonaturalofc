@@ -75,14 +75,14 @@ export function PhotoSpotlight({
         height={640}
         loading="lazy"
         decoding="async"
-        className={cn("photo-zoom relative z-0 h-full w-full object-contain p-4", imgClassName)}
+        className={cn("photo-zoom relative z-0 h-full w-full object-contain object-center p-4", imgClassName)}
       />
       {desktop && !reduce ? (
         <motion.img
           src={src}
           alt=""
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-10 h-full w-full origin-center scale-[1.22] object-contain p-4"
+          className="pointer-events-none absolute inset-0 z-10 h-full w-full origin-center scale-[1.08] object-contain object-center p-4"
           style={{
             opacity,
             WebkitMaskImage: mask,

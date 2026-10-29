@@ -103,6 +103,10 @@ export const Route = createFileRoute("/admin/")({
     meta: [
       { title: "Painel · Opção Natural" },
       { name: "description", content: "Gerencie catálogo, kits, avaliações e a loja Opção Natural." },
+      { property: "og:title", content: "Painel · Opção Natural" },
+      { property: "og:description", content: "Gerencie catálogo, kits, avaliações e a loja Opção Natural." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

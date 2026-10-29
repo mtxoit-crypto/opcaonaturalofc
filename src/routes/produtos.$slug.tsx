@@ -266,7 +266,8 @@ function ProductPage() {
                   <PhotoSpotlight
                     src={photo}
                     alt={`Foto do pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
-                    className="min-h-[240px] w-full"
+                    className="min-h-[320px] w-full sm:min-h-[420px]"
+                    imgClassName="min-h-[320px] p-6 sm:min-h-[420px]"
                   />
                 ) : (
                   <JarViewer

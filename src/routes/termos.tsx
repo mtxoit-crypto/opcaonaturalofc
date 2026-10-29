@@ -7,6 +7,10 @@ export const Route = createFileRoute("/termos")({
     meta: [
       { title: "Termos de uso · Opção Natural" },
       { name: "description", content: "Condições de uso do site Opção Natural." },
+      { property: "og:title", content: "Termos de uso · Opção Natural" },
+      { property: "og:description", content: "Condições de uso do site Opção Natural." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: `${SITE_ORIGIN}/termos` }],
   }),

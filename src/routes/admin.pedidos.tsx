@@ -48,6 +48,10 @@ export const Route = createFileRoute("/admin/pedidos")({
     meta: [
       { title: "Pedidos · Painel Opção Natural" },
       { name: "description", content: "Acompanhe e atualize os pedidos da loja Opção Natural." },
+      { property: "og:title", content: "Pedidos · Painel Opção Natural" },
+      { property: "og:description", content: "Acompanhe e atualize os pedidos da loja Opção Natural." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

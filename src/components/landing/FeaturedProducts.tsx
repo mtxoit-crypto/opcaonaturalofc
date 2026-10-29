@@ -60,8 +60,8 @@ export function FeaturedProducts({
                 <PhotoSpotlight
                   src={productPhoto(p)}
                   alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
-                  className={featured ? "h-44 rounded-xl lg:h-full lg:min-h-52 lg:w-1/2" : "h-36 rounded-xl"}
-                  imgClassName={featured ? "h-44 p-2 lg:h-52" : "h-36 p-2"}
+                  className={featured ? "h-52 rounded-xl lg:h-full lg:min-h-60 lg:w-1/2" : "h-44 rounded-xl"}
+                  imgClassName={featured ? "h-52 p-4 lg:h-60" : "h-44 p-3"}
                 />
                 <div className="flex flex-1 flex-col">
                 <h3 className="mt-4 text-xl lg:mt-0">{p.name}</h3>

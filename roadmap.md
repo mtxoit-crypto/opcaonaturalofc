@@ -1,6 +1,6 @@
 # Package updates
 
-- [ ] Apply the five photo display adjustments without replacing unrelated code.
-- [ ] Require verified email for invited administrators and retire unused visitor order creation.
-- [ ] Preserve intentionally public product media and address the storage scan finding.
-- [ ] Verify photo views, invitation permissions, and existing page metadata.
+- [x] Apply the five photo display adjustments without replacing unrelated code.
+- [x] Require verified email for invited administrators and retire unused visitor order creation.
+- [ ] Storage scan resolution: owner requests all media public, but workspace blocks public buckets. Await enabling public buckets in workspace Privacy & Security; existing access unchanged and finding remains active.
+- [x] Verify photo views, invitation permissions, and existing page metadata.
