@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "sdk_version": "3.3.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://peycrmejoafguwrzqers.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "tioxtm-natural",
+      "version": "0.1.0",
+      "title": "tioxtm Natural"
+    },
+    "tools": [
+      {
+        "name": "list_products",
+        "title": "Consultar produtos cadastrados",
+        "description": "Lista produtos ativos cadastrados no banco da loja; não inclui produtos de fallback ou preços atualizados da Shopify.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "description": "Quantidade máxima de produtos, de 1 a 50."
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0,
+              "description": "Quantidade de produtos a pular na paginação."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_product",
+        "title": "Consultar detalhes de um produto",
+        "description": "Consulta um produto ativo pelo slug; preço cadastrado é informativo e o checkout Shopify confirma preço e disponibilidade.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "slug": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Slug do produto retornado por list_products."
+            }
+          },
+          "required": [
+            "slug"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
