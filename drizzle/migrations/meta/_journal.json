@@ -29,6 +29,13 @@
       "when": 1793235500575,
       "tag": "0003_verified_admin_invites_retire_public_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793236269429,
+      "tag": "0004_scope_public_store_settings_read",
+      "breakpoints": true
     }
   ]
 }
