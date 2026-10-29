@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as EntregaRouteImport } from './routes/entrega'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as NossaHistoriaRouteImport } from './routes/nossa-historia'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TrocasRouteImport } from './routes/trocas'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminEstoqueRouteImport } from './routes/admin.estoque'
 import { Route as AdminMidiaRouteImport } from './routes/admin.midia'
@@ -26,6 +28,7 @@ import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as KitsIndexRouteImport } from './routes/kits.index'
 import { Route as ProdutosIndexRouteImport } from './routes/produtos.index'
 import { Route as ProdutosSlugRouteImport } from './routes/produtos.$slug'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -45,6 +48,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const EntregaRoute = EntregaRouteImport.update({
   id: '/entrega',
   path: '/entrega',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NossaHistoriaRoute = NossaHistoriaRouteImport.update({
@@ -72,6 +80,12 @@ const TrocasRoute = TrocasRouteImport.update({
   path: '/trocas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -112,17 +126,24 @@ const ProdutosSlugRoute = ProdutosSlugRouteImport.update({
   path: '/produtos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/entrega': typeof EntregaRoute
+  '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
@@ -131,17 +152,20 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/kits/': typeof KitsIndexRoute
   '/produtos/': typeof ProdutosIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/entrega': typeof EntregaRoute
+  '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
@@ -150,6 +174,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/kits': typeof KitsIndexRoute
   '/produtos': typeof ProdutosIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -157,11 +182,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
   '/entrega': typeof EntregaRoute
+  '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/trocas': typeof TrocasRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/estoque': typeof AdminEstoqueRoute
   '/admin/midia': typeof AdminMidiaRoute
   '/admin/pedidos': typeof AdminPedidosRoute
@@ -170,6 +197,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/kits/': typeof KitsIndexRoute
   '/produtos/': typeof ProdutosIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -178,11 +206,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/entrega'
+    | '/mcp'
     | '/nossa-historia'
     | '/privacidade'
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/estoque'
     | '/admin/midia'
     | '/admin/pedidos'
@@ -191,17 +221,20 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/kits/'
     | '/produtos/'
+    | '/.lovable/oauth/consent'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/checkout'
     | '/entrega'
+    | '/mcp'
     | '/nossa-historia'
     | '/privacidade'
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/estoque'
     | '/admin/midia'
     | '/admin/pedidos'
@@ -210,17 +243,20 @@ export interface FileRouteTypes {
     | '/admin'
     | '/kits'
     | '/produtos'
+    | '/.lovable/oauth/consent'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/checkout'
     | '/entrega'
+    | '/mcp'
     | '/nossa-historia'
     | '/privacidade'
     | '/sitemap.xml'
     | '/termos'
     | '/trocas'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/estoque'
     | '/admin/midia'
     | '/admin/pedidos'
@@ -229,6 +265,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/kits/'
     | '/produtos/'
+    | '/.lovable/oauth/consent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,11 +273,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
   EntregaRoute: typeof EntregaRoute
+  McpRoute: typeof McpRoute
   NossaHistoriaRoute: typeof NossaHistoriaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   TrocasRoute: typeof TrocasRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AdminEstoqueRoute: typeof AdminEstoqueRoute
   AdminMidiaRoute: typeof AdminMidiaRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
@@ -249,6 +288,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   KitsIndexRoute: typeof KitsIndexRoute
   ProdutosIndexRoute: typeof ProdutosIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -279,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/entrega'
       fullPath: '/entrega'
       preLoaderRoute: typeof EntregaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nossa-historia': {
@@ -314,6 +361,13 @@ declare module '@tanstack/react-router' {
       path: '/trocas'
       fullPath: '/trocas'
       preLoaderRoute: typeof TrocasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -372,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -380,11 +441,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
   EntregaRoute: EntregaRoute,
+  McpRoute: McpRoute,
   NossaHistoriaRoute: NossaHistoriaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   TrocasRoute: TrocasRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AdminEstoqueRoute: AdminEstoqueRoute,
   AdminMidiaRoute: AdminMidiaRoute,
   AdminPedidosRoute: AdminPedidosRoute,
@@ -393,6 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   KitsIndexRoute: KitsIndexRoute,
   ProdutosIndexRoute: ProdutosIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
