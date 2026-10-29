@@ -23,6 +23,7 @@ export const Route = createFileRoute("/kits/")({
         content: "Combinações prontas de suplementos naturais em cápsulas, com entrega para todo o Brasil.",
       },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: KitsPage,
@@ -76,7 +77,7 @@ function KitsPage() {
                     src={kit.image_url}
                     alt={`${kit.name}: os 7 potes juntos`}
                     className="mt-6 h-56 rounded-2xl sm:h-72"
-                    imgClassName="h-56 p-3 sm:h-72"
+                    imgClassName="h-56 p-4 sm:h-72"
                   />
                 ) : null}
 
@@ -92,8 +93,8 @@ function KitsPage() {
                         <PhotoSpotlight
                           src={productPhoto(p)}
                           alt={`Pote de ${p.name}, suplemento natural em cápsulas`}
-                          className="h-32 rounded-lg"
-                          imgClassName="h-32 p-1"
+                          className="h-40 rounded-lg"
+                          imgClassName="h-40 p-3"
                         />
                       ) : null}
                       <p className="mt-2 text-center text-sm">{p.name}</p>

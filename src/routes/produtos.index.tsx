@@ -37,6 +37,7 @@ export const Route = createFileRoute("/produtos/")({
         content: "Cápsulas e kits com preço e estoque claros. Checkout seguro pela Shopify.",
       },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://opcaonaturalofc.lovable.app/produtos" },
     ],
     links: [{ rel: "canonical", href: "https://opcaonaturalofc.lovable.app/produtos" }],
@@ -294,8 +295,8 @@ function ProductsPage() {
                   <PhotoSpotlight
                     src={productPhoto(p)}
                     alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
-                    className="h-44 rounded-xl transition-transform duration-300 group-hover/card:scale-[1.03]"
-                    imgClassName="h-44 p-2"
+                    className="h-52 rounded-xl"
+                    imgClassName="h-52 p-4"
                   />
                   <h2 className="mt-5 text-2xl">{p.name}</h2>
                   <p className="text-sm text-muted-foreground">{p.subtitle}</p>
