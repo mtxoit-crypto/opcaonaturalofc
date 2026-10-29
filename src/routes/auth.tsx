@@ -7,8 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({ next: oauthReturnPath(search.next) }),
   head: () => ({
     meta: [
       { title: "Entrar · Opção Natural" },
@@ -31,11 +33,16 @@ function AuthPage() {
   const [pending, setPending] = useState(false);
   const { user, isAdmin, isAdminLoading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
 
   useEffect(() => {
     if (!user || isAdminLoading) return;
+    if (next !== "/") {
+      window.location.assign(next);
+      return;
+    }
     navigate({ to: isAdmin ? "/admin" : "/" });
-  }, [user, isAdmin, isAdminLoading, navigate]);
+  }, [user, isAdmin, isAdminLoading, navigate, next]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +65,7 @@ function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: new URL(next, window.location.origin).href },
     });
     setBusy(false);
     if (error) {
@@ -80,7 +87,7 @@ function AuthPage() {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: new URL(next, window.location.origin).href },
     });
     setBusy(false);
     if (error) toast.error(error.message);
@@ -90,7 +97,7 @@ function AuthPage() {
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: new URL(next, window.location.origin).href,
     });
     if (result.error) {
       toast.error("Não foi possível entrar com Google.");
