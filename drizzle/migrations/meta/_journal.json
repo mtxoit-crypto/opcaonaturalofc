@@ -36,6 +36,13 @@
       "when": 1793236269429,
       "tag": "0004_scope_public_store_settings_read",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793811477267,
+      "tag": "0005_scope_kit_items_and_media_reads",
+      "breakpoints": true
     }
   ]
 }
