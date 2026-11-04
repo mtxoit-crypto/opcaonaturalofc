@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Leaf, LogOut, Menu, ShieldCheck, X } from "lucide-react";
+import { Leaf, LogOut, Menu, MessageCircle, ShieldCheck, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { storeSettingsQuery, whatsappDigits } from "@/lib/store";
+import { CONTACT, FREE_SHIPPING_TEXT, whatsappLink } from "@/lib/site";
+
+export function WhatsAppFloat() {
+  return (
+    <a
+      href={whatsappLink()}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Falar no WhatsApp"
+      className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform hover:scale-105 md:bottom-24"
+    >
+      <MessageCircle className="size-6" aria-hidden />
+    </a>
+  );
+}
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";
@@ -80,6 +93,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
+      <p className="bg-primary px-4 py-1.5 text-center text-xs tracking-[0.08em] text-primary-foreground">
+        Frete grátis acima de R$ {FREE_SHIPPING_TEXT}
+      </p>
       <div className="mx-auto flex h-14 max-w-6xl min-w-0 items-center justify-between gap-3 px-4 sm:px-5">
         <Link to="/" className="flex min-w-0 items-center gap-2" onClick={() => setOpen(false)}>
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -154,9 +170,6 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
-  const { data } = useQuery(storeSettingsQuery);
-  const wa = whatsappDigits(data?.whatsapp_number);
-
   return (
     <footer className="mt-0 border-t border-border/60 bg-sand">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:grid-cols-2 lg:grid-cols-4">
@@ -205,18 +218,19 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="text-sm font-medium">Contato</p>
-          {wa ? (
-            <a
-              href={`https://wa.me/${wa}`}
-              className="mt-3 inline-block min-h-11 text-sm text-muted-foreground hover:text-foreground"
-              rel="noreferrer"
-              target="_blank"
-            >
-              WhatsApp
+          <nav className="mt-3 flex flex-col gap-2 text-sm" aria-label="Contato">
+            <a href={whatsappLink()} className="text-muted-foreground hover:text-foreground" rel="noreferrer" target="_blank">
+              WhatsApp {CONTACT.whatsappLabel}
             </a>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">Contato pelo e-mail da compra na Shopify.</p>
-          )}
+            <a href={CONTACT.instagramUrl} className="text-muted-foreground hover:text-foreground" rel="noreferrer" target="_blank">
+              Instagram {CONTACT.instagram}
+            </a>
+            {CONTACT.email ? (
+              <a href={`mailto:${CONTACT.email}`} className="text-muted-foreground hover:text-foreground">
+                {CONTACT.email}
+              </a>
+            ) : null}
+          </nav>
           <p className="mt-4 text-sm text-muted-foreground">
             Suplementos não substituem uma alimentação equilibrada.
           </p>

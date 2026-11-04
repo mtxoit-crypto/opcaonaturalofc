@@ -12,6 +12,8 @@ import { Differentials } from "@/components/landing/Differentials";
 import { HomeReviews } from "@/components/landing/HomeReviews";
 import { HomeFaq } from "@/components/landing/HomeFaq";
 import { ClosingCta } from "@/components/landing/ClosingCta";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { landing } from "@/lib/landing-copy";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,6 +59,15 @@ export const Route = createFileRoute("/")({
             url: SITE_ORIGIN,
             description: "Suplementos naturais em cápsulas, com envio para todo o Brasil.",
           },
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: landing.faq.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          },
         ]),
       },
     ],
@@ -65,7 +76,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { data: products, isLoading, isError } = useQuery(productsQuery);
+  const { data: products } = useQuery(productsQuery);
   const featured = (products ?? []).find((p) => p.is_active);
 
   useEffect(() => {
@@ -76,10 +87,11 @@ function Index() {
     <div>
       <LandingHero product={featured} />
       <TrustBar />
-      <FeaturedProducts products={products} isLoading={isLoading} isError={isError} />
+      <FeaturedProducts />
       <ObjectivePicker products={products} />
       <Differentials />
       <HomeReviews />
+      <Testimonials />
       <HomeFaq />
       <ClosingCta />
       <p className="sr-only">

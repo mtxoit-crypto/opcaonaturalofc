@@ -1,13 +1,13 @@
 export const landing = {
   hero: {
-    title: "Suplementos naturais para energia, vitalidade e bem-estar no dia a dia",
+    title: "Mais energia e bem-estar na sua rotina, com suplementos naturais",
     text: "Encontre cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil.",
     primary: "Encontrar meu suplemento",
     secondary: "Ver kits",
     highlights: [
-      "Pagamento seguro pela Shopify",
-      "Entrega para todo o Brasil",
-      "Atendimento pelo WhatsApp",
+      "Frete para todo o Brasil",
+      "Pagamento seguro",
+      "Atendimento no WhatsApp",
     ],
   },
   trust: [
@@ -57,11 +57,14 @@ export const landing = {
     secondary: "Ver kits",
   },
   diffs: [
-    { t: "Informação no catálogo", d: "Nome, quantidade, benefícios cadastrados e preço visíveis antes da compra." },
-    { t: "Compra prática", d: "Carrinho no site e pagamento no checkout da Shopify." },
-    { t: "Checkout protegido", d: "Dados de pagamento ficam na Shopify, não neste site." },
-    { t: "Navegação clara", d: "Busca, filtros e páginas de produto com o que está cadastrado." },
-    { t: "3D opcional", d: "O pote interativo é um extra. Dá para comprar só com a foto e os dados do produto." },
+    { t: "Qualidade", d: "Suplementos em cápsulas com rótulo, quantidade e modo de uso claros em cada produto." },
+    { t: "Praticidade", d: "Escolha, adicione ao carrinho e pague em poucos cliques, com Pix ou cartão." },
+    { t: "Entrega nacional", d: "Enviamos para todo o Brasil, com frete e prazo calculados pelo seu CEP." },
+  ],
+  testimonials: [
+    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
+    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
+    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
   ],
 } as const;
 

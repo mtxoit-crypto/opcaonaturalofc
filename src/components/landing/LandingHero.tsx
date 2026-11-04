@@ -62,9 +62,7 @@ export function LandingHero({ product }: { product: Product | undefined }) {
                 </Link>
               </Button>
             </div>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">Catálogo em atualização.</p>
-          )}
+          ) : null}
         </div>
       </div>
     </section>

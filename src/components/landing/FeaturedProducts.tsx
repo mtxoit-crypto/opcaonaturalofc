@@ -1,27 +1,30 @@
 import { Link } from "@tanstack/react-router";
-import { Loader2, ShoppingBag } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, MessageCircle, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { useAddToCart } from "@/hooks/useAddToCart";
-import { formatMoney } from "@/lib/shopify";
-import { productPhoto, type Product } from "@/lib/products";
+import { firstVariant, formatMoney, shopifyProductsQuery, type ShopifyProduct } from "@/lib/shopify";
+import { useCartStore } from "@/stores/cartStore";
+import { whatsappLink } from "@/lib/site";
 import { Button } from "@/components/ui/button";
-import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
-export function FeaturedProducts({
-  products,
-  isLoading,
-  isError,
-}: {
-  products: Product[] | undefined;
-  isLoading: boolean;
-  isError: boolean;
-}) {
-  const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
-  const list = (products ?? []).filter((p) => p.is_active).slice(0, 6);
+export function FeaturedProducts() {
+  const { data, isLoading, isError } = useQuery(shopifyProductsQuery);
+  const addItem = useCartStore((s) => s.addItem);
+  const cartLoading = useCartStore((s) => s.isLoading);
+  const list = (data ?? []).slice(0, 4);
 
-  async function add(p: Product) {
-    const ok = await addToCart(p.slug, p.name);
-    if (ok) toast.success(`${p.name} adicionado ao carrinho`);
+  async function buy(p: ShopifyProduct) {
+    const variant = firstVariant(p);
+    if (!variant) return;
+    await addItem({
+      variantId: variant.id,
+      title: p.node.title,
+      handle: p.node.handle,
+      image: p.node.images.edges[0]?.node.url ?? null,
+      price: variant.price,
+      quantity: 1,
+    });
+    toast.success(`${p.node.title} adicionado ao carrinho`);
   }
 
   return (
@@ -34,57 +37,58 @@ export function FeaturedProducts({
       </div>
 
       {isLoading ? (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-live="polite">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-80 animate-pulse rounded-2xl bg-muted" />
+        <div className="mt-6 grid gap-5 grid-cols-2 lg:grid-cols-4" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="surface-card flex flex-col p-4">
+              <div className="h-40 animate-pulse rounded-xl bg-muted" />
+              <div className="mt-4 h-4 w-3/4 animate-pulse rounded bg-muted" />
+              <div className="mt-2 h-4 w-1/3 animate-pulse rounded bg-muted" />
+              <div className="mt-4 h-11 animate-pulse rounded-md bg-muted" />
+            </div>
           ))}
         </div>
-      ) : isError ? (
-        <p className="mt-6 text-muted-foreground">Não foi possível carregar o catálogo agora.</p>
-      ) : list.length === 0 ? (
-        <p className="mt-6 text-muted-foreground">Catálogo em atualização.</p>
+      ) : isError || list.length === 0 ? (
+        <div className="mt-6 surface-card p-6">
+          <p className="text-muted-foreground">Não conseguimos carregar os produtos agora.</p>
+          <Button asChild className="mt-4 min-h-11">
+            <a href={whatsappLink()} target="_blank" rel="noreferrer">
+              <MessageCircle className="size-4" />
+              Comprar pelo WhatsApp
+            </a>
+          </Button>
+        </div>
       ) : (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((p, i) => {
-            const { variant } = getVariant(p.slug, p.name);
-            const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
-            const available = Boolean(variant?.availableForSale ?? p.in_stock);
+        <div className="mt-6 grid gap-5 grid-cols-2 lg:grid-cols-4">
+          {list.map((p) => {
+            const variant = firstVariant(p);
+            const img = p.node.images.edges[0]?.node;
             const buyable = Boolean(variant?.availableForSale);
-            const benefit = (p.benefits ?? [])[0];
-            const featured = i === 0;
             return (
-              <article
-                key={p.id}
-                className={`lift-card surface-card flex flex-col p-5 ${featured ? "sm:col-span-2 lg:col-span-2 lg:flex-row lg:gap-8" : ""}`}
-              >
-                <PhotoSpotlight
-                  src={productPhoto(p)}
-                  alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
-                  className={featured ? "h-52 rounded-xl lg:h-full lg:min-h-60 lg:w-1/2" : "h-44 rounded-xl"}
-                  imgClassName={featured ? "h-52 p-4 lg:h-60" : "h-44 p-3"}
-                />
-                <div className="flex flex-1 flex-col">
-                <h3 className="mt-4 text-xl lg:mt-0">{p.name}</h3>
-                {benefit ? <p className="text-sm text-muted-foreground">{benefit}</p> : null}
-                <p className="mt-2 text-sm text-muted-foreground">{p.capsule_count} cápsulas</p>
-                <p className="mt-2 text-lg text-accent">{formatMoney(price)}</p>
-                <p className="text-xs text-muted-foreground">{available ? "Disponível" : "Esgotado"}</p>
-                <div className="mt-auto flex gap-2 pt-4">
-                  <Button asChild variant="outline" className="min-h-11 flex-1">
-                    <Link to="/produtos/$slug" params={{ slug: p.slug }}>
-                      Ver detalhes
-                    </Link>
-                  </Button>
-                  <Button
-                    className="min-h-11 flex-1"
-                    disabled={!buyable || cartLoading}
-                    onClick={() => add(p)}
-                  >
-                    {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
-                    Adicionar
-                  </Button>
-                </div>
-                </div>
+              <article key={p.node.id} className="lift-card surface-card flex flex-col p-4">
+                <Link to="/produtos/$slug" params={{ slug: p.node.handle }} className="block">
+                  {img ? (
+                    <img
+                      src={img.url}
+                      alt={img.altText ?? `Pote de ${p.node.title}`}
+                      loading="lazy"
+                      className="h-40 w-full rounded-xl bg-sand object-contain p-2"
+                    />
+                  ) : (
+                    <div className="h-40 rounded-xl bg-sand" />
+                  )}
+                  <h3 className="mt-3 text-base leading-snug">{p.node.title}</h3>
+                </Link>
+                <p className="mt-1 text-lg text-accent">
+                  {formatMoney(variant?.price.amount ?? p.node.priceRange.minVariantPrice.amount)}
+                </p>
+                <Button
+                  className="mt-auto min-h-11 w-full"
+                  disabled={!buyable || cartLoading}
+                  onClick={() => buy(p)}
+                >
+                  {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
+                  {buyable ? "Comprar" : "Esgotado"}
+                </Button>
               </article>
             );
           })}
