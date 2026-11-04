@@ -7,5 +7,22 @@ export function absoluteUrl(path = "/") {
   return `${SITE_ORIGIN}${normalized}`;
 }
 
+export const CONTACT = {
+  whatsapp: "5544988601285",
+  whatsappLabel: "(44) 98860-1285",
+  instagram: "@tioxtm",
+  instagramUrl: "https://instagram.com/tioxtm",
+  /** Preencha com o e-mail da loja. */
+  email: "",
+};
+
+export const FREE_SHIPPING_TEXT = "75";
+
+export function whatsappLink(
+  text = "Olá! Vim pelo site da Opção Natural e gostaria de ajuda com um produto.",
+) {
+  return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`;
+}
+
 /** Imagem social: foto real do catálogo até existir um OG dedicado. */
 export const DEFAULT_OG_IMAGE = absoluteUrl("/produtos/ginseng.png");
