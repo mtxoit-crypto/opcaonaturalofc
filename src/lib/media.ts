@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { signProductMedia } from "./media.functions";
 
 import {
   assertMediaFile,
@@ -53,15 +54,10 @@ export function isDatabaseProductId(id: string | undefined | null): id is string
 async function withUrls(rows: Array<Omit<ProductMedia, "url">> | null): Promise<ProductMedia[]> {
   if (!rows?.length) return [];
   const stored = rows.filter((r) => !isRemoteMediaPath(r.storage_path));
-  const { data } = stored.length
-    ? await supabase.storage
-        .from(MEDIA_BUCKET)
-        .createSignedUrls(
-          stored.map((r) => r.storage_path),
-          60 * 60 * 24,
-        )
-    : { data: [] as { signedUrl?: string }[] };
-  const signed = new Map(stored.map((r, i) => [r.id, data?.[i]?.signedUrl ?? ""]));
+  const urls = stored.length
+    ? await signProductMedia({ data: { ids: stored.map((r) => r.id) } })
+    : {};
+  const signed = new Map(stored.map((r) => [r.id, urls[r.id] ?? ""]));
   return rows
     .map((r) => ({
       ...r,

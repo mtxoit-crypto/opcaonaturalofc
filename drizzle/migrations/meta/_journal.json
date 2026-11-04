@@ -43,6 +43,13 @@
       "when": 1793811477267,
       "tag": "0005_scope_kit_items_and_media_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793814324186,
+      "tag": "0006_media_storage_admin_only_reads",
+      "breakpoints": true
     }
   ]
 }
