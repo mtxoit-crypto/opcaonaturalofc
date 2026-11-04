@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Leaf, LogOut, Menu, ShieldCheck, X } from "lucide-react";
+import { Leaf, LogOut, Menu, MessageCircle, ShieldCheck, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { storeSettingsQuery, whatsappDigits } from "@/lib/store";
+import { CONTACT, FREE_SHIPPING_TEXT, whatsappLink } from "@/lib/site";
+
+export function WhatsAppFloat() {
+  return (
+    <a
+      href={whatsappLink()}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Falar no WhatsApp"
+      className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform hover:scale-105 md:bottom-24"
+    >
+      <MessageCircle className="size-6" aria-hidden />
+    </a>
+  );
+}
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
 import { useCartSync } from "@/hooks/useCartSync";

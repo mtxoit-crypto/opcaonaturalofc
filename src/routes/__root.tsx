@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter, WhatsAppFloat } from "@/components/SiteChrome";
 import { Toaster } from "@/components/ui/sonner";
 import { AIChatbot } from "@/components/AIChatbot";
 import { MotionConfig } from "motion/react";
@@ -145,6 +145,7 @@ function RootComponent() {
       </div>
       <Toaster />
       <AIChatbot />
+      <WhatsAppFloat />
       </MotionConfig>
     </QueryClientProvider>
 
