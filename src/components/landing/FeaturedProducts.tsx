@@ -71,10 +71,10 @@ export function FeaturedProducts() {
                       src={img.url}
                       alt={img.altText ?? `Pote de ${p.node.title}`}
                       loading="lazy"
-                      className="h-40 w-full rounded-xl bg-sand object-contain p-2"
+                      className="aspect-square w-full rounded-xl bg-sand object-contain p-4 sm:p-5"
                     />
                   ) : (
-                    <div className="h-40 rounded-xl bg-sand" />
+                    <div className="aspect-square rounded-xl bg-sand" />
                   )}
                   <h3 className="mt-3 text-base leading-snug">{p.node.title}</h3>
                 </Link>
