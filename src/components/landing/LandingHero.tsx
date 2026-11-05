@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useAddToCart } from "@/hooks/useAddToCart";
 import { formatMoney } from "@/lib/shopify";
-import { type Product } from "@/lib/products";
+import { productPhoto, type Product } from "@/lib/products";
 import { landing } from "@/lib/landing-copy";
 import { track } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
-import { ProgressiveJar } from "@/components/landing/ProgressiveJar";
+import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
 export function LandingHero({ product }: { product: Product | undefined }) {
   const { getVariant } = useAddToCart();
@@ -45,7 +45,23 @@ export function LandingHero({ product }: { product: Product | undefined }) {
         </div>
 
         <div>
-          <ProgressiveJar product={product} />
+          {product ? (
+            <Link
+              to="/produtos/$slug"
+              params={{ slug: product.slug }}
+              className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Ver ${product.name}`}
+            >
+              <PhotoSpotlight
+                src={productPhoto(product)}
+                alt={`Embalagem de ${product.name}, Opção Natural`}
+                className="h-[280px] rounded-2xl sm:h-[360px]"
+                imgClassName="p-6 sm:p-8"
+              />
+            </Link>
+          ) : (
+            <div className="h-[280px] animate-pulse rounded-2xl bg-muted sm:h-[360px]" aria-hidden />
+          )}
           {product ? (
             <div className="mt-4">
               <p className="text-display text-xl leading-tight">{product.name}</p>
