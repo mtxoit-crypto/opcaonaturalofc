@@ -308,7 +308,7 @@ function ProductsPage() {
                   <PhotoSpotlight
                     src={productPhoto(p)}
                     alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
-                    className="h-52 rounded-xl"
+                    className="aspect-square rounded-xl"
                     imgClassName="h-52 p-4"
                   />
                   <h2 className="mt-5 text-2xl">{p.name}</h2>
