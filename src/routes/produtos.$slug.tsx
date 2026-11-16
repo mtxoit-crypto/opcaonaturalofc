@@ -128,7 +128,11 @@ function ProductPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const [activeMediaTab, setActiveMediaTab] = useState<MediaTab>("foto");
-  const { data: product, isLoading } = useQuery(productQuery(slug));
+  const loaded = Route.useLoaderData();
+  const { data: product, isLoading } = useQuery({
+    ...productQuery(slug),
+    initialData: loaded ?? undefined,
+  });
   const { data: catalog } = useQuery(productsQuery);
   const { data: store } = useQuery(storeSettingsQuery);
   const mediaId =
