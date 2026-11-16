@@ -27,6 +27,12 @@ const PRODUCT_COLUMNS =
 
 const KIT_SELECT = `id,slug,name,subtitle,description,price,image_url,is_active,sort_order,kit_items(id,product_id,sort_order,products(${PRODUCT_COLUMNS}))`;
 
+const KIT_PHOTOS: Record<string, string> = {
+  "kit-emagrecimento": "/produtos/kit-emagrecimento-completo.jpg",
+  "kit-testosterona": "/produtos/kit-testo-completo.jpg",
+  "kit-ansiedade": "/produtos/kit-ansiedade-completo.jpg",
+};
+
 function mapKit(k: Record<string, unknown>): Kit {
   const raw = (k["kit_items"] ?? []) as {
     id: string;
@@ -43,8 +49,10 @@ function mapKit(k: Record<string, unknown>): Kit {
       sort_order: i.sort_order,
       product: i.products,
     }));
+  const kit = k as unknown as Omit<Kit, "items" | "products">;
   return {
-    ...(k as unknown as Omit<Kit, "items" | "products">),
+    ...kit,
+    image_url: KIT_PHOTOS[kit.slug] ?? kit.image_url,
     items,
     products: items.map((i) => i.product).filter((p): p is Product => Boolean(p)),
   };
