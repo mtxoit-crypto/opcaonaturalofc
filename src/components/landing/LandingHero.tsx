@@ -16,12 +16,13 @@ export function LandingHero({ product }: { product: Product | undefined }) {
 
   return (
     <section className="grain-bg border-b border-border">
-      <div className="mx-auto grid max-w-6xl gap-8 px-5 py-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-center md:py-12">
-        <div>
-          <h1 className="text-display max-w-[22ch] text-[1.7rem] leading-[1.15] sm:text-4xl md:text-[2.4rem]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] md:items-center md:py-16">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.24em] text-primary">Opção Natural · Suplementos em cápsulas</p>
+          <h1 className="text-display mt-3 max-w-[20ch] text-[1.9rem] leading-[1.1] sm:text-[2.6rem] md:text-[3.1rem]">
             {landing.hero.title}
           </h1>
-          <p className="mt-4 max-w-[42ch] text-muted-foreground">{landing.hero.text}</p>
+          <p className="mt-5 max-w-[44ch] text-base leading-relaxed text-muted-foreground sm:text-lg">{landing.hero.text}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button asChild className="min-h-11">
               <Link to="/produtos" onClick={() => track({ name: "click_hero_cta", cta: "primary" })}>

@@ -5,13 +5,17 @@ import { toast } from "sonner";
 import { firstVariant, formatMoney, shopifyProductsQuery, type ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
 import { whatsappLink } from "@/lib/site";
+import { formatPrice, productPhoto, productsQuery } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 
 export function FeaturedProducts() {
-  const { data, isLoading, isError } = useQuery(shopifyProductsQuery);
+  const { data, isLoading, isError } = useQuery({ ...shopifyProductsQuery, retry: 1 });
   const addItem = useCartStore((s) => s.addItem);
   const cartLoading = useCartStore((s) => s.isLoading);
   const list = (data ?? []).slice(0, 4);
+  const shopDown = !isLoading && (isError || list.length === 0);
+  const { data: catalog } = useQuery({ ...productsQuery, enabled: shopDown });
+  const fallback = (catalog ?? []).filter((p) => p.is_active).slice(0, 4);
 
   async function buy(p: ShopifyProduct) {
     const variant = firstVariant(p);
@@ -47,7 +51,38 @@ export function FeaturedProducts() {
             </div>
           ))}
         </div>
-      ) : isError || list.length === 0 ? (
+      ) : shopDown && fallback.length ? (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-5 lg:grid-cols-4">
+            {fallback.map((p) => (
+              <article key={p.id} className="lift-card surface-card flex min-w-0 flex-col p-4">
+                <Link to="/produtos/$slug" params={{ slug: p.slug }} className="block">
+                  <img
+                    src={productPhoto(p)}
+                    alt={`Embalagem de ${p.name}`}
+                    loading="lazy"
+                    width={400}
+                    height={400}
+                    className="aspect-square w-full rounded-xl bg-sand object-contain p-4 sm:p-5"
+                  />
+                  <h3 className="mt-3 text-base leading-snug">{p.name}</h3>
+                </Link>
+                {p.price != null ? <p className="mt-1 text-lg text-accent">{formatPrice(p.price)}</p> : null}
+                <Button asChild variant="outline" className="mt-auto min-h-11 w-full">
+                  <Link to="/produtos/$slug" params={{ slug: p.slug }}>Ver produto</Link>
+                </Button>
+              </article>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            A compra online está temporariamente indisponível.{" "}
+            <a href={whatsappLink()} target="_blank" rel="noreferrer" className="text-accent underline underline-offset-4">
+              Peça pelo WhatsApp
+            </a>
+            .
+          </p>
+        </>
+      ) : shopDown ? (
         <div className="mt-6 surface-card p-6">
           <p className="text-muted-foreground">Não conseguimos carregar os produtos agora.</p>
           <Button asChild className="mt-4 min-h-11">

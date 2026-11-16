@@ -61,11 +61,6 @@ export const landing = {
     { t: "Praticidade", d: "Escolha, adicione ao carrinho e pague em poucos cliques, com Pix ou cartão." },
     { t: "Entrega nacional", d: "Enviamos para todo o Brasil, com frete e prazo calculados pelo seu CEP." },
   ],
-  testimonials: [
-    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
-    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
-    { name: "Nome do cliente", city: "Cidade - UF", text: "Texto de exemplo. Substitua por um depoimento real de cliente." },
-  ],
 } as const;
 
 export function objectiveGroups(benefits: string[]) {

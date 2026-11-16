@@ -12,7 +12,6 @@ import { Differentials } from "@/components/landing/Differentials";
 import { HomeReviews } from "@/components/landing/HomeReviews";
 import { HomeFaq } from "@/components/landing/HomeFaq";
 import { ClosingCta } from "@/components/landing/ClosingCta";
-import { Testimonials } from "@/components/landing/Testimonials";
 import { landing } from "@/lib/landing-copy";
 
 export const Route = createFileRoute("/")({
@@ -91,7 +90,6 @@ function Index() {
       <ObjectivePicker products={products} />
       <Differentials />
       <HomeReviews />
-      <Testimonials />
       <HomeFaq />
       <ClosingCta />
       <p className="sr-only">
