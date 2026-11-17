@@ -84,11 +84,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Opção Natural · Vitaminas naturais em cápsulas" },
+      { title: "Opção Natural | Suplementos naturais em cápsulas" },
       {
         name: "description",
         content:
-          "Vitaminas naturais em cápsulas com pote 3D interativo: abra a tampa e veja as cápsulas de perto.",
+          "Conheça os produtos e kits da Opção Natural, com informações de conteúdo, preço e disponibilidade.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

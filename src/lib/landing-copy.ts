@@ -1,7 +1,7 @@
 export const landing = {
   hero: {
-    title: "Mais energia e bem-estar na sua rotina, com suplementos naturais",
-    text: "Encontre cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil.",
+    title: "Suplementos naturais para a sua rotina",
+    text: "Conheça os produtos e kits da Opção Natural, com informações claras para escolher com tranquilidade.",
     primary: "Encontrar meu suplemento",
     secondary: "Ver kits",
     highlights: [
@@ -16,9 +16,9 @@ export const landing = {
     { title: "Catálogo atualizado", detail: "Preço e estoque vêm da loja." },
   ],
   story: {
-    title: "Uma história real de mudança de hábitos.",
-    p1: "Meu pai mudou de vida com disciplina, alimentação e uma rotina constante. Eliminou 90 kg. Esse resultado é individual e veio da mudança de hábitos, não de uma promessa de produto.",
-    p2: "Os suplementos naturais que usamos em casa fizeram parte da rotina. Eles não substituem alimentação equilibrada e não garantem o mesmo resultado para outras pessoas.",
+    title: "Uma história de mudança de hábitos.",
+    p1: "Meu pai passou por uma mudança pessoal que envolveu disciplina, alimentação e uma rotina constante. Esta história é individual e não representa um resultado esperado com qualquer produto.",
+    p2: "Compartilhamos essa experiência como parte da história da família. Suplementos não substituem uma alimentação equilibrada nem a orientação de um profissional de saúde.",
     cta: "Conheça os produtos",
   },
   faq: [

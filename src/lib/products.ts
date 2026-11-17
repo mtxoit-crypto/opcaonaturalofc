@@ -28,7 +28,28 @@ export type Product = {
 const COLUMNS =
   "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,model_url,in_stock,is_active,sort_order";
 
-const CROPPED_PRODUCT_PHOTOS = new Set(["ashwagandha","banana-verde","capim-limao","catuaba","cha-verde","feno-grego","gaba","gengibre","ginseng","glicina","glucomannan","hibisco","laranja-moro","maca-peruana-negra","maracuja","marapuama","mucuna-preta","mulungu","psyllium","tribulus-terrestris"]);
+const CROPPED_PRODUCT_PHOTOS = new Set([
+  "ashwagandha",
+  "banana-verde",
+  "capim-limao",
+  "catuaba",
+  "cha-verde",
+  "feno-grego",
+  "gaba",
+  "gengibre",
+  "ginseng",
+  "glicina",
+  "glucomannan",
+  "hibisco",
+  "laranja-moro",
+  "maca-peruana-negra",
+  "maracuja",
+  "marapuama",
+  "mucuna-preta",
+  "mulungu",
+  "psyllium",
+  "tribulus-terrestris",
+]);
 
 export function hasCroppedProductPhoto(slug: string) {
   return CROPPED_PRODUCT_PHOTOS.has(slug);
