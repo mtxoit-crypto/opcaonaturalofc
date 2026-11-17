@@ -1,0 +1,40 @@
+name: Verify application
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies and refresh lockfile
+        run: npm install --no-audit --no-fund
+      - name: Run tests
+        run: npm test
+      - name: Build production app
+        run: npm run build
+      - name: Check lint
+        run: npm run lint
+        continue-on-error: true
+      - name: Save resolved package lock
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolved-package-lock
+          path: package-lock.json
+          if-no-files-found: ignore
+          retention-days: 1
