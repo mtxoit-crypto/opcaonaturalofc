@@ -567,11 +567,11 @@ function AdminPage() {
               : "marcados sem estoque";
       if (updated === 0) {
         toast.warning(
-          `Nenhum produto local foi atualizado. ${skipped} produto(s) externo(s) (Shopify/catálogo externo) ignorado(s).`,
+          `Nenhum produto local foi atualizado. ${skipped} produto(s) externo(s) do catálogo ignorado(s).`,
         );
       } else if (skipped > 0) {
         toast.success(
-          `${updated} produto(s) ${actionLabel}; ${skipped} externo(s) (Shopify/catálogo externo) ignorado(s).`,
+          `${updated} produto(s) ${actionLabel}; ${skipped} produto(s) externo(s) do catálogo ignorado(s).`,
         );
       } else {
         toast.success(`${updated} produto(s) ${actionLabel}.`);
@@ -899,7 +899,7 @@ function AdminPage() {
                         value={orderDrafts[p.id] ?? String(p.sort_order)}
                         disabled={!editable || updateOrder.isPending}
                         aria-label={`Ordem no catálogo de ${p.name}`}
-                        title={editable ? "Salvar ordem ao sair do campo" : "Produto externo (Shopify)"}
+                        title={editable ? "Salvar ordem ao sair do campo" : "Produto externo"}
                         onChange={(event) =>
                           setOrderDrafts((current) => ({ ...current, [p.id]: event.target.value }))
                         }
@@ -1000,7 +1000,7 @@ function AdminPage() {
                       size="sm"
                       disabled={!editable || remove.isPending}
                       aria-label={`Remover ${p.name}`}
-                      title={editable ? "Remover produto" : "Produto externo (Shopify) não pode ser removido"}
+                      title={editable ? "Remover produto" : "Produto externo não pode ser removido"}
                       onClick={() => {
                         if (
                           window.confirm(

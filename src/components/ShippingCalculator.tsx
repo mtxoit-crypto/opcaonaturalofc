@@ -4,7 +4,7 @@ import { Truck } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { shippingZonesQuery, estimateShipping, cleanCep } from "@/lib/shipping";
 import { storeSettingsQuery } from "@/lib/store";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

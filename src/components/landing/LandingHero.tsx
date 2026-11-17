@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useAddToCart } from "@/hooks/useAddToCart";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/money";
 import { productPhoto, type Product } from "@/lib/products";
 import { landing } from "@/lib/landing-copy";
 import { track } from "@/lib/analytics";

@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-rea
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/stores/cartStore";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/money";
 import { shippingZonesQuery, estimateShipping, cleanCep } from "@/lib/shipping";
 import { storeSettingsQuery } from "@/lib/store";
 import { Button } from "@/components/ui/button";

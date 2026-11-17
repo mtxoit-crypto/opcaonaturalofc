@@ -1,9 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import {
-  firstVariant,
-  shopifyProductsQuery,
-  type ShopifyProduct,
-} from "@/lib/shopify";
 
 export type Product = {
   id: string;
@@ -328,49 +323,10 @@ function localCatalog(): Product[] {
   }));
 }
 
-function fromShopify(edge: ShopifyProduct, index: number): Product {
-  const n = edge.node;
-  const amount = Number(n.priceRange.minVariantPrice.amount);
-  const local = LOCAL.find((p) => p.slug === n.handle);
-  return {
-    id: n.id,
-    slug: n.handle,
-    name: n.title,
-    subtitle: local?.subtitle ?? null,
-    description: n.description || local?.description || null,
-    benefits: local?.benefits ?? [],
-    dosage: productDosage(n.handle),
-    capsule_count: capsuleCount(n.handle),
-    price: Number.isFinite(amount) ? amount : (local?.price ?? null),
-    stock_quantity: 0,
-    capsule_color: "#E8B54A",
-    jar_color: "#F4F3F0",
-    lid_color: n.handle === "maracuja" ? "#2F4A8A" : n.handle === "gaba" ? "#F4F3F0" : "#A8D4B8",
-    image_url: `/produtos/${n.handle}.png`,
-    model_url: null,
-    in_stock: Boolean(firstVariant(edge)?.availableForSale),
-    is_active: true,
-    sort_order: index + 1,
-  };
-}
-
 export function productPhoto(p: Pick<Product, "slug" | "image_url">) {
   if (hasCroppedProductPhoto(p.slug)) return `/produtos/${p.slug}.jpg`;
   if (p.image_url) return p.image_url;
   return `/produtos/${p.slug}.png`;
-}
-
-async function storefrontCatalog(): Promise<Product[]> {
-  const local = localCatalog();
-  try {
-    const shopify = await shopifyProductsQuery.queryFn();
-    if (!shopify.length) return local;
-    const fromShop = shopify.map(fromShopify);
-    const seen = new Set(fromShop.map((p) => p.slug));
-    return [...fromShop, ...local.filter((p) => !seen.has(p.slug))];
-  } catch {
-    return local;
-  }
 }
 
 export const productsQuery = {
@@ -380,11 +336,8 @@ export const productsQuery = {
       ascending: true,
     });
     if (error) throw error;
-    const store = await storefrontCatalog();
-    if (!data?.length) return store;
-    const db = data as Product[];
-    const seen = new Set(db.map((p) => p.slug));
-    return [...db, ...store.filter((p) => !seen.has(p.slug))];
+    if (!data?.length) return localCatalog();
+    return data as Product[];
   },
 };
 
@@ -396,11 +349,8 @@ export const adminProductsQuery = (enabled = false) => ({
       ascending: true,
     });
     if (error) throw error;
-    const store = await storefrontCatalog();
-    if (!data?.length) return store;
-    const db = data as Product[];
-    const seen = new Set(db.map((p) => p.slug));
-    return [...db, ...store.filter((p) => !seen.has(p.slug))];
+    if (!data?.length) return localCatalog();
+    return data as Product[];
   },
 });
 
@@ -410,7 +360,7 @@ export const productQuery = (slug: string) => ({
     const { data, error } = await supabase.from("products").select(COLUMNS).eq("slug", slug).maybeSingle();
     if (error) throw error;
     if (data) return data as Product;
-    const list = await storefrontCatalog();
+    const list = localCatalog();
     return list.find((p) => p.slug === slug) ?? null;
   },
 });

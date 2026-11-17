@@ -5,7 +5,7 @@ import { ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react
 import { toast } from "sonner";
 import { productsQuery, productPhoto, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

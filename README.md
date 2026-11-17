@@ -2,13 +2,13 @@
 
 ## Stripe Checkout
 
-The website uses Stripe Checkout in test mode. Configure these server-only secrets in Cloudflare Workers before testing:
+The website uses Stripe Checkout. Configure these server-only secrets in Cloudflare Workers:
 
-- `STRIPE_SECRET_KEY` (`sk_test_...`)
+- `STRIPE_SECRET_KEY` (`sk_test_...` for testing or `sk_live_...` for live payments)
 - `STRIPE_WEBHOOK_SECRET` (`whsec_...` for `/api/stripe/webhook`)
 - `SUPABASE_SERVICE_ROLE_KEY` (server only; never expose it as a `VITE_` variable)
 
-Apply the new Supabase migration in `supabase/migrations/` before enabling checkout. Product `stock_quantity` must contain the real available quantity; the site does not infer online availability from the legacy `in_stock` boolean.
+Apply the new Supabase migration in `supabase/migrations/` before enabling checkout. Keep test keys in preview environments. Live payments require a verified, enabled Stripe account, a live secret key, and a live webhook signing secret. Product `stock_quantity` must contain the real available quantity; the site does not infer online availability from the legacy `in_stock` boolean.
 
 This project was built with [Lovable](https://lovable.dev).
 

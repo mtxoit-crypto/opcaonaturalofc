@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { parseCartMetadata, verifyStripeSignature } from "./stripe-webhook.ts";
+import { parseCartMetadata, stripeModeForSecret, verifyStripeSignature } from "./stripe-webhook.ts";
 
 const secret = "whsec_unit_test_secret";
 
@@ -51,4 +51,11 @@ test("parses bounded product cart metadata", () => {
   assert.equal(parseCartMetadata(`${firstId}:100`), null);
   assert.equal(parseCartMetadata(`${firstId}:1,${firstId}:2`), null);
   assert.equal(parseCartMetadata("invalid:1"), null);
+});
+
+test("selects only a valid Stripe key mode", () => {
+  assert.equal(stripeModeForSecret("sk_test_example123"), "test");
+  assert.equal(stripeModeForSecret("sk_live_example123"), "live");
+  assert.equal(stripeModeForSecret(undefined), null);
+  assert.equal(stripeModeForSecret("pk_live_example123"), null);
 });

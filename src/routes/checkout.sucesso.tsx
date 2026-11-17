@@ -6,7 +6,7 @@ import { useCartStore } from "@/stores/cartStore";
 
 export const Route = createFileRoute("/checkout/sucesso")({
   validateSearch: (search: Record<string, unknown>): { session_id?: string } =>
-    typeof search["session_id"] === "string" && /^cs_test_[A-Za-z0-9]+$/.test(search["session_id"])
+    typeof search["session_id"] === "string" && /^cs_(test|live)_[A-Za-z0-9]+$/.test(search["session_id"])
       ? { session_id: search["session_id"] }
       : {},
   component: CheckoutSuccessPage,

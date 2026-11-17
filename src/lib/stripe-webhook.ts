@@ -1,5 +1,10 @@
 const encoder = new TextEncoder();
 
+export function stripeModeForSecret(secret: string | undefined): "live" | "test" | null {
+  if (!secret || !/^sk_(test|live)_[A-Za-z0-9]+$/.test(secret)) return null;
+  return secret.startsWith("sk_live_") ? "live" : "test";
+}
+
 function toHex(bytes: ArrayBuffer) {
   return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

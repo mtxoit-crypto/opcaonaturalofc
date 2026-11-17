@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { stripeModeForSecret } from "@/lib/stripe-webhook";
 
 type CartRequest = {
   cep?: unknown;
@@ -81,8 +82,8 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           return json({ error: "O carrinho pode ter até 10 produtos diferentes." }, 400);
 
         const stripeSecret = process.env["STRIPE_SECRET_KEY"];
-        if (!stripeSecret?.startsWith("sk_test_")) {
-          return json({ error: "Checkout em teste ainda não está configurado pela loja." }, 503);
+        if (!stripeModeForSecret(stripeSecret)) {
+          return json({ error: "Checkout Stripe não está configurado pela loja." }, 503);
         }
         const supabaseServiceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
         if (!supabaseServiceKey)

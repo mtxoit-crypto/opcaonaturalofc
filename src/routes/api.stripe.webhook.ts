@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { parseCartMetadata, verifyStripeSignature } from "@/lib/stripe-webhook";
+import { parseCartMetadata, stripeModeForSecret, verifyStripeSignature } from "@/lib/stripe-webhook";
 
 type StripeCheckoutSession = {
   id?: string;
@@ -69,7 +69,13 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         } catch {
           return json(400);
         }
-        if (event.livemode) return json(400);
+        const stripeSecret = process.env["STRIPE_SECRET_KEY"];
+        const configuredMode = stripeModeForSecret(stripeSecret);
+        const expectedLiveMode = configuredMode === "live";
+        if (
+          !configuredMode ||
+          event.livemode !== expectedLiveMode
+        ) return json(400);
         if (
           event.type !== "checkout.session.completed" &&
           event.type !== "checkout.session.async_payment_succeeded"
@@ -98,7 +104,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         const amount = session.amount_total;
 
         if (
-          !/^cs_test_[A-Za-z0-9]+$/.test(sessionId) ||
+          !new RegExp(`^cs_${configuredMode}_[A-Za-z0-9]+$`).test(sessionId) ||
           session.currency?.toLowerCase() !== "brl" ||
           !/^\d{8}$/.test(cep) ||
           postalCode !== cep ||

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { productQuery, productsQuery, productPhoto } from "@/lib/products";
 import { productMediaQuery } from "@/lib/media";
 import { useAddToCart } from "@/hooks/useAddToCart";
-import { formatMoney } from "@/lib/shopify";
+import { formatMoney } from "@/lib/money";
 import { JarViewer } from "@/components/JarViewer";
 import { ModelViewer } from "@/components/ModelViewer";
 import { ProductReviews } from "@/components/ProductReviews";

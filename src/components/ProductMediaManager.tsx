@@ -259,7 +259,7 @@ export function ProductMediaManager({
   if (!catalogId) {
     return (
       <div className="rounded-xl border border-clay/30 bg-clay/5 p-4 text-sm">
-        <p className="font-medium">Este produto ainda está somente na Shopify.</p>
+        <p className="font-medium">Este produto ainda não foi cadastrado no catálogo da loja.</p>
         <p className="mt-1 text-muted-foreground">
           Para trocar a foto, volte em <strong>Geral</strong>, clique em <strong>Salvar produto</strong> e
           depois abra <strong>Mídia</strong> novamente. Isso cria o registro local sem alterar o preço do checkout.
