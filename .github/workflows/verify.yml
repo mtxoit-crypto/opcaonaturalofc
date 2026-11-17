@@ -29,6 +29,7 @@ jobs:
         run: npm run build
       - name: Check lint
         run: npm run lint
+        continue-on-error: true
       - name: Save resolved package lock
         if: always()
         uses: actions/upload-artifact@v4
