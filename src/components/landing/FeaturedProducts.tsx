@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { firstVariant, formatMoney, shopifyProductsQuery, type ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
 import { whatsappLink } from "@/lib/site";
-import { formatPrice, productPhoto, productsQuery } from "@/lib/products";
+import { formatPrice, hasCroppedProductPhoto, productPhoto, productsQuery } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 
 export function FeaturedProducts() {
@@ -103,7 +103,11 @@ export function FeaturedProducts() {
                 <Link to="/produtos/$slug" params={{ slug: p.node.handle }} className="block">
                   {img ? (
                     <img
-                      src={img.url}
+                      src={
+                        hasCroppedProductPhoto(p.node.handle)
+                          ? productPhoto({ slug: p.node.handle, image_url: null })
+                          : img.url
+                      }
                       alt={img.altText ?? `Pote de ${p.node.title}`}
                       loading="lazy"
                       className="aspect-square w-full rounded-xl bg-sand object-contain p-4 sm:p-5"
