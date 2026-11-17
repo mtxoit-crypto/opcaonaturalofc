@@ -5,7 +5,7 @@ import { supabaseForUser } from "../supabase";
 export default defineTool({
   name: "list_products",
   title: "Consultar produtos cadastrados",
-  description: "Lista produtos ativos cadastrados no banco da loja; não inclui produtos de fallback ou preços atualizados da Shopify.",
+  description: "Lista produtos ativos cadastrados no banco da loja; não inclui produtos de fallback externos.",
   inputSchema: {
     limit: z.number().int().min(1).max(50).default(20).describe("Quantidade máxima de produtos, de 1 a 50."),
     offset: z.number().int().min(0).max(10000).default(0).describe("Quantidade de produtos a pular na paginação."),

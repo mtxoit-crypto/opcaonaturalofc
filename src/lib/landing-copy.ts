@@ -11,7 +11,7 @@ export const landing = {
     ],
   },
   trust: [
-    { title: "Checkout seguro", detail: "Pagamento somente na Shopify." },
+    { title: "Checkout seguro", detail: "Pagamento processado pela Stripe." },
     { title: "Envio nacional", detail: "Entrega para todo o Brasil." },
     { title: "Catálogo atualizado", detail: "Preço e estoque vêm da loja." },
   ],
@@ -32,11 +32,11 @@ export const landing = {
     },
     {
       q: "Como consultar o frete?",
-      a: "Use o cálculo por CEP na página do produto ou no carrinho. O valor e o prazo finais são confirmados no checkout da Shopify.",
+      a: "Informe seu CEP no carrinho. O valor e o prazo da entrega são calculados antes do pagamento.",
     },
     {
       q: "Onde o pagamento é realizado?",
-      a: "Somente no checkout seguro da Shopify. Cartão, Pix e demais opções ficam lá; este site não processa pagamento.",
+      a: "O pagamento é processado com segurança pela Stripe. As formas disponíveis aparecem no checkout.",
     },
     {
       q: "Vocês entregam em todo o Brasil?",
@@ -44,7 +44,7 @@ export const landing = {
     },
     {
       q: "Como acompanho meu pedido?",
-      a: "Depois do pagamento, acompanhe pelo e-mail e pela conta da Shopify usados na compra. As atualizações de envio chegam por lá.",
+      a: "Após a confirmação, você recebe os detalhes do pedido no e-mail informado durante o checkout.",
     },
     {
       q: "Suplementos substituem alimentação equilibrada?",

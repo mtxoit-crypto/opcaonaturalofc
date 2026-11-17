@@ -31,12 +31,12 @@ export const Route = createFileRoute("/produtos/")({
       {
         name: "description",
         content:
-          "Veja o catálogo Opção Natural: cápsulas e kits com preço claro, estoque atualizado e pagamento seguro no checkout da Shopify.",
+          "Veja o catálogo Opção Natural: cápsulas e kits com preço claro, estoque atualizado e pagamento seguro pela Stripe.",
       },
       { property: "og:title", content: "Catálogo de suplementos naturais | Opção Natural" },
       {
         property: "og:description",
-        content: "Cápsulas e kits com preço e estoque claros. Checkout seguro pela Shopify.",
+        content: "Cápsulas e kits com preço e estoque claros. Checkout seguro pela Stripe.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -147,7 +147,7 @@ function ProductsPage() {
     <div className="mx-auto max-w-6xl px-5 py-10">
       <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
-        Escolha seu suplemento, adicione ao carrinho e finalize no checkout seguro da Shopify.
+        Escolha seu suplemento, adicione ao carrinho e finalize o pagamento no checkout seguro da Stripe.
       </p>
 
       {/* Barra de busca e filtros */}

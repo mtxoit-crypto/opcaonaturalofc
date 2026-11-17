@@ -256,8 +256,6 @@ ProductMediaSection.displayName = "ProductMediaSection";
 export const ProductPriceSection = ({ form, setForm, sectionRef }: SectionProps) => (
   <EditorSection id="preco" title="Preço" sectionRef={sectionRef}>
     <ProductPricePanel
-      {...(form.slug !== undefined ? { slug: form.slug } : {})}
-      {...(form.name !== undefined ? { name: form.name } : {})}
       price={form.price ?? null}
       onChange={(price) => setForm({ ...form, price })}
     />

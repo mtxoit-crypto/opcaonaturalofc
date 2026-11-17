@@ -23,7 +23,7 @@ function Page() {
       <p>TODO_CONTEUDO_REAL: transportadoras e prazos médios por região, quando forem definidos.</p>
       <p>
         Enviamos para todo o Brasil. O valor do frete e o prazo aparecem no cálculo por CEP e são confirmados no
-        checkout da Shopify.
+        checkout seguro da Stripe.
       </p>
     </LegalPage>
   );

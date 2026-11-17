@@ -1,5 +1,15 @@
 # Welcome to your Lovable project
 
+## Stripe Checkout
+
+The website uses Stripe Checkout in test mode. Configure these server-only secrets in Cloudflare Workers before testing:
+
+- `STRIPE_SECRET_KEY` (`sk_test_...`)
+- `STRIPE_WEBHOOK_SECRET` (`whsec_...` for `/api/stripe/webhook`)
+- `SUPABASE_SERVICE_ROLE_KEY` (server only; never expose it as a `VITE_` variable)
+
+Apply the new Supabase migration in `supabase/migrations/` before enabling checkout. Product `stock_quantity` must contain the real available quantity; the site does not infer online availability from the legacy `in_stock` boolean.
+
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable

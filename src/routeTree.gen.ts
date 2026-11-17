@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CheckoutSucessoRouteImport } from './routes/checkout.sucesso'
+import { Route as ApiStripeCheckoutRouteImport } from './routes/api.stripe.checkout'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe.webhook'
 import { Route as EntregaRouteImport } from './routes/entrega'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as NossaHistoriaRouteImport } from './routes/nossa-historia'
@@ -43,6 +46,21 @@ const AuthRoute = AuthRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutSucessoRoute = CheckoutSucessoRouteImport.update({
+  id: '/checkout/sucesso',
+  path: '/checkout/sucesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeCheckoutRoute = ApiStripeCheckoutRouteImport.update({
+  id: '/api/stripe/checkout',
+  path: '/api/stripe/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntregaRoute = EntregaRouteImport.update({
@@ -136,6 +154,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/checkout/sucesso': typeof CheckoutSucessoRoute
+  '/api/stripe/checkout': typeof ApiStripeCheckoutRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/entrega': typeof EntregaRoute
   '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
@@ -158,6 +179,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/checkout/sucesso': typeof CheckoutSucessoRoute
+  '/api/stripe/checkout': typeof ApiStripeCheckoutRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/entrega': typeof EntregaRoute
   '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
@@ -181,6 +205,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/checkout': typeof CheckoutRoute
+  '/checkout/sucesso': typeof CheckoutSucessoRoute
+  '/api/stripe/checkout': typeof ApiStripeCheckoutRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/entrega': typeof EntregaRoute
   '/mcp': typeof McpRoute
   '/nossa-historia': typeof NossaHistoriaRoute
@@ -205,6 +232,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
+    | '/checkout/sucesso'
+    | '/api/stripe/checkout'
+    | '/api/stripe/webhook'
     | '/entrega'
     | '/mcp'
     | '/nossa-historia'
@@ -227,6 +257,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
+    | '/checkout/sucesso'
+    | '/api/stripe/checkout'
+    | '/api/stripe/webhook'
     | '/entrega'
     | '/mcp'
     | '/nossa-historia'
@@ -249,6 +282,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/checkout'
+    | '/checkout/sucesso'
+    | '/api/stripe/checkout'
+    | '/api/stripe/webhook'
     | '/entrega'
     | '/mcp'
     | '/nossa-historia'
@@ -272,6 +308,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   CheckoutRoute: typeof CheckoutRoute
+  CheckoutSucessoRoute: typeof CheckoutSucessoRoute
+  ApiStripeCheckoutRoute: typeof ApiStripeCheckoutRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   EntregaRoute: typeof EntregaRoute
   McpRoute: typeof McpRoute
   NossaHistoriaRoute: typeof NossaHistoriaRoute
@@ -312,6 +351,27 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/sucesso': {
+      id: '/checkout/sucesso'
+      path: '/checkout/sucesso'
+      fullPath: '/checkout/sucesso'
+      preLoaderRoute: typeof CheckoutSucessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/checkout': {
+      id: '/api/stripe/checkout'
+      path: '/api/stripe/checkout'
+      fullPath: '/api/stripe/checkout'
+      preLoaderRoute: typeof ApiStripeCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrega': {
@@ -440,6 +500,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   CheckoutRoute: CheckoutRoute,
+  CheckoutSucessoRoute: CheckoutSucessoRoute,
+  ApiStripeCheckoutRoute: ApiStripeCheckoutRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   EntregaRoute: EntregaRoute,
   McpRoute: McpRoute,
   NossaHistoriaRoute: NossaHistoriaRoute,

@@ -15,6 +15,7 @@ export type Product = {
   dosage: string | null;
   capsule_count: number;
   price: number | null;
+  stock_quantity: number | null;
   capsule_color: string;
   jar_color: string;
   lid_color: string;
@@ -26,7 +27,7 @@ export type Product = {
 };
 
 const COLUMNS =
-  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,model_url,in_stock,is_active,sort_order";
+  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,stock_quantity,capsule_color,jar_color,lid_color,image_url,model_url,in_stock,is_active,sort_order";
 
 const CROPPED_PRODUCT_PHOTOS = new Set([
   "ashwagandha",
@@ -315,6 +316,7 @@ function localCatalog(): Product[] {
     dosage: productDosage(p.slug),
     capsule_count: capsuleCount(p.slug),
     price: p.price,
+    stock_quantity: 0,
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
     lid_color: p.slug === "maracuja" ? "#2F4A8A" : p.slug === "gaba" ? "#F4F3F0" : "#A8D4B8",
@@ -340,6 +342,7 @@ function fromShopify(edge: ShopifyProduct, index: number): Product {
     dosage: productDosage(n.handle),
     capsule_count: capsuleCount(n.handle),
     price: Number.isFinite(amount) ? amount : (local?.price ?? null),
+    stock_quantity: 0,
     capsule_color: "#E8B54A",
     jar_color: "#F4F3F0",
     lid_color: n.handle === "maracuja" ? "#2F4A8A" : n.handle === "gaba" ? "#F4F3F0" : "#A8D4B8",

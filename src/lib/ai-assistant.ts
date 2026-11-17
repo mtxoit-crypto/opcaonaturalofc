@@ -48,7 +48,7 @@ const COMMON_ANSWERS: { patterns: string[]; answer: string }[] = [
   {
     patterns: ["pagamento", "cartao", "pix", "boleto", "parcelar", "credito", "debito"],
     answer:
-      "Aceitamos os métodos disponíveis no checkout da Shopify, de forma segura. Você recebe a confirmação por e-mail após o pagamento.",
+      "As formas de pagamento disponíveis são apresentadas no checkout seguro da Stripe. A confirmação do pedido é enviada após a validação do pagamento.",
   },
   {
     patterns: ["trocar", "devolver", "reembolso", "devolucao", "garantia"],

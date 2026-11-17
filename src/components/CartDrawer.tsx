@@ -1,34 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
+import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { formatMoney } from "@/lib/shopify";
-import { ShippingCalculator } from "@/components/ShippingCalculator";
-import { track } from "@/lib/analytics";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const { items, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart } =
-    useCartStore();
+  const { items, isLoading, updateQuantity, removeItem } = useCartStore();
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + Number(i.price.amount) * i.quantity, 0);
   const currency = items[0]?.price.currencyCode ?? "BRL";
-
-  useEffect(() => {
-    if (isOpen) syncCart();
-  }, [isOpen, syncCart]);
-
-  function payOnShopify() {
-    const checkoutUrl = getCheckoutUrl();
-    if (!checkoutUrl) return;
-    setIsOpen(false);
-    track({ name: "begin_checkout" });
-    window.location.assign(checkoutUrl);
-  }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -65,7 +50,7 @@ export function CartDrawer() {
             <>
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
                 {items.map((item) => (
-                  <div key={item.variantId} className="flex gap-3 border-b border-border/60 pb-4">
+                  <div key={item.slug} className="flex gap-3 border-b border-border/60 pb-4">
                     <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-sand">
                       {item.image ? (
                         <img
@@ -79,14 +64,14 @@ export function CartDrawer() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate">{item.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {formatMoney(item.price.amount, item.price.currencyCode)}
+                          {formatMoney(item.price.amount, item.price.currencyCode)}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="icon"
                           className="size-7"
-                          onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.slug, item.quantity - 1)}
                         >
                           <Minus className="size-3" />
                         </Button>
@@ -95,7 +80,7 @@ export function CartDrawer() {
                           variant="outline"
                           size="icon"
                           className="size-7"
-                          onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.slug, item.quantity + 1)}
                         >
                           <Plus className="size-3" />
                         </Button>
@@ -103,7 +88,7 @@ export function CartDrawer() {
                           variant="ghost"
                           size="icon"
                           className="ml-auto size-7"
-                          onClick={() => removeItem(item.variantId)}
+                          onClick={() => removeItem(item.slug)}
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -111,7 +96,6 @@ export function CartDrawer() {
                     </div>
                   </div>
                 ))}
-                <ShippingCalculator compact />
               </div>
 
               <div className="shrink-0 space-y-4 border-t border-border/60 bg-background pt-4">
@@ -119,23 +103,14 @@ export function CartDrawer() {
                   <span className="text-lg">Total</span>
                   <span className="text-xl text-accent">{formatMoney(totalPrice, currency)}</span>
                 </div>
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={payOnShopify}
-                  disabled={items.length === 0 || isLoading || isSyncing}
-                >
-                  {isLoading || isSyncing ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <>
-                      <ExternalLink className="size-4" />
-                      Pagar na Shopify
-                    </>
-                  )}
+                <Button asChild className="w-full" size="lg" disabled={items.length === 0 || isLoading}>
+                  <Link to="/checkout" onClick={() => setIsOpen(false)}>
+                    <ArrowRight className="size-4" />
+                    Continuar para o pagamento
+                  </Link>
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
-                  Pagamento somente no checkout seguro da Shopify.
+                  Pagamento seguro processado pela Stripe.
                 </p>
               </div>
             </>

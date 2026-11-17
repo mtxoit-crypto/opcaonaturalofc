@@ -1,34 +1,44 @@
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useCartStore } from "@/stores/cartStore";
-import { firstVariant, matchShopifyProduct, shopifyProductsQuery } from "@/lib/shopify";
+import { productPhoto, productsQuery } from "@/lib/products";
 
-/**
- * Liga o catálogo (Cloud) aos produtos reais da Shopify: encontra a variante
- * pelo slug/nome e adiciona ao carrinho da Storefront API.
- */
+/** Uses the store catalog as the source of truth; the server revalidates price and stock. */
 export function useAddToCart() {
-  const { data: shopifyProducts, isLoading: loadingShopify } = useQuery(shopifyProductsQuery);
-  const addItem = useCartStore((s) => s.addItem);
-  const isLoading = useCartStore((s) => s.isLoading);
+  const { data: products, isLoading: loadingProducts } = useQuery(productsQuery);
+  const addItem = useCartStore((state) => state.addItem);
+  const isLoading = useCartStore((state) => state.isLoading);
 
-  function getVariant(slug: string, name?: string) {
-    const product = matchShopifyProduct(shopifyProducts, slug, name);
-    return { product, variant: firstVariant(product) };
+  function getVariant(slug: string, _name?: string) {
+    const product = products?.find((entry) => entry.slug === slug) ?? null;
+    return {
+      product,
+      variant: product
+        ? {
+            availableForSale:
+              product.is_active && product.price !== null && (product.stock_quantity ?? 0) > 0,
+            price: { amount: String(product.price ?? 0), currencyCode: "BRL" as const },
+          }
+        : undefined,
+    };
   }
 
-  async function addToCart(slug: string, name: string, quantity = 1) {
-    const { product, variant } = getVariant(slug, name);
-    if (!product || !variant) {
+  async function addToCart(slug: string, _name: string, quantity = 1) {
+    const product = products?.find((entry) => entry.slug === slug);
+    if (
+      !product ||
+      !product.is_active ||
+      product.price === null ||
+      (product.stock_quantity ?? 0) < 1
+    ) {
       toast.error("Produto indisponível para compra no momento.");
       return false;
     }
     await addItem({
-      variantId: variant.id,
-      title: product.node.title,
-      handle: product.node.handle,
-      image: product.node.images.edges[0]?.node.url ?? null,
-      price: variant.price,
+      slug: product.slug,
+      title: product.name,
+      image: productPhoto(product),
+      price: { amount: String(product.price), currencyCode: "BRL" },
       quantity,
     });
     const { track } = await import("@/lib/analytics");
@@ -36,5 +46,5 @@ export function useAddToCart() {
     return true;
   }
 
-  return { addToCart, getVariant, shopifyProducts, isLoading: isLoading || loadingShopify };
+  return { addToCart, getVariant, isLoading: isLoading || loadingProducts };
 }

@@ -32,7 +32,7 @@ export const Route = createFileRoute("/produtos/$slug")({
     const description =
       p?.description?.trim() ||
       p?.subtitle?.trim() ||
-      `${name}: suplemento natural em cápsulas Opção Natural. ${capsuleBit}Preço e estoque no catálogo; pagamento no checkout seguro da Shopify.`;
+      `${name}: suplemento natural em cápsulas Opção Natural. ${capsuleBit}Preço e estoque no catálogo; pagamento seguro processado pela Stripe.`;
     const title = p?.name
       ? `${p.name} em cápsulas | Opção Natural`
       : `${name} | Opção Natural`;
@@ -413,7 +413,7 @@ function ProductPage() {
               {buyable ? "Disponível" : "Esgotado"}
             </p>
             <p className="text-sm text-muted-foreground">
-              Pagamento seguro no checkout da Shopify. Frete confirmado no checkout.
+              Pagamento seguro processado pela Stripe. Frete calculado antes do pagamento.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Button
@@ -460,7 +460,7 @@ function ProductPage() {
             <AccordionItem value="pagamento">
               <AccordionTrigger>Formas de pagamento e troca</AccordionTrigger>
               <AccordionContent className="space-y-2 text-sm text-muted-foreground">
-                <p>O pagamento acontece no checkout da Shopify.</p>
+                <p>O pagamento acontece no checkout seguro da Stripe.</p>
                 <p>
                   <Link to="/trocas" className="underline-offset-4 hover:underline">
                     Trocas e devoluções

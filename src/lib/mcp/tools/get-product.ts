@@ -5,7 +5,7 @@ import { supabaseForUser } from "../supabase";
 export default defineTool({
   name: "get_product",
   title: "Consultar detalhes de um produto",
-  description: "Consulta um produto ativo pelo slug; preço cadastrado é informativo e o checkout Shopify confirma preço e disponibilidade.",
+  description: "Consulta um produto ativo pelo slug; preço cadastrado é informativo e o checkout Stripe confirma preço e estoque numérico.",
   inputSchema: { slug: z.string().min(1).max(200).describe("Slug do produto retornado por list_products.") },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ slug }, ctx) => {

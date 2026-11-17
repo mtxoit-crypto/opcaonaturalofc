@@ -588,6 +588,24 @@ export type Database = {
         Args: { _email: string; _user_id: string }
         Returns: undefined
       }
+      record_stripe_checkout_order: {
+        Args: {
+          _amount_total_cents: number
+          _city: string
+          _complement: string | null
+          _customer_email: string | null
+          _customer_name: string
+          _customer_phone: string
+          _district: string
+          _items: Json
+          _number: string
+          _state: string
+          _street: string
+          _stripe_session_id: string
+          _zip_code: string
+        }
+        Returns: { code: string; id: string }[]
+      }
       create_order: {
         Args: {
           _city: string

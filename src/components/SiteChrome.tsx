@@ -21,7 +21,6 @@ export function WhatsAppFloat() {
 }
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
-import { useCartSync } from "@/hooks/useCartSync";
 import { cn } from "@/lib/utils";
 
 const navClass =
@@ -32,7 +31,6 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  useCartSync();
 
   const links = (
     <>
@@ -176,7 +174,7 @@ export function SiteFooter() {
         <div>
           <p className="text-display text-lg text-foreground">Opção Natural</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Suplementos naturais em cápsulas. Pagamento no checkout da Shopify.
+            Suplementos naturais em cápsulas. Pagamento seguro processado pela Stripe.
           </p>
         </div>
         <div>
@@ -239,7 +237,7 @@ export function SiteFooter() {
       <div className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 pb-28 pt-5 text-xs md:pb-5 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Opção Natural. Todos os direitos reservados.</p>
-          <p>Pagamento processado com segurança pelo checkout da Shopify.</p>
+          <p>Pagamento processado com segurança pela Stripe.</p>
         </div>
       </div>
     </footer>

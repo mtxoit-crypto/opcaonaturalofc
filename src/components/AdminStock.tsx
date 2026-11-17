@@ -170,10 +170,9 @@ export function AdminStock({
           <p className="font-medium">Disponibilidade atual</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {inventoryQuery.isError
-              ? "Quantidade e limite de estoque baixo ainda não estão disponíveis neste ambiente; usando o sinal booleano "
-              : "A quantidade e o limite abaixo são controles locais opcionais. "}
-            <code>in_stock</code> continua sendo preservado. Produtos sincronizados pelo Shopify continuam
-            dependendo da disponibilidade configurada lá; estes campos não alteram o checkout do Shopify.
+              ? "A quantidade numérica de estoque ainda não está disponível neste ambiente; as compras online ficam bloqueadas até corrigir o cadastro. "
+              : "A quantidade numérica abaixo controla a disponibilidade para compra online. "}
+            <code>in_stock</code> é preservado por compatibilidade e não substitui o estoque numérico no checkout.
           </p>
           {inventoryQuery.isError ? (
             <p className="mt-2 text-xs text-muted-foreground">

@@ -1,11 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  firstVariant as shopifyVariant,
-  formatMoney as shopifyMoney,
-  matchShopifyProduct as shopifyMatch,
-  shopifyProductsQuery as shopifyQuery,
-} from "@/lib/shopify";
+import { useEffect, useState } from "react";
 import { formatPrice as catalogPrice } from "@/lib/products";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +6,9 @@ import { Label } from "@/components/ui/label";
 function parseBrl(raw: string): number | null {
   const cleaned = raw.replace(/[^\d,.-]/g, "").trim();
   if (!cleaned) return null;
-  const normalized = cleaned.includes(",")
-    ? cleaned.replace(/\./g, "").replace(",", ".")
-    : cleaned;
-  const n = Number(normalized);
-  return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
+  const value = Number(normalized);
+  return Number.isFinite(value) && value >= 0 ? Math.round(value * 100) / 100 : null;
 }
 
 function editValue(price: number | null) {
@@ -26,37 +17,27 @@ function editValue(price: number | null) {
 }
 
 export function ProductPricePanel({
-  slug,
-  name,
   price,
   onChange,
 }: {
-  slug?: string;
-  name?: string;
   price: number | null;
   onChange: (price: number | null) => void;
 }) {
-  const { data: shopify } = useQuery(shopifyQuery);
   const [draft, setDraft] = useState(() => editValue(price));
 
   useEffect(() => {
     setDraft(editValue(price));
-  }, [price, slug, name]);
-
-  const variant = shopifyVariant(shopifyMatch(shopify, slug ?? "", name));
-  const checkout = variant ? Number(variant.price.amount) : null;
-  const display = useMemo(() => catalogPrice(price), [price]);
-  const checkoutLabel =
-    checkout == null ? null : shopifyMoney(checkout, variant?.price.currencyCode ?? "BRL");
-  const mismatch = checkout != null && price != null && Math.abs(checkout - price) >= 0.01;
+  }, [price]);
 
   return (
     <section className="rounded-2xl bg-sand/60 p-4">
       <h3 className="text-base font-semibold tracking-tight">Preço</h3>
       <p className="mt-3 font-sans text-4xl font-semibold leading-none tracking-tight text-foreground tabular-nums">
-        {display}
+        {catalogPrice(price)}
       </p>
-      <p className="mt-1 text-sm text-muted-foreground">Como aparece na vitrine do site.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Preço do catálogo e base do checkout seguro Stripe.
+      </p>
 
       <div className="mt-4 space-y-1.5">
         <Label htmlFor="product-price">Valor no catálogo (R$)</Label>
@@ -65,39 +46,16 @@ export function ProductPricePanel({
           inputMode="decimal"
           placeholder="0,00"
           value={draft}
-          onChange={(e) => {
-            setDraft(e.target.value);
-            onChange(parseBrl(e.target.value));
+          onChange={(event) => {
+            setDraft(event.target.value);
+            onChange(parseBrl(event.target.value));
           }}
           onBlur={() => setDraft(editValue(price))}
         />
       </div>
-
-      <div className="mt-3 rounded-xl bg-card/80 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-        {checkoutLabel ? (
-          <>
-            <p>
-              No checkout da Shopify o cliente paga{" "}
-              <span className="font-medium text-foreground">{checkoutLabel}</span>.
-            </p>
-            {mismatch ? (
-              <p className="mt-1 text-clay">
-                Esse valor é cobrado no pagamento. O campo acima só atualiza o preço mostrado no
-                site e neste painel — altere o produto na Shopify se quiser mudar o checkout.
-              </p>
-            ) : (
-              <p className="mt-1">
-                Os dois valores estão iguais. Salve o produto para gravar o preço do catálogo.
-              </p>
-            )}
-          </>
-        ) : (
-          <p>
-            Este item ainda não tem par na Shopify. O preço salvo aqui aparece no site; a cobrança
-            só existe depois que o produto estiver na loja Shopify.
-          </p>
-        )}
-      </div>
+      <p className="mt-3 rounded-xl bg-card/80 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+        O servidor confirma novamente o preço salvo no catálogo antes de criar a cobrança.
+      </p>
     </section>
   );
 }

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Compre suplementos naturais em cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil. Pagamento seguro no checkout da Shopify.",
+          "Compre suplementos naturais em cápsulas e kits com preço claro, estoque atualizado e entrega para todo o Brasil. Pagamento seguro processado pela Stripe.",
       },
       {
         property: "og:title",
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Cápsulas e kits com preço e estoque claros. Entrega nacional e pagamento seguro pela Shopify.",
+          "Cápsulas e kits com preço e estoque claros. Entrega nacional e pagamento seguro pela Stripe.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: absoluteUrl("/") },

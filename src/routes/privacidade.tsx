@@ -22,8 +22,9 @@ function Page() {
     <LegalPage title="Política de privacidade">
       <p>TODO_CONTEUDO_REAL: completar com o responsável pelo tratamento, bases legais e prazos de retenção.</p>
       <p>
-        Este site usa o catálogo e o carrinho para montar o pedido. O pagamento ocorre no checkout da Shopify. Dados
-        que você envia em avaliações ou no login administrativo ficam no Supabase da loja.
+        Este site usa o catálogo e o carrinho para montar o pedido. O pagamento é processado no checkout da Stripe, que
+        recebe os dados necessários para concluir a transação. Dados de avaliações e do login administrativo ficam no
+        banco de dados da loja.
       </p>
       <p>Não publicamos aqui CNPJ, e-mail ou telefone até esses dados serem confirmados.</p>
     </LegalPage>
