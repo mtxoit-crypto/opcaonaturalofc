@@ -238,7 +238,6 @@ export type Database = {
       }
       orders: {
         Row: {
-          external_order_id: string | null
           city: string
           code: string
           complement: string | null
@@ -573,7 +572,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      stripe_checkout_ready: { Args: Record<never, never>; Returns: boolean }
       admin_add_member: { Args: { _email: string }; Returns: string }
       admin_get_pix_key: { Args: never; Returns: string }
       admin_list_members: {
@@ -589,24 +587,6 @@ export type Database = {
       admin_remove_member: {
         Args: { _email: string; _user_id: string }
         Returns: undefined
-      }
-      record_stripe_checkout_order: {
-        Args: {
-          _amount_total_cents: number
-          _city: string
-          _complement: string | null
-          _customer_email: string | null
-          _customer_name: string
-          _customer_phone: string
-          _district: string
-          _items: Json
-          _number: string
-          _state: string
-          _street: string
-          _stripe_session_id: string
-          _zip_code: string
-        }
-        Returns: { code: string; id: string }[]
       }
       create_order: {
         Args: {
