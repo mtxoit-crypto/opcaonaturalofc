@@ -57,6 +57,13 @@
       "when": 1795640000000,
       "tag": "0007_lock_admin_allowlist",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795680000000,
+      "tag": "0008_stripe_checkout_readiness",
+      "breakpoints": true
     }
   ]
 }

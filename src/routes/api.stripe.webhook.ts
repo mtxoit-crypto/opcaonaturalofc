@@ -86,6 +86,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         const session = event.data?.object;
         if (!session || session.mode !== "payment" || session.payment_status !== "paid")
           return json(200);
+        if (session.metadata?.store !== "opcao-natural" && !session.metadata?.cart) return json(200);
         const sessionId = session.id ?? "";
         const cep = session.metadata?.["cep"]?.replace(/\D/g, "") ?? "";
         const items = parseCartMetadata(session.metadata?.["cart"]);
@@ -107,7 +108,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
           !new RegExp(`^cs_${configuredMode}_[A-Za-z0-9]+$`).test(sessionId) ||
           session.currency?.toLowerCase() !== "brl" ||
           !/^\d{8}$/.test(cep) ||
-          postalCode !== cep ||
+          !/^\d{8}$/.test(postalCode) ||
           !items ||
           !Number.isSafeInteger(amount) ||
           !address?.line1?.trim() ||
@@ -131,7 +132,8 @@ export const Route = createFileRoute("/api/stripe/webhook")({
             _customer_name: customerName,
             _customer_phone: customerPhone,
             _customer_email: session.customer_details?.email ?? session.customer_email ?? null,
-            _zip_code: cep,
+            // The database recomputes freight for the actual delivery address.
+            _zip_code: postalCode,
             _street: address.line1,
             _number: custom.get("address_number")!,
             _complement: address.line2 ?? null,

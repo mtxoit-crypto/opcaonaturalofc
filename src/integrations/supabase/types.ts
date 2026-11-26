@@ -238,6 +238,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          external_order_id: string | null
           city: string
           code: string
           complement: string | null
@@ -572,6 +573,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      stripe_checkout_ready: { Args: Record<never, never>; Returns: boolean }
       admin_add_member: { Args: { _email: string }; Returns: string }
       admin_get_pix_key: { Args: never; Returns: string }
       admin_list_members: {

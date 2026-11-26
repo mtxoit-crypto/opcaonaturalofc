@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -26,8 +26,13 @@ export const Route = createFileRoute("/checkout")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: CartPage,
+  component: CheckoutRoute,
 });
+
+function CheckoutRoute() {
+  const success = useRouterState({ select: (s) => s.matches.some((m) => m.routeId === "/checkout/sucesso") });
+  return success ? <Outlet /> : <CartPage />;
+}
 
 function CartPage() {
   const { items, isLoading, updateQuantity, removeItem } = useCartStore();
@@ -35,6 +40,16 @@ function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: zones } = useQuery(shippingZonesQuery);
   const { data: settings } = useQuery(storeSettingsQuery);
+
+  const attempt = useRef({ cart: "", key: "" });
+  const submitting = useRef(false);
+  const { data: available } = useQuery({
+    queryKey: ["stripe-checkout-available"],
+    queryFn: async () => {
+      const response = await fetch("/api/stripe/checkout", { cache: "no-store" });
+      return response.ok && (await response.json()).available === true;
+    },
+  });
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.price.amount) * item.quantity, 0);
   const estimate = estimateShipping(cep, zones, subtotal, settings?.free_shipping_min ?? 0);
@@ -45,25 +60,34 @@ function CartPage() {
       toast.error("Informe um CEP válido para calcular a entrega.");
       return;
     }
+    if (submitting.current || !available) return;
+    submitting.current = true;
     setIsSubmitting(true);
     try {
+      const cartItems = items.map(({ slug, quantity }) => ({ slug, quantity }));
+      const cart = JSON.stringify([postalCode, cartItems]);
+      if (attempt.current.cart !== cart) attempt.current = { cart, key: crypto.randomUUID() };
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           cep: postalCode,
-          idempotencyKey: crypto.randomUUID(),
-          items: items.map(({ slug, quantity }) => ({ slug, quantity })),
+          idempotencyKey: attempt.current.key,
+          items: cartItems,
         }),
       });
-      const payload = (await response.json()) as { url?: string; error?: string };
+      const payload = (await response.json()) as { url?: string; sessionId?: string; error?: string };
       if (!response.ok || !payload.url) {
         throw new Error(payload.error || "Não foi possível iniciar o checkout.");
       }
+      try {
+        sessionStorage.setItem("stripe-return-cart", JSON.stringify([payload.sessionId, cartItems]));
+      } catch { /* Checkout also works with browser storage disabled. */ }
       track({ name: "begin_checkout" });
       window.location.assign(payload.url);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível iniciar o checkout.");
+      submitting.current = false;
       setIsSubmitting(false);
     }
   }
@@ -197,14 +221,14 @@ function CartPage() {
             className="min-h-12 w-full"
             size="lg"
             onClick={checkout}
-            disabled={isLoading || isSubmitting || !estimate}
+            disabled={!available || isLoading || isSubmitting || !estimate}
           >
             {isSubmitting ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <ShieldCheck className="size-4" />
             )}
-            {isSubmitting ? "Abrindo pagamento…" : "Continuar para pagamento seguro"}
+            {available === false ? "Pagamento online indisponível" : isSubmitting ? "Abrindo pagamento…" : "Continuar para pagamento seguro"}
           </Button>
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
             A Stripe coleta seu endereço completo e processa o pagamento. O pedido é confirmado após

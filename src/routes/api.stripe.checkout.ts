@@ -44,9 +44,37 @@ async function readJsonLimited(request: Request, maxBytes: number): Promise<unkn
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+async function paymentsReady(request: Request) {
+  const mode = stripeModeForSecret(process.env.STRIPE_SECRET_KEY);
+  if (!mode || mode !== process.env.STRIPE_CHECKOUT_MODE ||
+      new URL(request.url).origin !== process.env.STRIPE_CHECKOUT_ORIGIN ||
+      !process.env.STRIPE_WEBHOOK_SECRET?.startsWith("whsec_") ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY) return false;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("stripe_checkout_ready");
+    return !error && data === true;
+  } catch {
+    return false;
+  }
+}
+
 export const Route = createFileRoute("/api/stripe/checkout")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const session = new URL(request.url).searchParams.get("session_id");
+        if (session === null) return json({ available: await paymentsReady(request) });
+        if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json({ confirmed: false }, 400);
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data, error } = await supabaseAdmin.from("orders").select("id")
+            .eq("external_order_id", session).eq("payment_method", "stripe").eq("payment_status", "paid").maybeSingle();
+          return error ? json({ confirmed: false }, 503) : json({ confirmed: Boolean(data) });
+        } catch {
+          return json({ confirmed: false }, 503);
+        }
+      },
       POST: async ({ request }) => {
         const origin = request.headers.get("origin");
         if (!origin) return json({ error: "Origem inválida." }, 403);
@@ -74,6 +102,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           return json({ error: "Não foi possível ler o pedido." }, 400);
         }
 
+        if (!input || typeof input !== "object") return json({ error: "Pedido inválido." }, 400);
         const cep = typeof input.cep === "string" ? input.cep.replace(/\D/g, "") : "";
         if (
           !/^\d{8}$/.test(cep) ||
@@ -110,7 +139,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           return json({ error: "O carrinho pode ter até 10 produtos diferentes." }, 400);
 
         const stripeSecret = process.env["STRIPE_SECRET_KEY"];
-        if (!stripeModeForSecret(stripeSecret)) {
+        if (!(await paymentsReady(request))) {
           return json({ error: "Checkout Stripe não está configurado pela loja." }, 503);
         }
         const supabaseServiceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
@@ -198,7 +227,8 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           params.set("shipping_address_collection[allowed_countries][0]", "BR");
           params.set("phone_number_collection[enabled]", "true");
           params.set("payment_method_types[0]", "card");
-          params.set("expires_at", String(Math.floor(Date.now() / 1000) + 1800));
+          params.set("metadata[store]", "opcao-natural");
+          params.set("custom_text[shipping_address][message]", `Use o CEP ${cep} para a entrega com o frete calculado.`);
           params.set("metadata[cart]", metadataCart);
           params.set("metadata[cep]", cep);
           params.set("metadata[shipping_cents]", String(shippingCents));
@@ -251,7 +281,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
               502,
             );
           }
-          return json({ url: session.url });
+          return json({ url: session.url, sessionId: session.id });
         } catch (error) {
           console.error("Stripe checkout request failed", error);
           return json({ error: "Não foi possível abrir o pagamento agora." }, 503);

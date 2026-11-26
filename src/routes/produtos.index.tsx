@@ -133,7 +133,7 @@ function ProductsPage() {
     annotations: { readOnlyHint: true, untrustedContentHint: true },
     execute: () => runWebMCPTool("list_visible_products", () => {
       if (!filtered.length) return "Nenhum produto mostrado.";
-      return filtered.slice(0, 50).map(p => `${p.slug}: ${p.name} — ${formatMoney(priceOf(p))} — ${availabilityOf(p) ? "Disponível" : "Esgotado"}`).join("\n");
+      return filtered.slice(0, 50).map(p => `${p.slug}: ${p.name} — ${formatMoney(priceOf(p))} — ${availabilityOf(p) ? "Disponível" : "Indisponível"}`).join("\n");
     }),
   });
 
@@ -147,7 +147,7 @@ function ProductsPage() {
     <div className="mx-auto max-w-6xl px-5 py-10">
       <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
       <p className="mt-2 max-w-lg text-muted-foreground">
-        Escolha seu suplemento, adicione ao carrinho e finalize o pagamento no checkout seguro da Stripe.
+        Explore as embalagens e consulte a quantidade de cápsulas, o preço e a disponibilidade de cada produto.
       </p>
 
       {/* Barra de busca e filtros */}
@@ -301,7 +301,7 @@ function ProductsPage() {
                     variant="secondary"
                     className="absolute right-5 top-5 z-10 bg-card/90 text-muted-foreground"
                   >
-                    Esgotado
+                    Indisponível
                   </Badge>
                 ) : null}
                 <Link to="/produtos/$slug" params={{ slug: p.slug }} className="group">

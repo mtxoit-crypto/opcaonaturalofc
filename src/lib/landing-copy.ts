@@ -36,7 +36,7 @@ export const landing = {
     },
     {
       q: "Onde o pagamento é realizado?",
-      a: "A finalização online será liberada assim que a loja concluir a configuração dos meios de pagamento. Nossa equipe pode ajudar pelo WhatsApp.",
+      a: "Quando o pagamento online estiver disponível, o carrinho levará você ao checkout seguro da Stripe. Se precisar de ajuda, fale com a loja pelo WhatsApp.",
     },
     {
       q: "Vocês entregam em todo o Brasil?",
