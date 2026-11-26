@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/lib/products";
 import { ADMIN_ORDER_STATUSES, isPaidOrder } from "@/lib/orders";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminShell } from "@/components/AdminShell";
@@ -70,7 +71,7 @@ function OrdersPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("todos");
 
-  const { data: orders } = useQuery({
+  const { data: orders, isError: ordersError, isPending: ordersPending } = useQuery({
     queryKey: ["orders"],
     queryFn: async (): Promise<Order[]> => {
       const { data, error } = await supabase
@@ -83,6 +84,7 @@ function OrdersPage() {
       return ((data ?? []) as Order[]).filter(isPaidOrder);
     },
     enabled: isAdmin,
+    refetchInterval: 15_000,
   });
 
   const setOrderStatus = useMutation({
@@ -174,7 +176,13 @@ function OrdersPage() {
       </div>
 
       <div className="mt-5 space-y-3">
-        {visible.length === 0 ? (
+        {ordersError ? (
+          <p role="alert" className="text-destructive">Não foi possível atualizar os pedidos.</p>
+        ) : null}
+        {ordersPending ? (
+          <p role="status" className="text-muted-foreground">Carregando pedidos…</p>
+        ) : null}
+        {!ordersError && !ordersPending && visible.length === 0 ? (
           <p className="text-muted-foreground">Nenhum pedido nesse filtro.</p>
         ) : null}
         {visible.map((o) => {
@@ -194,7 +202,10 @@ function OrdersPage() {
                     {new Date(o.created_at).toLocaleString("pt-BR")}
                   </p>
                 </div>
-                <p className="text-xl text-accent">{formatPrice(o.total)}</p>
+                <div className="grid justify-items-end gap-1">
+                  <p className="text-xl text-accent">{formatPrice(o.total)}</p>
+                  <Badge variant="secondary">Pagamento confirmado</Badge>
+                </div>
               </div>
 
               <ul className="mt-3 text-sm text-muted-foreground">
