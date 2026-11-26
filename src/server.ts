@@ -64,9 +64,35 @@ function withSecurityHeaders(response: Response, request: Request): Response {
   });
 }
 
+async function mcpBodyExceedsLimit(request: Request): Promise<boolean> {
+  const maxBytes = 16_384;
+  const declaredLength = Number(request.headers.get("content-length") ?? 0);
+  if (declaredLength > maxBytes) return true;
+  const reader = request.clone().body?.getReader();
+  if (!reader) return false;
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) return false;
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      await reader.cancel();
+      return true;
+    }
+  }
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if (new URL(request.url).pathname === "/mcp" && request.method === "POST") {
+        if (await mcpBodyExceedsLimit(request)) {
+          return withSecurityHeaders(
+            Response.json({ error: "Request too large." }, { status: 413 }),
+            request,
+          );
+        }
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response), request);
