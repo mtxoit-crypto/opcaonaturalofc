@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SITE_ORIGIN } from "@/lib/site";
 import { stripeModeForSecret } from "@/lib/stripe-webhook";
 
 type CartRequest = {
@@ -46,8 +47,10 @@ async function readJsonLimited(request: Request, maxBytes: number): Promise<unkn
 
 async function paymentsReady(request: Request) {
   const mode = stripeModeForSecret(process.env.STRIPE_SECRET_KEY);
-  if (!mode || mode !== process.env.STRIPE_CHECKOUT_MODE ||
-      new URL(request.url).origin !== process.env.STRIPE_CHECKOUT_ORIGIN ||
+  const origin = new URL(request.url).origin;
+  const allowedOrigin = process.env.STRIPE_CHECKOUT_ORIGIN || SITE_ORIGIN;
+  const requiredMode = origin === SITE_ORIGIN ? "live" : process.env.STRIPE_CHECKOUT_MODE;
+  if (!mode || mode !== requiredMode || origin !== allowedOrigin ||
       !process.env.STRIPE_WEBHOOK_SECRET?.startsWith("whsec_") ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY) return false;
   try {
