@@ -11,9 +11,9 @@ export const landing = {
     ],
   },
   trust: [
-    { title: "Checkout seguro", detail: "Pagamento processado pela Stripe." },
-    { title: "Envio nacional", detail: "Entrega para todo o Brasil." },
-    { title: "Catálogo atualizado", detail: "Preço e estoque vêm da loja." },
+    { title: "Informação transparente", detail: "Detalhes para escolher com confiança." },
+    { title: "Entrega nacional", detail: "Consulte prazo e valor pelo seu CEP." },
+    { title: "Atendimento próximo", detail: "Nossa equipe está no WhatsApp." },
   ],
   story: {
     title: "Cuidado e constância, todos os dias.",
@@ -36,7 +36,7 @@ export const landing = {
     },
     {
       q: "Onde o pagamento é realizado?",
-      a: "O pagamento é processado com segurança pela Stripe. As formas disponíveis aparecem no checkout.",
+      a: "A finalização online será liberada assim que a loja concluir a configuração dos meios de pagamento. Nossa equipe pode ajudar pelo WhatsApp.",
     },
     {
       q: "Vocês entregam em todo o Brasil?",

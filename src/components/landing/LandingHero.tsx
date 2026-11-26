@@ -12,7 +12,6 @@ export function LandingHero({ product }: { product: Product | undefined }) {
   const variant = product ? getVariant(product.slug, product.name).variant : undefined;
   const price = variant ? Number(variant.price.amount) : (product?.price ?? null);
   const buyable = Boolean(variant?.availableForSale);
-  const benefits = (product?.benefits ?? []).slice(0, 2);
 
   return (
     <section className="grain-bg border-b border-border">
@@ -70,8 +69,8 @@ export function LandingHero({ product }: { product: Product | undefined }) {
                 {price != null ? formatMoney(price) : null}
                 <span className="ml-2 text-sm text-muted-foreground">{product.capsule_count} cápsulas</span>
               </p>
-              {benefits.length ? (
-                <p className="mt-1 text-sm text-muted-foreground">{benefits.join(" · ")}</p>
+              {product.subtitle ? (
+                <p className="mt-1 text-sm text-muted-foreground">{product.subtitle}</p>
               ) : null}
               <Button asChild variant="link" className="mt-1 h-auto min-h-11 px-0">
                 <Link to="/produtos/$slug" params={{ slug: product.slug }}>
