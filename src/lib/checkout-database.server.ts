@@ -70,13 +70,16 @@ export async function checkoutDatabase(input: BridgeRequest) {
   const url = new URL(bridge);
   if (!secret || secret.length < 43 || url.protocol !== "https:" || url.pathname !== checkoutBridgePath ||
     url.username || url.password || url.search || url.hash) throw new CheckoutBridgeError("configuration");
-  const response = await fetch(url, {
+  const response = await fetch(url.href, {
     method: "POST",
-    redirect: "error",
+    redirect: "manual",
     headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
     body: JSON.stringify(input),
     signal: AbortSignal.timeout(10_000),
-  }).catch(() => { throw new CheckoutBridgeError("connection"); });
+  }).catch((error: unknown) => {
+    console.error("Checkout bridge transport failed", error instanceof Error ? error.name : "UnknownError");
+    throw new CheckoutBridgeError("connection");
+  });
   if (!response.ok) throw new CheckoutBridgeError(response.status);
   return response.json().catch(() => { throw new CheckoutBridgeError("response"); });
 }
