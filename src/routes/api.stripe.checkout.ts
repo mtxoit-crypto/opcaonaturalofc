@@ -20,20 +20,47 @@ function json(data: Record<string, unknown>, status = 200) {
   return Response.json(data, { status, headers: { "cache-control": "no-store" } });
 }
 
+async function readJsonLimited(request: Request, maxBytes: number): Promise<unknown> {
+  const reader = request.body?.getReader();
+  if (!reader) throw new Error("empty");
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      await reader.cancel();
+      throw new RangeError("large");
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
 export const Route = createFileRoute("/api/stripe/checkout")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const origin = request.headers.get("origin");
-        if (origin) {
-          try {
-            if (new URL(origin).origin !== new URL(request.url).origin)
-              return json({ error: "Origem inválida." }, 403);
-          } catch {
+        if (!origin) return json({ error: "Origem inválida." }, 403);
+        try {
+          if (new URL(origin).origin !== new URL(request.url).origin) {
             return json({ error: "Origem inválida." }, 403);
           }
+        } catch {
+          return json({ error: "Origem inválida." }, 403);
         }
-        if (!request.headers.get("content-type")?.includes("application/json")) {
+        if (
+          request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() !==
+          "application/json"
+        ) {
           return json({ error: "Formato de pedido inválido." }, 415);
         }
         const contentLength = Number(request.headers.get("content-length") ?? 0);
@@ -41,8 +68,9 @@ export const Route = createFileRoute("/api/stripe/checkout")({
 
         let input: CartRequest;
         try {
-          input = (await request.json()) as CartRequest;
-        } catch {
+          input = (await readJsonLimited(request, 16_000)) as CartRequest;
+        } catch (error) {
+          if (error instanceof RangeError) return json({ error: "Pedido muito grande." }, 413);
           return json({ error: "Não foi possível ler o pedido." }, 400);
         }
 

@@ -73,7 +73,6 @@
     "use-webmcp-tool": "^0.3.0",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
-    "zod": "^3.25",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -83,7 +82,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
-    "drizzle-kit": "0.x",
+    "drizzle-kit": "^0.31.11",
     "drizzle-orm": "0.x",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
@@ -97,5 +96,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.2.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.2"
   }
 }

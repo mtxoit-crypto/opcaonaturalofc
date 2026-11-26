@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminMfaGate } from "@/components/AdminMfaGate";
 
 export type AdminTab =
   | "visao"
@@ -67,20 +68,22 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-[70dvh] border-t border-border/50 bg-sand/50">
-      <div className="mx-auto grid max-w-7xl min-w-0 gap-6 px-4 py-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:px-5 lg:py-8">
-        <aside className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
-          {links.map((link) => (
-            <AdminNavLink key={`${link.to}-${link.label}`} link={link} />
-          ))}
-        </aside>
-        <div className="min-w-0">
-          <h1 className="font-sans text-2xl font-semibold tracking-tight">{title}</h1>
-          {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
-          {children}
+    <AdminMfaGate>
+      <div className="min-h-[70dvh] border-t border-border/50 bg-sand/50">
+        <div className="mx-auto grid max-w-7xl min-w-0 gap-6 px-4 py-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:px-5 lg:py-8">
+          <aside className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+            {links.map((link) => (
+              <AdminNavLink key={`${link.to}-${link.label}`} link={link} />
+            ))}
+          </aside>
+          <div className="min-w-0">
+            <h1 className="font-sans text-2xl font-semibold tracking-tight">{title}</h1>
+            {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </AdminMfaGate>
   );
 }
 
