@@ -45,19 +45,21 @@ async function readJsonLimited(request: Request, maxBytes: number): Promise<unkn
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
-async function paymentsReady(request: Request) {
+async function checkoutStatus(request: Request) {
   const mode = stripeModeForSecret(process.env["STRIPE_SECRET_KEY"]);
   const origin = new URL(request.url).origin;
   const allowedOrigin = process.env["STRIPE_CHECKOUT_ORIGIN"] || SITE_ORIGIN;
   const requiredMode = origin === SITE_ORIGIN ? "live" : process.env["STRIPE_CHECKOUT_MODE"];
   if (!mode || mode !== requiredMode || origin !== allowedOrigin ||
-      !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_")) return false;
+      !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_")) return { available: false, reason: "payment_configuration" };
   try {
     const { checkoutDatabase } = await import("@/lib/checkout-database.server");
-    return (await checkoutDatabase({ operation: "ready" })) === true;
+    if ((await checkoutDatabase({ operation: "ready" })) === true) return { available: true };
   } catch {
-    return false;
+    // Do not expose database connection details.
   }
+  return { available: false, reason: "order_database" };
+
 }
 
 export const Route = createFileRoute("/api/stripe/checkout")({
@@ -65,7 +67,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
     handlers: {
       GET: async ({ request }) => {
         const session = new URL(request.url).searchParams.get("session_id");
-        if (session === null) return json({ available: await paymentsReady(request) });
+        if (session === null) return json(await checkoutStatus(request));
         if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json({ confirmed: false }, 400);
         try {
           const { checkoutDatabase } = await import("@/lib/checkout-database.server");
@@ -138,7 +140,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           return json({ error: "O carrinho pode ter até 10 produtos diferentes." }, 400);
 
         const stripeSecret = process.env["STRIPE_SECRET_KEY"];
-        if (!(await paymentsReady(request))) {
+        if (!(await checkoutStatus(request)).available) {
           return json({ error: "Checkout Stripe não está configurado pela loja." }, 503);
         }
         try {
