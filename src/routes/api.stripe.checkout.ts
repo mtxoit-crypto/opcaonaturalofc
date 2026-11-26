@@ -205,6 +205,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           params.set("shipping_address_collection[allowed_countries][0]", "BR");
           params.set("phone_number_collection[enabled]", "true");
           params.set("payment_method_types[0]", "card");
+          params.set("payment_method_types[1]", "pix");
           params.set("metadata[store]", "opcao-natural");
           params.set("custom_text[shipping_address][message]", `Use o CEP ${cep} para a entrega com o frete calculado.`);
           params.set("metadata[cart]", metadataCart);
