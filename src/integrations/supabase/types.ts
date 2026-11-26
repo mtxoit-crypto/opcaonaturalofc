@@ -242,17 +242,21 @@ export type Database = {
           code: string
           complement: string | null
           created_at: string
+          currency: string | null
           customer_email: string | null
           customer_name: string
           customer_phone: string
           district: string
+          external_order_id: string | null
           financial_status: string | null
+          fulfillment_status: string | null
           id: string
           notes: string | null
           number: string
           payment_method: string
           payment_status: string | null
           shipping_fee: number
+          source: string | null
           state: string
           status: string
           street: string
@@ -266,17 +270,21 @@ export type Database = {
           code?: string
           complement?: string | null
           created_at?: string
+          currency?: string | null
           customer_email?: string | null
           customer_name: string
           customer_phone: string
           district: string
+          external_order_id?: string | null
           financial_status?: string | null
+          fulfillment_status?: string | null
           id?: string
           notes?: string | null
           number: string
           payment_method?: string
           payment_status?: string | null
           shipping_fee?: number
+          source?: string | null
           state: string
           status?: string
           street: string
@@ -290,17 +298,21 @@ export type Database = {
           code?: string
           complement?: string | null
           created_at?: string
+          currency?: string | null
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string
           district?: string
+          external_order_id?: string | null
           financial_status?: string | null
+          fulfillment_status?: string | null
           id?: string
           notes?: string | null
           number?: string
           payment_method?: string
           payment_status?: string | null
           shipping_fee?: number
+          source?: string | null
           state?: string
           status?: string
           street?: string
@@ -618,6 +630,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_stripe_checkout_order: {
+        Args: {
+          _amount_total_cents: number
+          _city: string
+          _complement: string
+          _customer_email: string
+          _customer_name: string
+          _customer_phone: string
+          _district: string
+          _items: Json
+          _number: string
+          _state: string
+          _street: string
+          _stripe_session_id: string
+          _zip_code: string
+        }
+        Returns: {
+          code: string
+          id: string
+        }[]
+      }
+      stripe_checkout_ready: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
