@@ -52,11 +52,13 @@ async function checkoutStatus(request: Request) {
   const requiredMode = origin === SITE_ORIGIN ? "live" : process.env["STRIPE_CHECKOUT_MODE"];
   if (!mode || mode !== requiredMode || origin !== allowedOrigin ||
       !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_")) return { available: false, reason: "payment_configuration" };
+  const { checkoutDatabase, CheckoutBridgeError } = await import("@/lib/checkout-database.server");
   try {
-    const { checkoutDatabase } = await import("@/lib/checkout-database.server");
     if ((await checkoutDatabase({ operation: "ready" })) === true) return { available: true };
-  } catch {
-    // Do not expose database connection details.
+  } catch (error) {
+    if (error instanceof CheckoutBridgeError) {
+      return { available: false, reason: "order_database", upstreamStatus: error.status };
+    }
   }
   return { available: false, reason: "order_database" };
 

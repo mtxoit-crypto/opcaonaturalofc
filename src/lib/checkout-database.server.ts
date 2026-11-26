@@ -9,6 +9,10 @@ type OrderArgs = Omit<GeneratedOrderArgs, "_customer_email" | "_complement"> & {
   _customer_email: string | null;
   _complement: string | null;
 };
+export class CheckoutBridgeError extends Error {
+  constructor(readonly status: number) { super("Checkout database bridge failed"); }
+}
+
 type BridgeRequest =
   | { operation: "ready" }
   | { operation: "confirm"; session: string }
@@ -70,7 +74,7 @@ export async function checkoutDatabase(input: BridgeRequest) {
     body: JSON.stringify(input),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!response.ok) throw new Error("Checkout database bridge failed");
+  if (!response.ok) throw new CheckoutBridgeError(response.status);
   return response.json();
 }
 
