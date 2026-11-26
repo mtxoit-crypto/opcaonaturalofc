@@ -1,5 +1,5 @@
-/** Troque aqui quando o domínio próprio estiver no ar. */
-export const SITE_ORIGIN = "https://opcaonaturalofc.lovable.app";
+/** URL pública atual do Worker; substitua quando o domínio próprio estiver configurado. */
+export const SITE_ORIGIN = "https://opcaonaturalofc.mtxoit.workers.dev";
 
 export function absoluteUrl(path = "/") {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
