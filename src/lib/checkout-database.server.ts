@@ -10,7 +10,7 @@ type OrderArgs = Omit<GeneratedOrderArgs, "_customer_email" | "_complement"> & {
   _complement: string | null;
 };
 export class CheckoutBridgeError extends Error {
-  constructor(readonly status: number) { super("Checkout database bridge failed"); }
+  constructor(readonly status: number | "configuration" | "connection" | "response") { super("Checkout database bridge failed"); }
 }
 
 type BridgeRequest =
@@ -62,20 +62,23 @@ export function checkoutDatabase(input: Extract<BridgeRequest, { operation: "cat
 export function checkoutDatabase(input: Exclude<BridgeRequest, { operation: "catalog" }>): Promise<boolean>;
 export async function checkoutDatabase(input: BridgeRequest) {
   const bridge = process.env["STRIPE_DB_BRIDGE_URL"];
-  if (!bridge) return execute(input);
+  if (!bridge) {
+    if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) throw new CheckoutBridgeError("configuration");
+    return execute(input);
+  }
   const secret = process.env["CHECKOUT_BRIDGE_SECRET"];
   const url = new URL(bridge);
   if (!secret || secret.length < 43 || url.protocol !== "https:" || url.pathname !== checkoutBridgePath ||
-    url.username || url.password || url.search || url.hash) throw new Error("Invalid checkout bridge configuration");
+    url.username || url.password || url.search || url.hash) throw new CheckoutBridgeError("configuration");
   const response = await fetch(url, {
     method: "POST",
     redirect: "error",
     headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
     body: JSON.stringify(input),
     signal: AbortSignal.timeout(10_000),
-  });
+  }).catch(() => { throw new CheckoutBridgeError("connection"); });
   if (!response.ok) throw new CheckoutBridgeError(response.status);
-  return response.json();
+  return response.json().catch(() => { throw new CheckoutBridgeError("response"); });
 }
 
 export async function handleCheckoutBridge(request: Request) {
