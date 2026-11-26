@@ -17,9 +17,15 @@ export function FeaturedProducts() {
   }
 
   return (
-    <section id="produtos" className="mx-auto max-w-6xl px-5 py-14">
+    <section id="produtos" className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-display text-3xl">Produtos mais procurados</h2>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">Escolhas da casa</p>
+          <h2 className="text-display mt-2 text-3xl sm:text-4xl">Encontre seu próximo favorito</h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Conheça alguns destaques do nosso catálogo e veja os detalhes de cada produto.
+          </p>
+        </div>
         <Link to="/produtos" className="text-sm text-accent underline-offset-4 hover:underline">
           Ver todos
         </Link>
@@ -53,7 +59,7 @@ export function FeaturedProducts() {
             return (
               <article
                 key={product.id}
-                className="lift-card surface-card flex min-w-0 flex-col p-4"
+                className="lift-card surface-card group flex min-w-0 flex-col overflow-hidden p-3 sm:p-4"
               >
                 <Link to="/produtos/$slug" params={{ slug: product.slug }} className="block">
                   <img
@@ -62,9 +68,14 @@ export function FeaturedProducts() {
                     loading="lazy"
                     width={400}
                     height={400}
-                    className="aspect-square w-full rounded-xl bg-sand object-contain p-4 sm:p-5"
+                    className="aspect-square w-full rounded-[1.25rem] bg-[radial-gradient(ellipse_at_50%_42%,color-mix(in_oklch,var(--color-leaf)_20%,white)_0%,var(--color-sand)_68%)] object-contain p-3 transition-transform duration-500 group-hover:scale-[1.035] sm:p-5"
                   />
-                  <h3 className="mt-3 text-base leading-snug">{product.name}</h3>
+                  <h3 className="mt-4 text-base leading-snug sm:text-lg">{product.name}</h3>
+                  {product.subtitle ? (
+                    <p className="mt-1 line-clamp-2 min-h-10 text-sm leading-relaxed text-muted-foreground">
+                      {product.subtitle}
+                    </p>
+                  ) : null}
                 </Link>
                 {product.price !== null ? (
                   <p className="mt-1 text-lg text-accent">{formatPrice(product.price)}</p>

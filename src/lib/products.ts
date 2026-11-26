@@ -324,7 +324,7 @@ function localCatalog(): Product[] {
 }
 
 export function productPhoto(p: Pick<Product, "slug" | "image_url">) {
-  if (hasCroppedProductPhoto(p.slug)) return `/produtos/${p.slug}.jpg`;
+  if (hasCroppedProductPhoto(p.slug)) return `/produtos/${p.slug}.png`;
   if (p.image_url) return p.image_url;
   return `/produtos/${p.slug}.png`;
 }

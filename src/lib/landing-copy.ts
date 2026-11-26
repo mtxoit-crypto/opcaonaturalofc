@@ -1,13 +1,13 @@
 export const landing = {
   hero: {
-    title: "Suplementos naturais para a sua rotina",
-    text: "Conheça os produtos e kits da Opção Natural, com informações claras para escolher com tranquilidade.",
-    primary: "Encontrar meu suplemento",
-    secondary: "Ver kits",
+    title: "Bem-estar que encontra espaço na sua rotina",
+    text: "Conheça uma seleção de suplementos em cápsulas e kits da Opção Natural. Consulte composição, quantidade e modo de uso de cada produto com clareza.",
+    primary: "Explorar produtos",
+    secondary: "Conhecer os kits",
     highlights: [
-      "Frete para todo o Brasil",
-      "Pagamento seguro",
-      "Atendimento no WhatsApp",
+      "Produtos com informações claras",
+      "Entrega calculada pelo CEP",
+      "Atendimento próximo no WhatsApp",
     ],
   },
   trust: [
@@ -16,9 +16,9 @@ export const landing = {
     { title: "Catálogo atualizado", detail: "Preço e estoque vêm da loja." },
   ],
   story: {
-    title: "Uma história de mudança de hábitos.",
-    p1: "Meu pai passou por uma mudança pessoal que envolveu disciplina, alimentação e uma rotina constante. Esta história é individual e não representa um resultado esperado com qualquer produto.",
-    p2: "Compartilhamos essa experiência como parte da história da família. Suplementos não substituem uma alimentação equilibrada nem a orientação de um profissional de saúde.",
+    title: "Cuidado e constância, todos os dias.",
+    p1: "A Opção Natural nasceu de uma história familiar de mudança de hábitos e atenção ao bem-estar. Acreditamos em escolhas conscientes, informação transparente e cuidado que cabe na vida real.",
+    p2: "Cada jornada é individual. Consulte as informações do rótulo e converse com um profissional de saúde antes de incluir suplementos na sua rotina.",
     cta: "Conheça os produtos",
   },
   faq: [
@@ -52,14 +52,14 @@ export const landing = {
     },
   ],
   close: {
-    title: "Encontre o suplemento que combina com a sua rotina.",
+    title: "Sua próxima escolha começa com informação clara.",
     primary: "Ver todos os produtos",
     secondary: "Ver kits",
   },
   diffs: [
-    { t: "Qualidade", d: "Suplementos em cápsulas com rótulo, quantidade e modo de uso claros em cada produto." },
-    { t: "Praticidade", d: "Escolha, adicione ao carrinho e pague em poucos cliques, com Pix ou cartão." },
-    { t: "Entrega nacional", d: "Enviamos para todo o Brasil, com frete e prazo calculados pelo seu CEP." },
+    { t: "Escolha informada", d: "Consulte apresentação, quantidade e detalhes de cada item antes de decidir." },
+    { t: "Compra simples", d: "Encontre o que procura e veja as opções disponíveis em poucos passos." },
+    { t: "Entrega transparente", d: "Consulte as opções de envio, prazo e valor usando seu CEP." },
   ],
 } as const;
 
