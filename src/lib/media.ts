@@ -45,26 +45,12 @@ export function isDatabaseProductId(id: string | undefined | null): id is string
   return Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
 }
 
-async function withUrls(
-  rows: Array<Omit<ProductMedia, "url">> | null,
-  adminLibrary = false,
-): Promise<ProductMedia[]> {
+async function withUrls(rows: Array<Omit<ProductMedia, "url">> | null): Promise<ProductMedia[]> {
   if (!rows?.length) return [];
   const stored = rows.filter((r) => !isRemoteMediaPath(r.storage_path));
-  let urls: Record<string, string> = {};
-  if (stored.length && adminLibrary) {
-    const { data, error } = await supabase.storage.from(MEDIA_BUCKET).createSignedUrls(
-      stored.map((r) => r.storage_path),
-      60 * 60,
-    );
-    if (error) throw error;
-    stored.forEach((row, index) => {
-      const url = data?.[index]?.signedUrl;
-      if (url) urls[row.id] = url;
-    });
-  } else if (stored.length) {
-    urls = await signProductMedia({ data: { ids: stored.map((r) => r.id) } });
-  }
+  const urls = stored.length
+    ? await signProductMedia({ data: { ids: stored.map((r) => r.id) } })
+    : {};
   const signed = new Map(stored.map((r) => [r.id, urls[r.id] ?? ""]));
   return rows
     .map((r) => ({
@@ -72,6 +58,12 @@ async function withUrls(
       url: isRemoteMediaPath(r.storage_path) ? r.storage_path : (signed.get(r.id) ?? ""),
     }))
     .filter((r) => r.url);
+}
+
+export async function downloadAdminMediaBlob(storagePath: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from(MEDIA_BUCKET).download(storagePath);
+  if (error) throw error;
+  return data;
 }
 
 export const productMediaQuery = (productId: string | undefined) => ({
@@ -98,7 +90,10 @@ export const productMediaLibraryQuery = (enabled = true) => ({
       .select("id,product_id,storage_path,media_type,alt,sort_order")
       .order("sort_order", { ascending: true });
     if (error) throw error;
-    return withUrls((data ?? []) as Omit<ProductMedia, "url">[], true);
+    return ((data ?? []) as Array<Omit<ProductMedia, "url">>).map((row) => ({
+      ...row,
+      url: isRemoteMediaPath(row.storage_path) ? row.storage_path : "",
+    }));
   },
 });
 

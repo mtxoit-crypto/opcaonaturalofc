@@ -1,8 +1,15 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Box, ExternalLink, Film, Image as ImageIcon } from "lucide-react";
-import { productMediaLibraryQuery, type MediaType, type ProductMedia } from "@/lib/media";
+import { toast } from "sonner";
+import {
+  downloadAdminMediaBlob,
+  isRemoteMediaPath,
+  productMediaLibraryQuery,
+  type MediaType,
+  type ProductMedia,
+} from "@/lib/media";
 import type { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { ModelViewer } from "@/components/ModelViewer";
@@ -91,14 +98,67 @@ export function AdminMedia({
   );
 }
 
+function useAdminMediaUrl(item: ProductMedia) {
+  const remote = isRemoteMediaPath(item.storage_path);
+  const [url, setUrl] = useState(remote ? item.storage_path : "");
+  const [loading, setLoading] = useState(!remote);
+
+  useEffect(() => {
+    if (remote) {
+      setUrl(item.storage_path);
+      setLoading(false);
+      return;
+    }
+    let active = true;
+    let objectUrl = "";
+    setLoading(true);
+    setUrl("");
+    downloadAdminMediaBlob(item.storage_path)
+      .then((blob) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setUrl(objectUrl);
+      })
+      .catch(() => {
+        if (active) setUrl("");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [item.storage_path, remote]);
+
+  return { url, loading, remote };
+}
+
 function MediaCard({ item, productName }: { item: ProductMedia; productName?: string }) {
+  const { url, loading, remote } = useAdminMediaUrl(item);
+  const [opening, setOpening] = useState(false);
   const label = productName ?? `Produto ${item.product_id.slice(0, 8)}`;
-  const status = item.url ? "Disponível" : "Prévia indisponível";
+  const status = loading ? "Carregando…" : url ? "Disponível" : "Prévia indisponível";
+  const resolvedItem = useMemo(() => ({ ...item, url }), [item, url]);
+
+  async function handleOpenFile() {
+    setOpening(true);
+    try {
+      const blob = await downloadAdminMediaBlob(item.storage_path);
+      const objectUrl = URL.createObjectURL(blob);
+      window.open(objectUrl, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch {
+      toast.error("Não foi possível abrir o arquivo.");
+    } finally {
+      setOpening(false);
+    }
+  }
 
   return (
     <article className="surface-card overflow-hidden">
       <div className="aspect-[4/3] overflow-hidden bg-sand">
-        <MediaPreview item={item} />
+        <MediaPreview item={resolvedItem} />
       </div>
       <div className="space-y-3 p-4">
         <div className="min-w-0">
@@ -124,12 +184,17 @@ function MediaCard({ item, productName }: { item: ProductMedia; productName?: st
               Abrir produto
             </Link>
           </Button>
-          {item.url ? (
+          {remote ? (
             <Button size="sm" variant="ghost" asChild>
-              <a href={item.url} target="_blank" rel="noreferrer">
+              <a href={item.storage_path} target="_blank" rel="noreferrer">
                 <ExternalLink className="size-3.5" />
                 Abrir arquivo
               </a>
+            </Button>
+          ) : url ? (
+            <Button size="sm" variant="ghost" onClick={handleOpenFile} disabled={opening}>
+              <ExternalLink className="size-3.5" />
+              {opening ? "Abrindo…" : "Abrir arquivo"}
             </Button>
           ) : null}
         </div>
