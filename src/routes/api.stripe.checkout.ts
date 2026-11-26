@@ -46,16 +46,19 @@ async function readJsonLimited(request: Request, maxBytes: number): Promise<unkn
 }
 
 async function paymentsReady(request: Request) {
-  const mode = stripeModeForSecret(process.env.STRIPE_SECRET_KEY);
+  const mode = stripeModeForSecret(process.env["STRIPE_SECRET_KEY"]);
   const origin = new URL(request.url).origin;
-  const allowedOrigin = process.env.STRIPE_CHECKOUT_ORIGIN || SITE_ORIGIN;
-  const requiredMode = origin === SITE_ORIGIN ? "live" : process.env.STRIPE_CHECKOUT_MODE;
+  const allowedOrigin = process.env["STRIPE_CHECKOUT_ORIGIN"] || SITE_ORIGIN;
+  const requiredMode = origin === SITE_ORIGIN ? "live" : process.env["STRIPE_CHECKOUT_MODE"];
   if (!mode || mode !== requiredMode || origin !== allowedOrigin ||
-      !process.env.STRIPE_WEBHOOK_SECRET?.startsWith("whsec_") ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY) return false;
+      !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_") ||
+      !process.env["SUPABASE_SERVICE_ROLE_KEY"]) return false;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.rpc("stripe_checkout_ready");
+    const rpc = supabaseAdmin.rpc.bind(supabaseAdmin) as unknown as (
+      fn: string,
+    ) => Promise<{ data: unknown; error: unknown }>;
+    const { data, error } = await rpc("stripe_checkout_ready");
     return !error && data === true;
   } catch {
     return false;
@@ -71,8 +74,20 @@ export const Route = createFileRoute("/api/stripe/checkout")({
         if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json({ confirmed: false }, 400);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin.from("orders").select("id")
-            .eq("external_order_id", session).eq("payment_method", "stripe").eq("payment_status", "paid").maybeSingle();
+          const query = supabaseAdmin.from("orders").select("id") as unknown as {
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => {
+                eq: (col: string, val: string) => {
+                  maybeSingle: () => Promise<{ data: { id: string } | null; error: unknown }>;
+                };
+              };
+            };
+          };
+          const { data, error } = await query
+            .eq("external_order_id", session)
+            .eq("payment_method", "stripe")
+            .eq("payment_status", "paid")
+            .maybeSingle();
           return error ? json({ confirmed: false }, 503) : json({ confirmed: Boolean(data) });
         } catch {
           return json({ confirmed: false }, 503);

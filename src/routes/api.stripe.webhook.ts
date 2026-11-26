@@ -86,7 +86,8 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         const session = event.data?.object;
         if (!session || session.mode !== "payment" || session.payment_status !== "paid")
           return json(200);
-        if (session.metadata?.store !== "opcao-natural" && !session.metadata?.cart) return json(200);
+        if (session.metadata?.["store"] !== "opcao-natural" && !session.metadata?.["cart"])
+          return json(200);
         const sessionId = session.id ?? "";
         const cep = session.metadata?.["cep"]?.replace(/\D/g, "") ?? "";
         const items = parseCartMetadata(session.metadata?.["cart"]);
@@ -127,7 +128,11 @@ export const Route = createFileRoute("/api/stripe/webhook")({
         if (!serviceKey) return json(500);
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { error } = await supabaseAdmin.rpc("record_stripe_checkout_order", {
+          const rpc = supabaseAdmin.rpc.bind(supabaseAdmin) as unknown as (
+            fn: string,
+            args: Record<string, unknown>,
+          ) => Promise<{ error: { code?: string; message?: string } | null }>;
+          const { error } = await rpc("record_stripe_checkout_order", {
             _stripe_session_id: sessionId,
             _customer_name: customerName,
             _customer_phone: customerPhone,
