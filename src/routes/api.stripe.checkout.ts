@@ -51,15 +51,10 @@ async function paymentsReady(request: Request) {
   const allowedOrigin = process.env["STRIPE_CHECKOUT_ORIGIN"] || SITE_ORIGIN;
   const requiredMode = origin === SITE_ORIGIN ? "live" : process.env["STRIPE_CHECKOUT_MODE"];
   if (!mode || mode !== requiredMode || origin !== allowedOrigin ||
-      !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_") ||
-      !process.env["SUPABASE_SERVICE_ROLE_KEY"]) return false;
+      !process.env["STRIPE_WEBHOOK_SECRET"]?.startsWith("whsec_")) return false;
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const rpc = supabaseAdmin.rpc.bind(supabaseAdmin) as unknown as (
-      fn: string,
-    ) => Promise<{ data: unknown; error: unknown }>;
-    const { data, error } = await rpc("stripe_checkout_ready");
-    return !error && data === true;
+    const { checkoutDatabase } = await import("@/lib/checkout-database.server");
+    return (await checkoutDatabase({ operation: "ready" })) === true;
   } catch {
     return false;
   }
@@ -73,22 +68,8 @@ export const Route = createFileRoute("/api/stripe/checkout")({
         if (session === null) return json({ available: await paymentsReady(request) });
         if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json({ confirmed: false }, 400);
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const query = supabaseAdmin.from("orders").select("id") as unknown as {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => {
-                eq: (col: string, val: string) => {
-                  maybeSingle: () => Promise<{ data: { id: string } | null; error: unknown }>;
-                };
-              };
-            };
-          };
-          const { data, error } = await query
-            .eq("external_order_id", session)
-            .eq("payment_method", "stripe")
-            .eq("payment_status", "paid")
-            .maybeSingle();
-          return error ? json({ confirmed: false }, 503) : json({ confirmed: Boolean(data) });
+          const { checkoutDatabase } = await import("@/lib/checkout-database.server");
+          return json({ confirmed: (await checkoutDatabase({ operation: "confirm", session })) === true });
         } catch {
           return json({ confirmed: false }, 503);
         }
@@ -160,37 +141,12 @@ export const Route = createFileRoute("/api/stripe/checkout")({
         if (!(await paymentsReady(request))) {
           return json({ error: "Checkout Stripe não está configurado pela loja." }, 503);
         }
-        const supabaseServiceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-        if (!supabaseServiceKey)
-          return json({ error: "Checkout temporariamente indisponível." }, 503);
-
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const slugs = [...quantities.keys()];
-          const [
-            { data: products, error: productError },
-            { data: zones, error: zonesError },
-            { data: settings, error: settingsError },
-          ] = await Promise.all([
-            supabaseAdmin
-              .from("products")
-              .select("id,slug,name,price,stock_quantity,is_active")
-              .in("slug", slugs),
-            supabaseAdmin
-              .from("shipping_zones")
-              .select("name,cep_start,cep_end,fee")
-              .order("sort_order"),
-            supabaseAdmin.from("store_settings").select("free_shipping_min").maybeSingle(),
-          ]);
-          if (productError || zonesError || settingsError || !products || !zones) {
-            console.error(
-              "Stripe checkout catalog lookup failed",
-              productError?.code,
-              zonesError?.code,
-              settingsError?.code,
-            );
-            return json({ error: "Não foi possível validar o carrinho agora." }, 503);
-          }
+          const { checkoutDatabase } = await import("@/lib/checkout-database.server");
+          const { products, zones, settings } = await checkoutDatabase({
+            operation: "catalog",
+            slugs: [...quantities.keys()],
+          });
 
           const productsBySlug = new Map(
             (products as ProductRow[]).map((product) => [product.slug, product]),

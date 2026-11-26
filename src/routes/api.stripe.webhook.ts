@@ -124,15 +124,9 @@ export const Route = createFileRoute("/api/stripe/webhook")({
           return json(400);
         }
 
-        const serviceKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-        if (!serviceKey) return json(500);
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const rpc = supabaseAdmin.rpc.bind(supabaseAdmin) as unknown as (
-            fn: string,
-            args: Record<string, unknown>,
-          ) => Promise<{ error: { code?: string; message?: string } | null }>;
-          const { error } = await rpc("record_stripe_checkout_order", {
+          const { checkoutDatabase } = await import("@/lib/checkout-database.server");
+          await checkoutDatabase({ operation: "record", args: {
             _stripe_session_id: sessionId,
             _customer_name: customerName,
             _customer_phone: customerPhone,
@@ -147,11 +141,7 @@ export const Route = createFileRoute("/api/stripe/webhook")({
             _state: address.state,
             _items: items,
             _amount_total_cents: amount!,
-          });
-          if (error) {
-            console.error("Stripe order recording failed", error.code, error.message);
-            return json(500);
-          }
+          } });
           return json(200);
         } catch (error) {
           console.error("Stripe order recording failed", error);

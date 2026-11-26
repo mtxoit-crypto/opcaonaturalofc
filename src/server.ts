@@ -93,6 +93,10 @@ export default {
           );
         }
       }
+      if (new URL(request.url).pathname === "/api/stripe/database-bridge") {
+        const { handleCheckoutBridge } = await import("./lib/checkout-database.server");
+        return withSecurityHeaders(await handleCheckoutBridge(request), request);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response), request);
