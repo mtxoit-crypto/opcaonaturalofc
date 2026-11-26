@@ -19,7 +19,7 @@
       {
         "name": "list_products",
         "title": "Consultar produtos cadastrados",
-        "description": "Lista produtos ativos cadastrados no banco da loja; não inclui produtos de fallback ou preços atualizados da Shopify.",
+        "description": "Lista produtos ativos cadastrados no banco da loja; não inclui produtos de fallback externos.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -51,7 +51,7 @@
       {
         "name": "get_product",
         "title": "Consultar detalhes de um produto",
-        "description": "Consulta um produto ativo pelo slug; preço cadastrado é informativo e o checkout Shopify confirma preço e disponibilidade.",
+        "description": "Consulta um produto ativo pelo slug; preço cadastrado é informativo e o checkout Stripe confirma preço e estoque numérico.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
