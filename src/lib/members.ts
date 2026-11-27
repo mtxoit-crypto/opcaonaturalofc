@@ -8,8 +8,8 @@ export type Member = {
   status: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = (name: string, args?: Record<string, unknown>) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The generated RPC types omit nullable arguments.
   (supabase.rpc as any)(name, args);
 
 export const membersQuery = {

@@ -76,7 +76,11 @@ export function ViewerStage({ children, camera, shadows, hint, compact, controls
     markInteraction();
     const controlsApi = controlsRef.current;
     if (controlsApi) {
-      direction === "in" ? controlsApi.dollyIn(1.2) : controlsApi.dollyOut(1.2);
+      if (direction === "in") {
+        controlsApi.dollyIn(1.2);
+      } else {
+        controlsApi.dollyOut(1.2);
+      }
       controlsApi.update();
     }
     finishInteraction();

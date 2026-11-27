@@ -1,5 +1,14 @@
 export function oauthReturnPath(value: unknown): string {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(value)) return "/";
+  // eslint-disable-next-line no-control-regex -- Reject control characters before URL normalization.
+  const invalidCharacters = /[\\\u0000-\u001f\u007f]/;
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    invalidCharacters.test(value)
+  ) {
+    return "/";
+  }
   const origin = "https://app.invalid";
   try {
     const target = new URL(value, origin);

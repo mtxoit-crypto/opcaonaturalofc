@@ -67,7 +67,19 @@ export function LandingHero({ product }: { product: Product | undefined }) {
               />
             </Link>
           ) : (
-            <div className="h-[250px] rounded-[1.25rem] bg-muted sm:h-[380px]" aria-hidden />
+            <Link
+              to="/produtos"
+              aria-label="Explorar os suplementos do catálogo"
+              className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <PhotoSpotlight
+                priority
+                src="/produtos/ginseng.jpg"
+                alt="Embalagem de ginseng da Opção Natural"
+                className="h-[250px] rounded-[1.25rem] sm:h-[380px]"
+                imgClassName="p-6 sm:p-8"
+              />
+            </Link>
           )}
           {product ? (
             <div className="flex flex-wrap items-center justify-between gap-3 px-3 pb-1 pt-4 text-primary-foreground">
