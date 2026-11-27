@@ -63,6 +63,13 @@ function mapKit(k: Record<string, unknown>): Kit {
 
 const STORE_KITS = [
   {
+    slug: "kit-selecao-7-potes",
+    name: "Kit Seleção de 7 Potes",
+    description: "Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Catuaba, Marapuama e Mucuna Preta.",
+    imageUrl: "/produtos/kit-selecao-7-potes.jpg",
+    slugs: ["ginseng", "tribulus-terrestris", "feno-grego", "maca-peruana-negra", "catuaba", "marapuama", "mucuna-preta"],
+  },
+  {
     slug: "kit-raizes-e-sementes",
     name: "Kit Raízes e Sementes",
     description: "Ginseng, Tribulus Terrestris, Feno Grego e Maca Peruana Negra.",
@@ -84,7 +91,7 @@ const STORE_KITS = [
 
 export function localKitsFromCatalog(products: Product[]): Kit[] {
   const bySlug = new Map(products.filter((product) => product.is_active).map((product) => [product.slug, product]));
-  return STORE_KITS.flatMap(({ slug, name, description, slugs }, sort_order) => {
+  return STORE_KITS.flatMap(({ slug, name, description, imageUrl, slugs }, sort_order) => {
     const items = slugs.flatMap((productSlug, index) => {
       const product = bySlug.get(productSlug);
       return product ? [{ id: productSlug, product_id: product.id, quantity: 1, sort_order: index, product }] : [];
@@ -92,7 +99,7 @@ export function localKitsFromCatalog(products: Product[]): Kit[] {
     if (items.length !== slugs.length) return [];
     return [{
       id: slug, slug, name, description, subtitle: `${items.length} potes · 1 de cada`,
-      price: null, image_url: null, is_active: true, sort_order,
+      price: null, image_url: imageUrl ?? null, is_active: true, sort_order,
       items, products: items.map((item) => item.product),
     }];
   });
