@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 
 type KitForm = {
   id?: string;
+  preset?: Kit;
   slug: string;
   name: string;
   subtitle: string;
@@ -40,7 +41,9 @@ export function AdminKits() {
   const { isAdmin } = useAuth();
   const { data: kits, isPending, isError, refetch } = useQuery(adminKitsQuery);
   const { data: storefrontKits = [] } = useQuery(kitsQuery);
-  const publishedPresets = storefrontKits.filter((kit) => kit.id === kit.slug);
+  const publishedPresets = storefrontKits.filter(
+    (kit) => kit.id === kit.slug && !kits?.some((saved) => saved.slug === kit.slug),
+  );
   const { data: products } = useQuery(adminProductsQuery(isAdmin));
   const [form, setForm] = useState<KitForm>(emptyKit);
   const [addProductId, setAddProductId] = useState("");
@@ -70,11 +73,32 @@ export function AdminKits() {
       }
       const { data, error } = await supabase.from("kits").insert(payload).select("id").single();
       if (error) throw error;
+      if (values.preset) {
+        const { error: itemError } = await supabase.from("kit_items").insert(
+          values.preset.items.map(({ product_id, quantity, sort_order }) => ({
+            kit_id: data.id,
+            product_id,
+            quantity,
+            sort_order,
+          })),
+        );
+        if (itemError) {
+          const { error: rollbackError } = await supabase.from("kits").delete().eq("id", data.id);
+          if (rollbackError)
+            throw new Error(
+              "Kit cadastrado sem os itens. Abra o kit salvo para completar a composição.",
+            );
+          throw itemError;
+        }
+      }
       return data.id as string;
     },
     onSuccess: (id) => {
       toast.success("Kit salvo");
-      setForm((f) => ({ ...f, id }));
+      setForm((f) => {
+        const { preset: _preset, ...saved } = f;
+        return { ...saved, id };
+      });
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -142,7 +166,7 @@ export function AdminKits() {
 
   function edit(kit: Kit) {
     setForm({
-      id: kit.id,
+      ...(kit.id === kit.slug ? { preset: kit } : { id: kit.id }),
       slug: kit.slug,
       name: kit.name,
       subtitle: kit.subtitle ?? "",
@@ -191,8 +215,11 @@ export function AdminKits() {
                 {kit.products.map((product) => product.name).join(" · ")}
               </p>
               <p className="text-sm text-muted-foreground">
-                Kit da vitrine · composição definida no código
+                Kit publicado · salve para habilitar a edição da composição
               </p>
+              <Button variant="outline" size="sm" onClick={() => edit(kit)}>
+                Editar {kit.name}
+              </Button>
             </article>
           ))}
           {!isError && !isPending && !kits?.length && !publishedPresets.length ? (
@@ -303,11 +330,12 @@ export function AdminKits() {
             saveKit.mutate(form);
           }}
         >
-          <h3 className="text-xl">{form.id ? "Editar kit" : "Novo kit"}</h3>
+          <h3 className="text-xl">{form.id || form.preset ? "Editar kit" : "Novo kit"}</h3>
 
           <div className="space-y-1.5">
-            <Label>Nome</Label>
+            <Label htmlFor="kit-name">Nome</Label>
             <Input
+              id="kit-name"
               value={form.name}
               required
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -321,9 +349,10 @@ export function AdminKits() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Descrição</Label>
+            <Label htmlFor="kit-description">Descrição</Label>
             <Textarea
               rows={4}
+              id="kit-description"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
@@ -348,8 +377,9 @@ export function AdminKits() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Imagem de capa (URL)</Label>
+            <Label htmlFor="kit-image">Imagem de capa (URL)</Label>
             <Input
+              id="kit-image"
               value={form.image_url}
               placeholder="/produtos/hibisco.png"
               onChange={(e) => setForm({ ...form, image_url: e.target.value })}
@@ -367,7 +397,7 @@ export function AdminKits() {
           <Button type="submit" className="w-full" disabled={saveKit.isPending}>
             Salvar kit
           </Button>
-          {!form.id ? (
+          {!form.id && !form.preset ? (
             <p className="text-xs text-muted-foreground">
               Salve o kit para poder incluir os produtos dele.
             </p>

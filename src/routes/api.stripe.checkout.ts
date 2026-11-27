@@ -84,7 +84,16 @@ export const Route = createFileRoute("/api/stripe/checkout")({
         return new Response(null, { status: 204, headers });
       },
       GET: async ({ request }) => {
-        const session = new URL(request.url).searchParams.get("session_id");
+        const search = new URL(request.url).searchParams;
+        if (search.get("kit_catalog") === "1") {
+          try {
+            const { checkoutDatabase } = await import("@/lib/checkout-database.server");
+            return json(request, await checkoutDatabase({ operation: "kitCatalog" }));
+          } catch {
+            return json(request, { error: "Catálogo de kits indisponível." }, 503);
+          }
+        }
+        const session = search.get("session_id");
         if (session === null) return json(request, await checkoutStatus(request));
         if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json(request, { confirmed: false }, 400);
         try {

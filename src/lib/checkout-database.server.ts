@@ -15,6 +15,7 @@ export class CheckoutBridgeError extends Error {
 
 type BridgeRequest =
   | { operation: "ready" }
+  | { operation: "kitCatalog" }
   | { operation: "confirm"; session: string }
   | { operation: "catalog"; slugs: string[] }
   | { operation: "record"; args: OrderArgs };
@@ -47,6 +48,19 @@ async function execute(input: BridgeRequest) {
       if (products.error || zones.error || settings.error || !products.data || !zones.data) throw new Error("Checkout catalog lookup failed");
       return { products: products.data, zones: zones.data, settings: settings.data };
     }
+    case "kitCatalog": {
+      const { KIT_SELECT, presetKitSlugs } = await import("@/lib/kits");
+      const [active, managed] = await Promise.all([
+        supabaseAdmin.from("kits").select(KIT_SELECT).eq("is_active", true)
+          .filter("kit_items.products.is_active", "eq", true).order("sort_order").limit(100),
+        supabaseAdmin.from("kits").select("slug").in("slug", presetKitSlugs),
+      ]);
+      if (active.error || managed.error) throw new Error("Kit catalog lookup failed");
+      return {
+        rows: (active.data ?? []).filter((kit) => kit.kit_items.length > 0),
+        managedSlugs: (managed.data ?? []).map(({ slug }) => slug),
+      };
+    }
     case "record": {
       const { error } = await supabaseAdmin.rpc("record_stripe_checkout_order", input.args as GeneratedOrderArgs);
       if (error) throw new Error("Checkout order recording failed");
@@ -57,9 +71,11 @@ async function execute(input: BridgeRequest) {
   }
 }
 
-type Catalog = Exclude<Awaited<ReturnType<typeof execute>>, boolean>;
+type Catalog = Extract<Awaited<ReturnType<typeof execute>>, { products: unknown }>;
+type KitCatalog = Extract<Awaited<ReturnType<typeof execute>>, { managedSlugs: string[] }>;
 export function checkoutDatabase(input: Extract<BridgeRequest, { operation: "catalog" }>): Promise<Catalog>;
-export function checkoutDatabase(input: Exclude<BridgeRequest, { operation: "catalog" }>): Promise<boolean>;
+export function checkoutDatabase(input: Extract<BridgeRequest, { operation: "kitCatalog" }>): Promise<KitCatalog>;
+export function checkoutDatabase(input: Exclude<BridgeRequest, { operation: "catalog" | "kitCatalog" }>): Promise<boolean>;
 export async function checkoutDatabase(input: BridgeRequest) {
   const bridge = process.env["STRIPE_DB_BRIDGE_URL"];
   if (!bridge) {
