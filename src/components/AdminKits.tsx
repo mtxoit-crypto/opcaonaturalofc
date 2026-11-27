@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminKitsQuery, slugify, type Kit, type KitItem } from "@/lib/kits";
+import { adminKitsQuery, kitsQuery, slugify, type Kit, type KitItem } from "@/lib/kits";
 import { adminProductsQuery, formatPrice, type Product } from "@/lib/products";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,9 @@ const emptyKit: KitForm = {
 export function AdminKits() {
   const qc = useQueryClient();
   const { isAdmin } = useAuth();
-  const { data: kits } = useQuery(adminKitsQuery);
+  const { data: kits, isPending, isError, refetch } = useQuery(adminKitsQuery);
+  const { data: storefrontKits = [] } = useQuery(kitsQuery);
+  const publishedPresets = storefrontKits.filter((kit) => kit.id === kit.slug);
   const { data: products } = useQuery(adminProductsQuery(isAdmin));
   const [form, setForm] = useState<KitForm>(emptyKit);
   const [addProductId, setAddProductId] = useState("");
@@ -163,7 +165,7 @@ export function AdminKits() {
         <div>
           <h2 className="text-2xl">Kits</h2>
           <p className="text-sm text-muted-foreground">
-            Monte combos, escolha os produtos, o preço e a ordem em que aparecem.
+            Consulte os kits da vitrine e edite os combos cadastrados no painel.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => setForm(emptyKit)}>
@@ -173,7 +175,27 @@ export function AdminKits() {
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-3">
-          {(kits ?? []).length === 0 ? (
+          {isPending ? <p role="status">Carregando kits cadastrados…</p> : null}
+          {isError ? (
+            <div className="surface-card space-y-2 p-4">
+              <p role="alert">Não foi possível carregar os kits cadastrados no banco.</p>
+              <Button variant="outline" size="sm" onClick={() => void refetch()}>
+                Tentar novamente
+              </Button>
+            </div>
+          ) : null}
+          {publishedPresets.map((kit) => (
+            <article key={kit.id} className="surface-card space-y-2 p-4">
+              <h3 className="text-lg">{kit.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {kit.products.map((product) => product.name).join(" · ")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Kit da vitrine · composição definida no código
+              </p>
+            </article>
+          ))}
+          {!isError && !isPending && !kits?.length && !publishedPresets.length ? (
             <p className="text-sm text-muted-foreground">Nenhum kit criado ainda.</p>
           ) : null}
           {(kits ?? []).map((kit) => (
@@ -263,9 +285,7 @@ export function AdminKits() {
                     <Button
                       variant="secondary"
                       disabled={!addProductId || addItem.isPending}
-                      onClick={() =>
-                        addItem.mutate({ kitId: kit.id, productId: addProductId })
-                      }
+                      onClick={() => addItem.mutate({ kitId: kit.id, productId: addProductId })}
                     >
                       <Plus className="size-4" /> Incluir
                     </Button>

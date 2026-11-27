@@ -13,7 +13,12 @@ import { ProductReviews } from "@/components/ProductReviews";
 import { ShippingCalculator } from "@/components/ShippingCalculator";
 import { Button } from "@/components/ui/button";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { reviewsQuery, averageRating } from "@/lib/reviews";
 import { track } from "@/lib/analytics";
 import { absoluteUrl, SITE_ORIGIN } from "@/lib/site";
@@ -33,9 +38,7 @@ export const Route = createFileRoute("/produtos/$slug")({
       p?.description?.trim() ||
       p?.subtitle?.trim() ||
       `${name}: suplemento natural em cápsulas Opção Natural. ${capsuleBit}Preço e estoque no catálogo; pagamento seguro processado pela Stripe.`;
-    const title = p?.name
-      ? `${p.name} em cápsulas | Opção Natural`
-      : `${name} | Opção Natural`;
+    const title = p?.name ? `${p.name} em cápsulas | Opção Natural` : `${name} | Opção Natural`;
     const canOffer = p != null && p.name && p.price != null;
     const productLd = canOffer
       ? {
@@ -86,7 +89,12 @@ export const Route = createFileRoute("/produtos/$slug")({
                   "@type": "BreadcrumbList",
                   itemListElement: [
                     { "@type": "ListItem", position: 1, name: "Início", item: SITE_ORIGIN },
-                    { "@type": "ListItem", position: 2, name: "Produtos", item: absoluteUrl("/produtos") },
+                    {
+                      "@type": "ListItem",
+                      position: 2,
+                      name: "Produtos",
+                      item: absoluteUrl("/produtos"),
+                    },
                     { "@type": "ListItem", position: 3, name: p.name, item: url },
                   ],
                 },
@@ -212,7 +220,9 @@ function ProductPage() {
     if (now) {
       navigate({ to: "/checkout" });
     } else {
-      toast.success(`${p.name} adicionado ao carrinho`);
+      toast.success(`${p.name} adicionado ao carrinho`, {
+        action: { label: "Ver carrinho", onClick: () => void navigate({ to: "/checkout" }) },
+      });
     }
   }
 
@@ -238,29 +248,37 @@ function ProductPage() {
 
       <div className="mt-6 grid items-start gap-10 md:grid-cols-2 md:gap-12">
         <div className="space-y-4">
-          <div className="flex gap-1 rounded-full bg-muted/50 p-1" role="tablist" aria-label="Mídia do produto">
+          <div
+            className="flex gap-1 rounded-full bg-muted/50 p-1"
+            role="tablist"
+            aria-label="Mídia do produto"
+          >
             {(
               [
                 ["foto", "Foto", true],
                 ["modelo", "3D", Boolean(modelUrl)],
                 ["video", "Vídeo", videos.length > 0],
               ] as const
-            ).map(([value, label, available]) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={activeMediaTab === value}
-                aria-controls={`product-media-${value}`}
-                disabled={!available}
-                onClick={() => setActiveMediaTab(value)}
-                className={`flex-1 rounded-full px-3 py-2 text-sm transition-colors ${
-                  activeMediaTab === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                } ${!available ? "cursor-not-allowed opacity-45" : "hover:text-foreground"}`}
-              >
-                {label}
-              </button>
-            ))}
+            )
+              .filter(([, , available]) => available)
+              .map(([value, label, available]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeMediaTab === value}
+                  aria-controls={`product-media-${value}`}
+                  disabled={!available}
+                  onClick={() => setActiveMediaTab(value)}
+                  className={`flex-1 rounded-full px-3 py-2 text-sm transition-colors ${
+                    activeMediaTab === value
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  } ${!available ? "cursor-not-allowed opacity-45" : "hover:text-foreground"}`}
+                >
+                  {label}
+                </button>
+              ))}
           </div>
 
           <div id={`product-media-${activeMediaTab}`} role="tabpanel">
@@ -291,10 +309,7 @@ function ProductPage() {
                       <img
                         key={m.id}
                         src={m.url}
-                        alt={
-                          m.alt?.trim() ||
-                          `Foto adicional ${index + 1} do pote de ${p.name}`
-                        }
+                        alt={m.alt?.trim() || `Foto adicional ${index + 1} do pote de ${p.name}`}
                         loading="lazy"
                         className="w-full rounded-xl bg-sand object-cover"
                       />
@@ -362,10 +377,69 @@ function ProductPage() {
             ) : null}
           </header>
 
+          <section aria-labelledby="product-buy" className="surface-card space-y-3 p-5">
+            <h2 id="product-buy" className="sr-only">
+              Compra
+            </h2>
+            <p className="text-3xl font-semibold tracking-tight text-accent">
+              {formatMoney(price)}
+            </p>
+            <p
+              className={`text-sm font-medium ${buyable ? "text-foreground" : "text-muted-foreground"}`}
+            >
+              {buyable ? "Disponível" : "Esgotado"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Pagamento seguro processado pela Stripe. Frete calculado antes do pagamento.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Button
+                size="lg"
+                variant="outline"
+                className="min-h-11"
+                disabled={!buyable || cartLoading}
+                onClick={() => buy(false)}
+              >
+                {cartLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ShoppingBag className="size-4" />
+                )}
+                Adicionar ao carrinho
+              </Button>
+              <Button
+                size="lg"
+                className="min-h-11"
+                disabled={!buyable || cartLoading}
+                onClick={() => buy(true)}
+              >
+                Comprar agora
+              </Button>
+            </div>
+            {!buyable ? (
+              <p className="text-sm text-muted-foreground">Produto temporariamente esgotado.</p>
+            ) : null}
+          </section>
+
+          <section aria-labelledby="product-shipping">
+            <h2
+              id="product-shipping"
+              className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              Entrega
+            </h2>
+            <div className="mt-3">
+              <ShippingCalculator productPrice={price} />
+            </div>
+          </section>
+
           {benefits.length > 0 ? (
             <section aria-labelledby="product-benefits">
-              <h2 id="product-benefits" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Benefícios cadastrados
+              <h2
+                id="product-benefits"
+                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+              >
+                Informações do produto
               </h2>
               <ul className="mt-3 space-y-2">
                 {benefits.map((b) => (
@@ -394,7 +468,10 @@ function ProductPage() {
             ) : null}
           </section>
 
-          <section aria-labelledby="product-care" className="rounded-xl border border-border/70 bg-sand/40 p-4">
+          <section
+            aria-labelledby="product-care"
+            className="rounded-xl border border-border/70 bg-sand/40 p-4"
+          >
             <h2 id="product-care" className="text-sm font-semibold">
               Cuidados
             </h2>
@@ -404,49 +481,11 @@ function ProductPage() {
             </p>
           </section>
 
-          <section aria-labelledby="product-buy" className="space-y-3 border-t border-border pt-6">
-            <h2 id="product-buy" className="sr-only">
-              Compra
-            </h2>
-            <p className="text-3xl font-semibold tracking-tight text-accent">{formatMoney(price)}</p>
-            <p className={`text-sm font-medium ${buyable ? "text-foreground" : "text-muted-foreground"}`}>
-              {buyable ? "Disponível" : "Esgotado"}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Pagamento seguro processado pela Stripe. Frete calculado antes do pagamento.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-1">
-              <Button
-                size="lg"
-                variant="outline"
-                className="min-h-11"
-                disabled={!buyable || cartLoading}
-                onClick={() => buy(false)}
-              >
-                {cartLoading ? <Loader2 className="size-4 animate-spin" /> : <ShoppingBag className="size-4" />}
-                Adicionar ao carrinho
-              </Button>
-              <Button size="lg" className="min-h-11" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
-                Comprar agora
-              </Button>
-            </div>
-            {!buyable ? (
-              <p className="text-sm text-muted-foreground">Produto temporariamente esgotado.</p>
-            ) : null}
-          </section>
-
-          <section aria-labelledby="product-shipping">
-            <h2 id="product-shipping" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Entrega
-            </h2>
-            <div className="mt-3">
-              <ShippingCalculator />
-            </div>
-          </section>
-
           {waLink ? (
             <aside className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm font-medium">Ainda está em dúvida? Fale com a gente no WhatsApp</p>
+              <p className="text-sm font-medium">
+                Ainda está em dúvida? Fale com a gente no WhatsApp
+              </p>
               <Button asChild variant="outline" className="mt-3 min-h-11">
                 <a href={waLink} target="_blank" rel="noreferrer">
                   <MessageCircle className="size-4" />
@@ -508,7 +547,12 @@ function ProductPage() {
             <p className="truncate text-sm font-medium">{p.name}</p>
             <p className="text-sm text-accent">{formatMoney(price)}</p>
           </div>
-          <Button size="lg" className="min-h-11 shrink-0 px-5" disabled={!buyable || cartLoading} onClick={() => buy(true)}>
+          <Button
+            size="lg"
+            className="min-h-11 shrink-0 px-5"
+            disabled={!buyable || cartLoading}
+            onClick={() => buy(true)}
+          >
             {cartLoading ? <Loader2 className="size-4 animate-spin" /> : null}
             Comprar
           </Button>

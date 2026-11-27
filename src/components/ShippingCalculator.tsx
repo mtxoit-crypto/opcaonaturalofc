@@ -8,14 +8,21 @@ import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function ShippingCalculator({ compact = false }: { compact?: boolean }) {
+export function ShippingCalculator({
+  compact = false,
+  productPrice,
+}: {
+  compact?: boolean;
+  productPrice?: number;
+}) {
   const [cep, setCep] = useState("");
   const [submitted, setSubmitted] = useState("");
-  const { data: zones } = useQuery(shippingZonesQuery);
+  const { data: zones, isPending, isError, refetch } = useQuery(shippingZonesQuery);
   const { data: settings } = useQuery(storeSettingsQuery);
   const items = useCartStore((s) => s.items);
 
-  const subtotal = items.reduce((sum, i) => sum + Number(i.price.amount) * i.quantity, 0);
+  const subtotal =
+    productPrice ?? items.reduce((sum, i) => sum + Number(i.price.amount) * i.quantity, 0);
   const estimate = submitted
     ? estimateShipping(submitted, zones, subtotal, settings?.free_shipping_min ?? 0)
     : null;
@@ -34,32 +41,51 @@ export function ShippingCalculator({ compact = false }: { compact?: boolean }) {
         }}
       >
         <Input
+          aria-label="CEP para estimar entrega"
+          autoComplete="postal-code"
           inputMode="numeric"
           placeholder="00000-000"
           maxLength={9}
           value={cep}
-          onChange={(e) => setCep(e.target.value)}
+          onChange={(e) => {
+            setCep(
+              cleanCep(e.target.value)
+                .slice(0, 8)
+                .replace(/^(\d{5})(\d)/, "$1-$2"),
+            );
+            setSubmitted("");
+          }}
         />
         <Button type="submit" variant="outline">
           Calcular
         </Button>
       </form>
       {submitted && !estimate ? (
-        <p className="text-xs text-muted-foreground">
+        <p role="status" className="text-xs text-muted-foreground">
           {cleanCep(submitted).length !== 8
             ? "Digite um CEP com 8 dígitos."
-            : "Não encontramos uma faixa de entrega para esse CEP."}
+            : isPending
+              ? "Consultando entrega…"
+              : isError
+                ? "Não foi possível consultar a entrega."
+                : "Não encontramos uma faixa de entrega para esse CEP."}
         </p>
       ) : null}
       {estimate ? (
-        <p className="text-sm text-muted-foreground">
+        <p role="status" className="text-sm text-muted-foreground">
           <strong className="text-foreground">{estimate.zone}</strong> ·{" "}
           {estimate.fee === 0 ? "Frete grátis" : formatMoney(estimate.fee)} · {estimate.days_min} a{" "}
           {estimate.days_max} dias úteis
         </p>
       ) : null}
+      {submitted && isError ? (
+        <Button variant="outline" size="sm" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      ) : null}
       <p className="text-xs text-muted-foreground">
-        Estimativa. O valor final do frete é confirmado no checkout.
+        {productPrice !== undefined ? "Estimativa para uma unidade. " : "Estimativa. "} O valor
+        final do frete é confirmado no checkout.
       </p>
     </div>
   );
