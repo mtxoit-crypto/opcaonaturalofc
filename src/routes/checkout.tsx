@@ -1,7 +1,7 @@
 import { checkoutEndpoint, isStripeCheckoutUrl } from "@/lib/site";
 import { useRef, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowLeft, Truck, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/stores/cartStore";
@@ -31,7 +31,9 @@ export const Route = createFileRoute("/checkout")({
 });
 
 function CheckoutRoute() {
-  const success = useRouterState({ select: (s) => s.matches.some((m) => m.routeId === "/checkout/sucesso") });
+  const success = useRouterState({
+    select: (s) => s.matches.some((m) => m.routeId === "/checkout/sucesso"),
+  });
   return success ? <Outlet /> : <CartPage />;
 }
 
@@ -39,12 +41,21 @@ function CartPage() {
   const { items, isLoading, updateQuantity, removeItem } = useCartStore();
   const [cep, setCep] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: zones } = useQuery(shippingZonesQuery);
+  const {
+    data: zones,
+    isPending: shippingPending,
+    isError: shippingError,
+    refetch: retryShipping,
+  } = useQuery(shippingZonesQuery);
   const { data: settings } = useQuery(storeSettingsQuery);
 
   const attempt = useRef({ cart: "", key: "" });
   const submitting = useRef(false);
-  const { data: available } = useQuery({
+  const {
+    data: available,
+    isPending: paymentPending,
+    refetch: retryPayment,
+  } = useQuery({
     queryKey: ["stripe-checkout-available"],
     queryFn: async () => {
       const response = await fetch(checkoutEndpoint(), { cache: "no-store" });
@@ -53,7 +64,29 @@ function CartPage() {
   });
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.price.amount) * item.quantity, 0);
+  const postalCode = cleanCep(cep);
   const estimate = estimateShipping(cep, zones, subtotal, settings?.free_shipping_min ?? 0);
+  const outsideCoverage =
+    postalCode.length === 8 && !shippingPending && !shippingError && !estimate;
+  const shippingMessage =
+    postalCode.length < 8
+      ? "Informe os 8 dígitos para ver o frete e liberar o pagamento."
+      : shippingPending
+        ? "Calculando a entrega…"
+        : shippingError
+          ? "Falha ao consultar a entrega. Tente novamente."
+          : outsideCoverage
+            ? "Confira o CEP. Ainda não temos entrega cadastrada para este endereço."
+            : "";
+  const paymentLabel = isSubmitting
+    ? "Abrindo pagamento…"
+    : !estimate
+      ? "Informe o CEP para continuar"
+      : paymentPending
+        ? "Verificando pagamento…"
+        : !available
+          ? "Pagamento online indisponível"
+          : "Continuar para pagamento seguro";
 
   async function checkout() {
     const postalCode = cleanCep(cep);
@@ -77,13 +110,22 @@ function CartPage() {
           items: cartItems,
         }),
       });
-      const payload = (await response.json()) as { url?: string; sessionId?: string; error?: string };
+      const payload = (await response.json()) as {
+        url?: string;
+        sessionId?: string;
+        error?: string;
+      };
       if (!response.ok || !isStripeCheckoutUrl(payload.url)) {
         throw new Error(payload.error || "Não foi possível iniciar o checkout.");
       }
       try {
-        sessionStorage.setItem("stripe-return-cart", JSON.stringify([payload.sessionId, cartItems]));
-      } catch { /* Checkout also works with browser storage disabled. */ }
+        sessionStorage.setItem(
+          "stripe-return-cart",
+          JSON.stringify([payload.sessionId, cartItems]),
+        );
+      } catch {
+        /* Checkout also works with browser storage disabled. */
+      }
       track({ name: "begin_checkout" });
       window.location.assign(payload.url);
     } catch (error) {
@@ -174,9 +216,11 @@ function CartPage() {
           ))}
         </div>
 
-        <aside className="surface-card h-fit space-y-4 p-6">
-          <div className="space-y-2">
-            <Label htmlFor="checkout-cep">CEP de entrega</Label>
+        <aside className="surface-card h-fit space-y-4 p-5 lg:sticky lg:top-24">
+          <div className="space-y-2 rounded-xl bg-secondary p-4">
+            <Label htmlFor="checkout-cep" className="flex items-center gap-2 text-base">
+              <Truck className="size-4" aria-hidden /> CEP de entrega
+            </Label>
             <Input
               id="checkout-cep"
               inputMode="numeric"
@@ -184,18 +228,33 @@ function CartPage() {
               placeholder="00000-000"
               maxLength={9}
               value={cep}
-              onChange={(event) => setCep(event.target.value)}
+              aria-describedby="checkout-cep-status"
+              aria-invalid={outsideCoverage || undefined}
+              onChange={(event) =>
+                setCep(
+                  cleanCep(event.target.value)
+                    .slice(0, 8)
+                    .replace(/^(\d{5})(\d)/, "$1-$2"),
+                )
+              }
             />
-            {cleanCep(cep).length === 8 && !estimate ? (
-              <p className="text-xs text-destructive">
-                Ainda não temos entrega cadastrada para este CEP.
-              </p>
-            ) : null}
-            {estimate ? (
-              <p className="text-xs text-muted-foreground">
-                {estimate.zone} · {estimate.fee === 0 ? "Frete grátis" : formatMoney(estimate.fee)}{" "}
-                · {estimate.days_min} a {estimate.days_max} dias úteis
-              </p>
+            <div
+              id="checkout-cep-status"
+              role="status"
+              className={
+                outsideCoverage || shippingError
+                  ? "text-sm text-destructive"
+                  : "text-sm text-muted-foreground"
+              }
+            >
+              {estimate
+                ? `${estimate.zone} · ${estimate.fee === 0 ? "Frete grátis" : formatMoney(estimate.fee)} · ${estimate.days_min} a ${estimate.days_max} dias úteis`
+                : shippingMessage}
+            </div>
+            {shippingError ? (
+              <Button size="sm" variant="outline" onClick={() => void retryShipping()}>
+                Consultar frete novamente
+              </Button>
             ) : null}
           </div>
           <div className="space-y-3 border-t border-border/60 pt-4">
@@ -214,8 +273,10 @@ function CartPage() {
               </span>
             </div>
             <div className="flex justify-between border-t border-border/60 pt-3 text-lg">
-              <span>Total estimado</span>
-              <span className="text-accent">{formatMoney(subtotal + (estimate?.fee ?? 0))}</span>
+              <span>{estimate ? "Total estimado" : "Total com frete"}</span>
+              <span className="text-accent">
+                {estimate ? formatMoney(subtotal + estimate.fee) : "—"}
+              </span>
             </div>
           </div>
           <Button
@@ -229,8 +290,13 @@ function CartPage() {
             ) : (
               <ShieldCheck className="size-4" />
             )}
-            {available === false ? "Pagamento online indisponível" : isSubmitting ? "Abrindo pagamento…" : "Continuar para pagamento seguro"}
+            {paymentLabel}
           </Button>
+          {estimate && !paymentPending && !available ? (
+            <Button variant="outline" className="w-full" onClick={() => void retryPayment()}>
+              Verificar novamente
+            </Button>
+          ) : null}
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
             A Stripe coleta seu endereço completo e processa o pagamento. O pedido é confirmado após
             a validação segura do pagamento.
