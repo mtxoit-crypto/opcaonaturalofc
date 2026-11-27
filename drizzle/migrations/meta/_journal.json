@@ -64,6 +64,13 @@
       "when": 1795680000000,
       "tag": "0008_stripe_checkout_readiness",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795784624960,
+      "tag": "0009_scope_public_shipping_zones_read",
+      "breakpoints": true
     }
   ]
 }

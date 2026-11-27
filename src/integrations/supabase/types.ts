@@ -498,6 +498,7 @@ export type Database = {
           days_min: number
           fee: number
           id: string
+          is_active: boolean
           name: string
           sort_order: number
           updated_at: string
@@ -510,6 +511,7 @@ export type Database = {
           days_min?: number
           fee?: number
           id?: string
+          is_active?: boolean
           name: string
           sort_order?: number
           updated_at?: string
@@ -522,6 +524,7 @@ export type Database = {
           days_min?: number
           fee?: number
           id?: string
+          is_active?: boolean
           name?: string
           sort_order?: number
           updated_at?: string
