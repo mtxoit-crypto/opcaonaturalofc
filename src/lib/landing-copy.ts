@@ -57,20 +57,27 @@ export const landing = {
     secondary: "Ver kits",
   },
   diffs: [
-    { t: "Escolha informada", d: "Consulte apresentação, quantidade e detalhes de cada item antes de decidir." },
-    { t: "Compra simples", d: "Encontre o que procura e veja as opções disponíveis em poucos passos." },
+    {
+      t: "Escolha informada",
+      d: "Consulte apresentação, quantidade e detalhes de cada item antes de decidir.",
+    },
+    {
+      t: "Compra simples",
+      d: "Encontre o que procura e veja as opções disponíveis em poucos passos.",
+    },
     { t: "Entrega transparente", d: "Consulte as opções de envio, prazo e valor usando seu CEP." },
   ],
 } as const;
 
+export const productGroups: { id: string; label: string; match: string[] }[] = [
+  { id: "fibras", label: "Fibras", match: ["fibra", "saciedade"] },
+  { id: "minerais", label: "Minerais", match: ["mineral"] },
+  { id: "vitaminas", label: "Vitaminas", match: ["vitamina"] },
+  { id: "vitalidade", label: "Vitalidade", match: ["vitalidade"] },
+  { id: "rotina", label: "Rotina", match: ["rotina", "tradição", "tradicao"] },
+];
+
 export function objectiveGroups(benefits: string[]) {
-  const groups: { id: string; label: string; match: string[] }[] = [
-    { id: "fibras", label: "Fibras", match: ["fibra", "saciedade"] },
-    { id: "minerais", label: "Minerais", match: ["mineral"] },
-    { id: "vitaminas", label: "Vitaminas", match: ["vitamina"] },
-    { id: "vitalidade", label: "Vitalidade", match: ["vitalidade"] },
-    { id: "rotina", label: "Rotina", match: ["rotina", "tradição", "tradicao"] },
-  ];
   const text = benefits.join(" ").toLowerCase();
-  return groups.filter((g) => g.match.some((m) => text.includes(m)));
+  return productGroups.filter((g) => g.match.some((m) => text.includes(m)));
 }

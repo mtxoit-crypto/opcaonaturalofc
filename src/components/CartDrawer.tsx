@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
@@ -40,12 +47,12 @@ export function CartDrawer() {
         <div className="flex min-h-0 flex-1 flex-col pt-6">
           {items.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-                <ShoppingBag className="size-10 text-muted-foreground" />
-                <p className="text-muted-foreground">Nenhum produto por aqui ainda.</p>
-                <Button asChild onClick={() => setIsOpen(false)}>
-                  <Link to="/produtos">Ver produtos</Link>
-                </Button>
-              </div>
+              <ShoppingBag className="size-10 text-muted-foreground" />
+              <p className="text-muted-foreground">Nenhum produto por aqui ainda.</p>
+              <Button asChild onClick={() => setIsOpen(false)}>
+                <Link to="/produtos">Ver produtos</Link>
+              </Button>
+            </div>
           ) : (
             <>
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
@@ -64,7 +71,7 @@ export function CartDrawer() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate">{item.title}</p>
                       <p className="text-sm text-muted-foreground">
-                          {formatMoney(item.price.amount, item.price.currencyCode)}
+                        {formatMoney(item.price.amount, item.price.currencyCode)}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <Button
@@ -100,10 +107,15 @@ export function CartDrawer() {
 
               <div className="shrink-0 space-y-4 border-t border-border/60 bg-background pt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-lg">Total</span>
+                  <span className="text-lg">Subtotal</span>
                   <span className="text-xl text-accent">{formatMoney(totalPrice, currency)}</span>
                 </div>
-                <Button asChild className="w-full" size="lg" disabled={items.length === 0 || isLoading}>
+                <Button
+                  asChild
+                  className="w-full"
+                  size="lg"
+                  disabled={items.length === 0 || isLoading}
+                >
                   <Link to="/checkout" onClick={() => setIsOpen(false)}>
                     <ArrowRight className="size-4" />
                     Continuar para o pagamento

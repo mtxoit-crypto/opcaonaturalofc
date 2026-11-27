@@ -31,12 +31,14 @@ export function PhotoSpotlight({
   className,
   imgClassName,
   reveal = false,
+  priority = false,
 }: {
   src: string;
   alt: string;
   className?: string;
   imgClassName?: string;
   reveal?: boolean;
+  priority?: boolean;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const desktop = useDesktopHover();
@@ -73,9 +75,13 @@ export function PhotoSpotlight({
         alt={alt}
         width={640}
         height={640}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         decoding="async"
-        className={cn("photo-zoom relative z-0 h-full w-full object-contain object-center p-4", imgClassName)}
+        className={cn(
+          "photo-zoom relative z-0 h-full w-full object-contain object-center p-4",
+          imgClassName,
+        )}
       />
       {desktop && !reduce ? (
         <motion.img

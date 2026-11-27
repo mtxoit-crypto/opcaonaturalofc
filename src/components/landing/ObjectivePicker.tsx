@@ -1,28 +1,46 @@
 import { Link } from "@tanstack/react-router";
-import { objectiveGroups } from "@/lib/landing-copy";
-import type { Product } from "@/lib/products";
+import { ArrowUpRight } from "lucide-react";
+import { objectiveGroups, productGroups } from "@/lib/landing-copy";
+import { productPhoto, type Product } from "@/lib/products";
 
 export function ObjectivePicker({ products }: { products: Product[] | undefined }) {
-  const benefits = (products ?? []).filter((p) => p.is_active).flatMap((p) => p.benefits ?? []);
-  const groups = objectiveGroups(benefits);
+  const active = (products ?? []).filter((p) => p.is_active);
+  const groups = productGroups.flatMap((group) => {
+    const matches = active.filter((product) =>
+      objectiveGroups(product.benefits ?? []).some(({ id }) => id === group.id),
+    );
+    const cover = matches.find((product) => productPhoto(product));
+    return cover ? [{ ...group, cover }] : [];
+  });
   if (!groups.length) return null;
 
   return (
-    <section className="border-y border-border bg-sand">
-      <div className="mx-auto max-w-6xl px-5 py-12">
-        <h2 className="text-display text-3xl">Escolha por objetivo</h2>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          Grupos a partir dos benefícios cadastrados no catálogo. Não são indicações terapêuticas.
-        </p>
-        <ul className="mt-6 flex flex-wrap gap-2">
-          {groups.map((g) => (
-            <li key={g.id}>
+    <section aria-labelledby="shop-categories" className="border-y border-border bg-sand">
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
+        <h2 id="shop-categories" className="text-display text-3xl sm:text-4xl">
+          Explore por categoria
+        </h2>
+        <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {groups.map(({ id, label, cover }) => (
+            <li key={id}>
               <Link
                 to="/produtos"
-                search={{ q: g.label }}
-                className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-sm hover:bg-secondary"
+                search={{ categoria: id }}
+                className="group surface-card block rounded-2xl p-3 focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {g.label}
+                <img
+                  src={productPhoto(cover)}
+                  alt=""
+                  width={240}
+                  height={240}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square w-full rounded-xl bg-sand object-contain p-3 transition-transform group-hover:scale-[1.04] motion-reduce:transition-none"
+                />
+                <span className="mt-3 flex items-center justify-between gap-1 px-1 pb-1 font-medium">
+                  {label}
+                  <ArrowUpRight className="size-4 shrink-0" aria-hidden />
+                </span>
               </Link>
             </li>
           ))}

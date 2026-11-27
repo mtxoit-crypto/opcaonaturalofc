@@ -1,7 +1,15 @@
 import { useMemo, useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Heart,
+  ShoppingBag,
+  Loader2,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { productsQuery, productPhoto, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
@@ -13,7 +21,10 @@ import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 import { useWebMCP } from "use-webmcp-tool";
 import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
-const normalizeSearch = (value: string) => value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
+const normalizeSearch = (value: string) =>
+  value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
+
+import { objectiveGroups, productGroups } from "@/lib/landing-copy";
 
 type SortKey = "relevancia" | "menor-preco" | "maior-preco" | "nome";
 
@@ -25,8 +36,13 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 export const Route = createFileRoute("/produtos/")({
-  validateSearch: (search: Record<string, unknown>): { q?: string } =>
-    typeof search["q"] === "string" ? { q: search["q"] } : {},
+  validateSearch: (search: Record<string, unknown>): { q?: string; categoria?: string } => ({
+    ...(typeof search["q"] === "string" ? { q: search["q"].slice(0, 120) } : {}),
+    ...(typeof search["categoria"] === "string" &&
+    productGroups.some(({ id }) => id === search["categoria"])
+      ? { categoria: search["categoria"] }
+      : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Catálogo de suplementos naturais | Opção Natural" },
@@ -52,8 +68,7 @@ export const Route = createFileRoute("/produtos/")({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           name: "Vitaminas e Suplementos Naturais",
-          description:
-            "Catálogo de vitaminas e suplementos naturais em cápsulas da Opção Natural.",
+          description: "Catálogo de vitaminas e suplementos naturais em cápsulas da Opção Natural.",
           url: "https://opcaonaturalofc.lovable.app/produtos",
           isPartOf: {
             "@type": "WebSite",
@@ -69,18 +84,44 @@ export const Route = createFileRoute("/produtos/")({
 
 function ProductsPage() {
   const navigate = useNavigate();
-  const { q: qParam } = Route.useSearch();
+  const { q: qParam, categoria } = Route.useSearch();
   const { data: products, isLoading, isError, refetch } = useQuery(productsQuery);
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
 
   const [query, setQuery] = useState(qParam ?? "");
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sort, setSort] = useState<SortKey>("relevancia");
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    if (qParam) setQuery(qParam);
+    setQuery(qParam ?? "");
   }, [qParam]);
+
+  useEffect(() => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem("opcao-natural-favorites") ?? "[]");
+      if (Array.isArray(saved))
+        setFavorites(
+          saved.filter((slug): slug is string => typeof slug === "string").slice(0, 500),
+        );
+    } catch {
+      /* Favorites remain available for this visit. */
+    }
+  }, []);
+
+  function toggleFavorite(slug: string) {
+    const next = favorites.includes(slug)
+      ? favorites.filter((item) => item !== slug)
+      : [...favorites, slug];
+    setFavorites(next);
+    try {
+      localStorage.setItem("opcao-natural-favorites", JSON.stringify(next));
+    } catch {
+      /* Storage is optional. */
+    }
+  }
 
   async function buy(p: Product, now: boolean) {
     const ok = await addToCart(p.slug, p.name);
@@ -108,6 +149,9 @@ function ProductsPage() {
   const filtered = useMemo(() => {
     const terms = normalizeSearch(query).trim().split(/\s+/).filter(Boolean);
     let list = active.filter((p) => {
+      if (categoria && !objectiveGroups(p.benefits ?? []).some(({ id }) => id === categoria))
+        return false;
+      if (onlyFavorites && !favorites.includes(p.slug)) return false;
       if (onlyInStock && !availabilityOf(p)) return false;
       if (!terms.length) return true;
       const haystack = [p.name, p.subtitle, p.description, ...(p.benefits ?? [])]
@@ -126,38 +170,57 @@ function ProductsPage() {
 
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, query, sort, onlyInStock, products]);
+  }, [active, query, sort, onlyInStock, products, categoria, onlyFavorites, favorites]);
 
-  const hasFilters = query.trim().length > 0 || onlyInStock || sort !== "relevancia";
+  const hasFilters =
+    Boolean(categoria) ||
+    onlyFavorites ||
+    query.trim().length > 0 ||
+    onlyInStock ||
+    sort !== "relevancia";
 
   useWebMCP({
     name: "list_visible_products",
-    description: "Consulta os produtos mostrados no catálogo aberto, respeitando a busca, os filtros e a ordem atuais.",
+    description:
+      "Consulta os produtos mostrados no catálogo aberto, respeitando a busca, os filtros e a ordem atuais.",
     enabled: !isLoading && !cartLoading,
     annotations: { readOnlyHint: true, untrustedContentHint: true },
-    execute: () => runWebMCPTool("list_visible_products", () => {
-      if (!filtered.length) return "Nenhum produto mostrado.";
-      return filtered.slice(0, 50).map(p => `${p.slug}: ${p.name} — ${formatMoney(priceOf(p))} — ${availabilityOf(p) ? "Disponível" : "Indisponível"}`).join("\n");
-    }),
+    execute: () =>
+      runWebMCPTool("list_visible_products", () => {
+        if (!filtered.length) return "Nenhum produto mostrado.";
+        return filtered
+          .slice(0, 50)
+          .map(
+            (p) =>
+              `${p.slug}: ${p.name} — ${formatMoney(priceOf(p))} — ${availabilityOf(p) ? "Disponível" : "Indisponível"}`,
+          )
+          .join("\n");
+      }),
   });
 
   function clearFilters() {
     setQuery("");
     setSort("relevancia");
     setOnlyInStock(false);
+    setOnlyFavorites(false);
+    void navigate({ to: "/produtos", search: {}, resetScroll: false });
   }
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
       <header className="flex flex-wrap items-end justify-between gap-5 rounded-3xl bg-primary px-6 py-8 text-primary-foreground sm:px-10 sm:py-12">
         <div>
-          <h1 className="max-w-lg text-3xl leading-tight sm:text-5xl">Vitaminas e suplementos naturais</h1>
+          <h1 className="max-w-lg text-3xl leading-tight sm:text-5xl">
+            Vitaminas e suplementos naturais
+          </h1>
           <p className="mt-3 max-w-md text-sm text-primary-foreground/85">
             Compare preços e quantidades de cápsulas para escolher seus produtos.
           </p>
         </div>
         <Button asChild variant="secondary">
-          <Link to="/kits">Ver kits <ArrowUpRight aria-hidden /></Link>
+          <Link to="/kits">
+            Ver kits <ArrowUpRight aria-hidden />
+          </Link>
         </Button>
       </header>
 
@@ -169,6 +232,7 @@ function ProductsPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por nome, benefício…"
+            maxLength={120}
             className="h-11 rounded-full pl-10 pr-9"
             aria-label="Buscar produtos"
           />
@@ -200,7 +264,7 @@ function ProductsPage() {
               Ordenar
             </label>
             <select
-            aria-label="Ordenar produtos"
+              aria-label="Ordenar produtos"
               id="sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
@@ -259,6 +323,41 @@ function ProductsPage() {
         </div>
       ) : null}
 
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          Categoria
+          <select
+            className="min-h-11 rounded-xl border bg-card px-3"
+            value={categoria ?? ""}
+            onChange={(event) =>
+              void navigate({
+                to: "/produtos",
+                resetScroll: false,
+                search: {
+                  ...(query ? { q: query } : {}),
+                  ...(event.target.value ? { categoria: event.target.value } : {}),
+                },
+              })
+            }
+          >
+            <option value="">Todas</option>
+            {productGroups.map(({ id, label }) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button
+          variant={onlyFavorites ? "default" : "outline"}
+          aria-pressed={onlyFavorites}
+          className="min-h-11"
+          onClick={() => setOnlyFavorites(!onlyFavorites)}
+        >
+          <Heart aria-hidden /> Favoritos ({favorites.length})
+        </Button>
+      </div>
+
       {/* Resumo de resultados */}
       {!isLoading && !isError ? (
         <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
@@ -282,7 +381,9 @@ function ProductsPage() {
       {isError ? (
         <div className="surface-card mt-6 p-6">
           <p role="alert">Não foi possível carregar o catálogo.</p>
-          <Button className="mt-3" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+          <Button className="mt-3" variant="outline" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
         </div>
       ) : isLoading ? (
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
@@ -314,6 +415,20 @@ function ProductsPage() {
                 key={p.id}
                 className="lift-card surface-card group/card relative flex min-w-0 flex-col p-3 sm:p-5"
               >
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-2 z-10 size-11 rounded-full bg-card sm:left-5 sm:top-5"
+                  aria-label={`${favorites.includes(p.slug) ? "Remover dos favoritos" : "Salvar nos favoritos"}: ${p.name}`}
+                  aria-pressed={favorites.includes(p.slug)}
+                  onClick={() => toggleFavorite(p.slug)}
+                >
+                  <Heart
+                    className={favorites.includes(p.slug) ? "fill-current text-primary" : ""}
+                    aria-hidden
+                  />
+                </Button>
                 {!available ? (
                   <Badge
                     variant="secondary"
@@ -345,9 +460,7 @@ function ProductsPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                    {p.description}
-                  </p>
+                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
                 )}
 
                 <div className="mt-auto flex flex-wrap items-baseline justify-between gap-1 pt-4">
@@ -369,7 +482,12 @@ function ProductsPage() {
                     )}
                     Adicionar
                   </Button>
-                  <Button className="min-h-11 min-w-0 px-2" aria-label={`Comprar ${p.name}`} disabled={!available || cartLoading} onClick={() => buy(p, true)}>
+                  <Button
+                    className="min-h-11 min-w-0 px-2"
+                    aria-label={`Comprar ${p.name}`}
+                    disabled={!available || cartLoading}
+                    onClick={() => buy(p, true)}
+                  >
                     Comprar
                   </Button>
                 </div>

@@ -59,6 +59,7 @@ export function LandingHero({ product }: { product: Product | undefined }) {
               aria-label={`Ver ${product.name}`}
             >
               <PhotoSpotlight
+                priority
                 src={productPhoto(product)}
                 alt={`Embalagem de ${product.name}, Opção Natural`}
                 className="h-[250px] rounded-[1.25rem] sm:h-[380px]"

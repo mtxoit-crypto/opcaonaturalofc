@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { kitsQuery } from "@/lib/kits";
+import { Button } from "@/components/ui/button";
 import { productsQuery } from "@/lib/products";
 import { track } from "@/lib/analytics";
 import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_ORIGIN } from "@/lib/site";
@@ -76,7 +78,9 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { data: products } = useQuery(productsQuery);
-  const featured = (products ?? []).find((p) => p.is_active);
+  const featured = (products ?? []).find((p) => p.is_active && (p.stock_quantity ?? 0) > 0);
+  const { data: kits } = useQuery(kitsQuery);
+  const featuredKit = kits?.find((kit) => kit.image_url && kit.items.length > 0);
 
   useEffect(() => {
     track({ name: "view_home" });
@@ -88,6 +92,32 @@ function Index() {
       <TrustBar />
       <FeaturedProducts />
       <ObjectivePicker products={products} />
+      {featuredKit?.image_url ? (
+        <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
+          <div className="grid overflow-hidden rounded-3xl bg-primary text-primary-foreground md:grid-cols-2">
+            <img
+              src={featuredKit.image_url}
+              alt={featuredKit.name}
+              width={520}
+              height={420}
+              loading="lazy"
+              decoding="async"
+              className="h-64 w-full bg-sand object-contain md:h-full md:max-h-96"
+            />
+            <div className="flex flex-col items-start justify-center gap-4 p-7 sm:p-10">
+              <h2 className="text-display text-3xl sm:text-4xl">{featuredKit.name}</h2>
+              {featuredKit.description ? (
+                <p className="text-sm leading-relaxed text-primary-foreground/90">
+                  {featuredKit.description}
+                </p>
+              ) : null}
+              <Button asChild variant="secondary" className="min-h-11">
+                <Link to="/kits">Conhecer os kits</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      ) : null}
       <Differentials />
       <HomeReviews />
       <HomeFaq />
