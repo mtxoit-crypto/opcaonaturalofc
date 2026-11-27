@@ -60,7 +60,12 @@ export function AdminReviews() {
   const { data: products } = useQuery(adminProductsQuery(isAdmin));
   const names = Object.fromEntries((products ?? []).map((p) => [p.id, p.name]));
 
-  const { data = [], isLoading } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["admin-reviews"],
     queryFn: async (): Promise<ReviewRow[]> => {
       const { data, error } = await supabase
@@ -84,7 +89,12 @@ export function AdminReviews() {
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_reviews").update({ is_approved: true }).eq("id", id);
+      const { error } = await supabase
+        .from("product_reviews")
+        .update({ is_approved: true })
+        .eq("id", id)
+        .select("id")
+        .single();
       if (error) throw error;
     },
     onSuccess: () => {
@@ -96,7 +106,12 @@ export function AdminReviews() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_reviews").delete().eq("id", id);
+      const { error } = await supabase
+        .from("product_reviews")
+        .delete()
+        .eq("id", id)
+        .select("id")
+        .single();
       if (error) throw error;
     },
     onSuccess: () => {
@@ -114,6 +129,17 @@ export function AdminReviews() {
       : `Rejeitar e apagar a avaliação de ${review.author_name}?`;
     if (!window.confirm(label)) return;
     remove.mutate(review.id);
+  }
+
+  if (isError) {
+    return (
+      <section className="surface-card mt-8 space-y-3 p-5">
+        <p role="alert">Não foi possível carregar as avaliações.</p>
+        <Button variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </section>
+    );
   }
 
   return (

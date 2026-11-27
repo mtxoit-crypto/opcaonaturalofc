@@ -86,6 +86,7 @@ export function ProductMediaManager({
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["product-media", catalogId] });
+    qc.invalidateQueries({ queryKey: ["product-media-library"] });
     qc.invalidateQueries({ queryKey: ["admin-products"] });
     qc.invalidateQueries({ queryKey: ["products"] });
     if (catalogId) qc.invalidateQueries({ queryKey: ["product"] });

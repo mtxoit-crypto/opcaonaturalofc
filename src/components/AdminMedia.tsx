@@ -13,6 +13,8 @@ import {
 import type { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { ModelViewer } from "@/components/ModelViewer";
+import { ProductMediaManager } from "@/components/ProductMediaManager";
+import { Label } from "@/components/ui/label";
 
 const MEDIA_GROUPS: Array<{ type: MediaType; label: string }> = [
   { type: "image", label: "Imagens" },
@@ -30,11 +32,46 @@ export function AdminMedia({
   productsError?: unknown;
 }) {
   const mediaQuery = useQuery(productMediaLibraryQuery());
+  const [productId, setProductId] = useState("");
+  const selectedProduct = products.find((product) => product.id === productId);
   const names = useMemo(
     () => new Map(products.map((product) => [product.id, product.name])),
     [products],
   );
   const media = mediaQuery.data ?? [];
+  const uploadPanel = (
+    <section className="surface-card space-y-4 p-5">
+      <h2 className="text-lg font-semibold">Enviar arquivos do computador</h2>
+      <p className="text-sm text-muted-foreground">
+        Selecione um produto. Envie fotos de até 8 MB ou vídeos MP4 e WebM de até 50 MB. Os arquivos
+        vinculados a produtos publicados podem aparecer na loja.
+      </p>
+      <div className="space-y-1">
+        <Label htmlFor="media-product">Produto</Label>
+        <select
+          id="media-product"
+          className="block min-h-11 w-full rounded-md border bg-background px-3 text-sm sm:max-w-sm"
+          value={productId}
+          onChange={(event) => setProductId(event.target.value)}
+          disabled={productsLoading || products.length === 0}
+        >
+          <option value="">Selecione um produto</option>
+          {products.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {selectedProduct ? (
+        <ProductMediaManager
+          key={selectedProduct.id}
+          productId={selectedProduct.id}
+          coverUrl={selectedProduct.image_url}
+        />
+      ) : null}
+    </section>
+  );
 
   if (mediaQuery.isLoading) {
     return <p className="mt-8 text-sm text-muted-foreground">Carregando mídias…</p>;
@@ -55,7 +92,8 @@ export function AdminMedia({
 
   if (media.length === 0) {
     return (
-      <div className="surface-card mt-8 p-6">
+      <div className="mt-8 space-y-6">
+        {uploadPanel}
         <h2 className="text-lg font-semibold">Nenhuma mídia cadastrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Fotos, vídeos e modelos 3D salvos nos produtos aparecerão aqui.
@@ -66,6 +104,7 @@ export function AdminMedia({
 
   return (
     <section className="mt-8 space-y-8">
+      {uploadPanel}
       {productsError ? (
         <p className="rounded-xl border border-border/70 bg-card p-3 text-sm text-muted-foreground">
           Os produtos não puderam ser carregados; exibindo os IDs relacionados às mídias.
@@ -87,7 +126,9 @@ export function AdminMedia({
                 <MediaCard
                   key={item.id}
                   item={item}
-                  {...(names.has(item.product_id) ? { productName: names.get(item.product_id)! } : {})}
+                  {...(names.has(item.product_id)
+                    ? { productName: names.get(item.product_id)! }
+                    : {})}
                 />
               ))}
             </div>
@@ -227,13 +268,7 @@ function MediaPreview({ item }: { item: ProductMedia }) {
   );
 }
 
-function PreviewPlaceholder({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Box;
-  label: string;
-}) {
+function PreviewPlaceholder({ icon: Icon, label }: { icon: typeof Box; label: string }) {
   return (
     <div className="flex size-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
       <Icon className="size-8" />
