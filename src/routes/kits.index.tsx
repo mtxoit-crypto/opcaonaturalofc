@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { kitsQuery } from "@/lib/kits";
-import { formatPrice, productPhoto, type Product } from "@/lib/products";
-import { useAddToCart } from "@/hooks/useAddToCart";
+import { kitsQuery, type Kit } from "@/lib/kits";
+import { formatPrice, productPhoto } from "@/lib/products";
+import { useCartStore } from "@/stores/cartStore";
 import { Button } from "@/components/ui/button";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/kits/")({
       {
         name: "description",
         content:
-          "Kits de suplementos naturais Opção Natural: Kit Emagrecimento, Kit Testosterona e Kit Ansiedade.",
+          "Conheça os kits Raízes e Sementes, Seleção Botânica e Fibras e Plantas da Opção Natural.",
       },
       { property: "og:title", content: "Kits · Opção Natural" },
       {
@@ -31,15 +31,42 @@ export const Route = createFileRoute("/kits/")({
 
 function KitsPage() {
   const { data: kits, isLoading } = useQuery(kitsQuery);
-  const { addToCart, isLoading: cartLoading } = useAddToCart();
+  const { items: cart, isLoading: cartLoading } = useCartStore();
 
-  async function addKit(products: Product[], kitName: string) {
-    let added = 0;
-    for (const p of products) {
-      const ok = await addToCart(p.slug, p.name);
-      if (ok) added += 1;
+  function canAdd(kit: Kit, current = cart) {
+    const slugs = new Set(current.map((item) => item.slug));
+    for (const { product, quantity } of kit.items) {
+      if (!product?.is_active || product.price == null || product.price <= 0 ||
+        !Number.isInteger(quantity) || quantity < 1) return false;
+      const next = (current.find((item) => item.slug === product.slug)?.quantity ?? 0) + quantity;
+      if (next > 99 || next > (product.stock_quantity ?? 0)) return false;
+      slugs.add(product.slug);
     }
-    if (added > 0) toast.success(`${kitName}: ${added} itens adicionados ao carrinho`);
+    return kit.items.length > 0 && slugs.size <= 10;
+  }
+
+  function addKit(kit: Kit) {
+    const current = useCartStore.getState().items;
+    if (!canAdd(kit, current)) {
+      toast.error("Confira o estoque e o limite de 10 produtos diferentes por carrinho.");
+      return;
+    }
+    const next = [...current];
+    for (const { product, quantity } of kit.items) {
+      if (!product) return;
+      const index = next.findIndex((item) => item.slug === product.slug);
+      const item = {
+        slug: product.slug,
+        title: product.name,
+        image: productPhoto(product),
+        price: { amount: String(product.price), currencyCode: "BRL" as const },
+        quantity: (next[index]?.quantity ?? 0) + quantity,
+      };
+      if (index < 0) next.push(item);
+      else next[index] = item;
+    }
+    useCartStore.setState({ items: next });
+    toast.success(`${kit.name} adicionado ao carrinho`);
   }
 
   return (
@@ -56,7 +83,7 @@ function KitsPage() {
       ) : (
         <div className="mt-10 space-y-10">
           {kits.map((kit) => {
-            const total = kit.products.reduce((s, p) => s + (p.price ?? 0), 0);
+            const total = kit.items.reduce((sum, item) => sum + Math.round((item.product?.price ?? 0) * 100) * item.quantity, 0) / 100;
             return (
               <section key={kit.id} className="surface-card p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">
@@ -65,7 +92,7 @@ function KitsPage() {
                     <p className="text-sm text-muted-foreground">{kit.subtitle}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl text-accent">{formatPrice(kit.price ?? total)}</p>
+                    <p className="text-2xl text-accent">{formatPrice(total)}</p>
                     <p className="text-xs text-muted-foreground">
                       {kit.products.length} produtos · {formatPrice(total)} avulso
                     </p>
@@ -75,7 +102,7 @@ function KitsPage() {
                 {kit.image_url ? (
                   <PhotoSpotlight
                     src={kit.image_url}
-                    alt={`${kit.name}: os 7 potes juntos`}
+                    alt={`${kit.name}: seleção de produtos`}
                     className="mt-6 h-56 rounded-2xl sm:h-72"
                     imgClassName="h-56 p-4 sm:h-72"
                   />
@@ -108,16 +135,15 @@ function KitsPage() {
                 <Button
                   className="mt-6"
                   size="lg"
-                  disabled={cartLoading}
-                  onClick={() => addKit(kit.products, kit.name)}
+                  disabled={cartLoading || !canAdd(kit)}
+                  onClick={() => addKit(kit)}
                 >
-                  {cartLoading ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <ShoppingBag className="size-4" />
-                  )}
+                  <ShoppingBag className="size-4" />
                   Adicionar kit ao carrinho
                 </Button>
+                {!canAdd(kit) ? (
+                  <p className="mt-2 text-sm text-muted-foreground">Confira a disponibilidade dos itens e o limite de 10 produtos diferentes por carrinho.</p>
+                ) : null}
               </section>
             );
           })}

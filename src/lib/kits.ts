@@ -4,6 +4,7 @@ import { productsQuery, type Product } from "@/lib/products";
 export type KitItem = {
   id: string;
   product_id: string;
+  quantity: number;
   sort_order: number;
   product: Product | null;
 };
@@ -23,9 +24,9 @@ export type Kit = {
 };
 
 const PRODUCT_COLUMNS =
-  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,capsule_color,jar_color,lid_color,image_url,in_stock,is_active,sort_order";
+  "id,slug,name,subtitle,description,benefits,dosage,capsule_count,price,stock_quantity,capsule_color,jar_color,lid_color,image_url,in_stock,is_active,sort_order";
 
-const KIT_SELECT = `id,slug,name,subtitle,description,price,image_url,is_active,sort_order,kit_items(id,product_id,sort_order,products(${PRODUCT_COLUMNS}))`;
+const KIT_SELECT = `id,slug,name,subtitle,description,price,image_url,is_active,sort_order,kit_items(id,product_id,quantity,sort_order,products(${PRODUCT_COLUMNS}))`;
 
 const KIT_PHOTOS: Record<string, string> = {
   "kit-emagrecimento": "/produtos/kit-emagrecimento-completo.jpg",
@@ -37,6 +38,7 @@ function mapKit(k: Record<string, unknown>): Kit {
   const raw = (k["kit_items"] ?? []) as {
     id: string;
     product_id: string;
+    quantity: number;
     sort_order: number;
     products: Product | null;
   }[];
@@ -46,6 +48,7 @@ function mapKit(k: Record<string, unknown>): Kit {
     .map((i) => ({
       id: i.id,
       product_id: i.product_id,
+      quantity: i.quantity,
       sort_order: i.sort_order,
       product: i.products,
     }));
@@ -58,102 +61,41 @@ function mapKit(k: Record<string, unknown>): Kit {
   };
 }
 
-const KIT_TESTOSTERONA_SLUGS = [
-  "ginseng",
-  "tribulus-terrestris",
-  "feno-grego",
-  "maca-peruana-negra",
-  "marapuama",
-  "mucuna-preta",
-  "catuaba",
-];
-
-const KIT_EMAGRECIMENTO_SLUGS = [
-  "gengibre",
-  "laranja-moro",
-  "banana-verde",
-  "cha-verde",
-  "glucomannan",
-  "psyllium",
-  "hibisco",
-];
-
-const KIT_ANSIEDADE_SLUGS = ["mulungu", "gaba", "glicina", "maracuja", "ashwagandha", "capim-limao"];
-
-function kitFromSlugs(
-  products: Product[],
-  spec: {
-    id: string;
-    slug: string;
-    name: string;
-    subtitle: string;
-    description: string;
-    image_url: string;
-    sort_order: number;
-    slugs: string[];
+const STORE_KITS = [
+  {
+    slug: "kit-raizes-e-sementes",
+    name: "Kit Raízes e Sementes",
+    description: "Ginseng, Tribulus Terrestris, Feno Grego e Maca Peruana Negra.",
+    slugs: ["ginseng", "tribulus-terrestris", "feno-grego", "maca-peruana-negra"],
   },
-): Kit {
-  const bySlug = new Map(products.map((p) => [p.slug, p]));
-  const items: KitItem[] = spec.slugs.flatMap((slug, i) => {
-    const product = bySlug.get(slug);
-    if (!product) return [];
-    return [{ id: `${spec.id}-${slug}`, product_id: product.id, sort_order: i, product }];
-  });
-  return {
-    id: spec.id,
-    slug: spec.slug,
-    name: spec.name,
-    subtitle: spec.subtitle,
-    description: spec.description,
-    price: null,
-    image_url: spec.image_url,
-    is_active: true,
-    sort_order: spec.sort_order,
-    items,
-    products: items.map((i) => i.product).filter((p): p is Product => Boolean(p)),
-  };
-}
+  {
+    slug: "kit-selecao-botanica",
+    name: "Kit Seleção Botânica",
+    description: "Catuaba, Marapuama, Mucuna Preta, Gengibre e Laranja Moro.",
+    slugs: ["catuaba", "marapuama", "mucuna-preta", "gengibre", "laranja-moro"],
+  },
+  {
+    slug: "kit-fibras-e-plantas",
+    name: "Kit Fibras e Plantas",
+    description: "Psyllium, Glucomannan, Chá Verde e Hibisco.",
+    slugs: ["psyllium", "glucomannan", "cha-verde", "hibisco"],
+  },
+];
 
 export function localKitsFromCatalog(products: Product[]): Kit[] {
-  return [
-    kitFromSlugs(products, {
-      id: "local-kit-emagrecimento",
-      slug: "kit-emagrecimento",
-      name: "Kit Emagrecimento",
-      subtitle: "7 potes da linha de rotina",
-      description:
-        "Conjunto com Gengibre, Laranja Moro, Banana Verde, Chá Verde, Glucomannan, Psyllium e Hibisco. Cada pote contém 60 cápsulas. Não substitui alimentação equilibrada nem avaliação profissional.",
-      image_url: "/kits/kit-emagrecimento.png",
-      sort_order: 0,
-      slugs: KIT_EMAGRECIMENTO_SLUGS,
-    }),
-    kitFromSlugs(products, {
-      id: "local-kit-testosterona",
-      slug: "kit-testosterona",
-      name: "Kit Testosterona",
-      subtitle: "7 potes da linha de vitalidade",
-      description:
-        "Conjunto com Ginseng, Tribulus Terrestris, Feno Grego, Maca Peruana Negra, Marapuama, Mucuna Preta e Catuaba. Cada pote contém 60 cápsulas. Este kit reúne fitoterápicos da rotina; não substitui avaliação médica nem promete alteração hormonal.",
-      image_url: "/kits/kit-testosterona.png",
-      sort_order: 1,
-      slugs: KIT_TESTOSTERONA_SLUGS,
-    }),
-    kitFromSlugs(products, {
-      id: "local-kit-ansiedade",
-      slug: "kit-ansiedade",
-      name: "Kit Ansiedade",
-      subtitle: "6 potes da rotina noturna",
-      description:
-        "Conjunto com Mulungu, GABA, Glicina, Maracujá, Ashuwagandá e Capim Limão. O GABA contém 30 cápsulas; os demais, 60. Não substitui avaliação profissional nem tratamento.",
-      image_url: "/kits/kit-ansiedade.png",
-      sort_order: 2,
-      slugs: KIT_ANSIEDADE_SLUGS,
-    }),
-  ].filter((k) => k.products.length > 0);
-}
-
-export function kitTestosteronaFromCatalog(products: Product[]): Kit {
-  return localKitsFromCatalog(products).find((k) => k.slug === "kit-testosterona")!;
+  const bySlug = new Map(products.filter((product) => product.is_active).map((product) => [product.slug, product]));
+  return STORE_KITS.flatMap(({ slug, name, description, slugs }, sort_order) => {
+    const items = slugs.flatMap((productSlug, index) => {
+      const product = bySlug.get(productSlug);
+      return product ? [{ id: productSlug, product_id: product.id, quantity: 1, sort_order: index, product }] : [];
+    });
+    if (items.length !== slugs.length) return [];
+    return [{
+      id: slug, slug, name, description, subtitle: `${items.length} potes · 1 de cada`,
+      price: null, image_url: null, is_active: true, sort_order,
+      items, products: items.map((item) => item.product),
+    }];
+  });
 }
 
 export const kitsQuery = {
@@ -164,8 +106,7 @@ export const kitsQuery = {
       .select(KIT_SELECT)
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
-    if (error) throw error;
-    const kits = (data ?? []).map((k) => mapKit(k as Record<string, unknown>));
+    const kits = (error ? [] : data ?? []).map((k) => mapKit(k as Record<string, unknown>));
     const products = await productsQuery.queryFn();
     const bySlug = new Map(kits.map((k) => [k.slug, k]));
     for (const local of localKitsFromCatalog(products)) {
