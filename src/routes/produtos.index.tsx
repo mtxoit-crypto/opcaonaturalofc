@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpRight, ShoppingBag, Loader2, Search, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { productsQuery, productPhoto, type Product } from "@/lib/products";
 import { useAddToCart } from "@/hooks/useAddToCart";
@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { PhotoSpotlight } from "@/components/PhotoSpotlight";
 import { useWebMCP } from "use-webmcp-tool";
 import { runWebMCPTool } from "@/lib/webmcp-telemetry";
+
+const normalizeSearch = (value: string) => value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR");
 
 type SortKey = "relevancia" | "menor-preco" | "maior-preco" | "nome";
 
@@ -68,7 +70,7 @@ export const Route = createFileRoute("/produtos/")({
 function ProductsPage() {
   const navigate = useNavigate();
   const { q: qParam } = Route.useSearch();
-  const { data: products, isLoading } = useQuery(productsQuery);
+  const { data: products, isLoading, isError, refetch } = useQuery(productsQuery);
   const { addToCart, getVariant, isLoading: cartLoading } = useAddToCart();
 
   const [query, setQuery] = useState(qParam ?? "");
@@ -86,7 +88,9 @@ function ProductsPage() {
     if (now) {
       navigate({ to: "/checkout" });
     } else {
-      toast.success(`${p.name} adicionado ao carrinho`);
+      toast.success(`${p.name} adicionado ao carrinho`, {
+        action: { label: "Ver carrinho", onClick: () => void navigate({ to: "/checkout" }) },
+      });
     }
   }
 
@@ -102,15 +106,15 @@ function ProductsPage() {
   };
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const terms = normalizeSearch(query).trim().split(/\s+/).filter(Boolean);
     let list = active.filter((p) => {
       if (onlyInStock && !availabilityOf(p)) return false;
-      if (!q) return true;
+      if (!terms.length) return true;
       const haystack = [p.name, p.subtitle, p.description, ...(p.benefits ?? [])]
         .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
+        .join(" ");
+      const searchable = normalizeSearch(haystack);
+      return terms.every((term) => searchable.includes(term));
     });
 
     list = [...list].sort((a, b) => {
@@ -145,10 +149,17 @@ function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <h1 className="text-4xl">Vitaminas e Suplementos Naturais</h1>
-      <p className="mt-2 max-w-lg text-muted-foreground">
-        Explore as embalagens e consulte a quantidade de cápsulas, o preço e a disponibilidade de cada produto.
-      </p>
+      <header className="flex flex-wrap items-end justify-between gap-5 rounded-3xl bg-primary px-6 py-8 text-primary-foreground sm:px-10 sm:py-12">
+        <div>
+          <h1 className="max-w-lg text-3xl leading-tight sm:text-5xl">Vitaminas e suplementos naturais</h1>
+          <p className="mt-3 max-w-md text-sm text-primary-foreground/85">
+            Compare preços e quantidades de cápsulas para escolher seus produtos.
+          </p>
+        </div>
+        <Button asChild variant="secondary">
+          <Link to="/kits">Ver kits <ArrowUpRight aria-hidden /></Link>
+        </Button>
+      </header>
 
       {/* Barra de busca e filtros */}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -189,6 +200,7 @@ function ProductsPage() {
               Ordenar
             </label>
             <select
+            aria-label="Ordenar produtos"
               id="sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
@@ -221,6 +233,7 @@ function ProductsPage() {
       {filtersOpen ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 sm:hidden">
           <select
+            aria-label="Ordenar produtos"
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
             className="h-10 flex-1 rounded-full border border-border bg-card px-4 text-sm text-foreground outline-none"
@@ -247,9 +260,9 @@ function ProductsPage() {
       ) : null}
 
       {/* Resumo de resultados */}
-      {!isLoading ? (
+      {!isLoading && !isError ? (
         <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-          <span>
+          <span role="status" aria-live="polite">
             {filtered.length} {filtered.length === 1 ? "produto" : "produtos"}
             {query ? (
               <>
@@ -266,8 +279,13 @@ function ProductsPage() {
         </div>
       ) : null}
 
-      {isLoading ? (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {isError ? (
+        <div className="surface-card mt-6 p-6">
+          <p role="alert">Não foi possível carregar o catálogo.</p>
+          <Button className="mt-3" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+        </div>
+      ) : isLoading ? (
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-72 animate-pulse rounded-2xl bg-muted" />
           ))}
@@ -285,7 +303,7 @@ function ProductsPage() {
           ) : null}
         </div>
       ) : (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
           {filtered.map((p) => {
             const { variant } = getVariant(p.slug, p.name);
             const price = variant ? Number(variant.price.amount) : (p.price ?? 0);
@@ -294,12 +312,12 @@ function ProductsPage() {
             return (
               <article
                 key={p.id}
-                className="lift-card surface-card group/card relative flex flex-col p-6"
+                className="lift-card surface-card group/card relative flex min-w-0 flex-col p-3 sm:p-5"
               >
                 {!available ? (
                   <Badge
                     variant="secondary"
-                    className="absolute right-5 top-5 z-10 bg-card/90 text-muted-foreground"
+                    className="absolute right-2 top-2 sm:right-5 sm:top-5 z-10 bg-card/90 text-muted-foreground"
                   >
                     Indisponível
                   </Badge>
@@ -309,9 +327,9 @@ function ProductsPage() {
                     src={productPhoto(p)}
                     alt={`Pote de ${p.name}, suplemento natural Opção Natural em cápsulas`}
                     className="aspect-square rounded-xl"
-                    imgClassName="h-52 p-4"
+                    imgClassName="h-full p-2 sm:p-4"
                   />
-                  <h2 className="mt-5 text-2xl">{p.name}</h2>
+                  <h2 className="mt-3 text-lg leading-tight sm:text-2xl">{p.name}</h2>
                   <p className="text-sm text-muted-foreground">{p.subtitle}</p>
                 </Link>
 
@@ -332,14 +350,15 @@ function ProductsPage() {
                   </p>
                 )}
 
-                <div className="mt-5 flex items-center justify-between">
+                <div className="mt-auto flex flex-wrap items-baseline justify-between gap-1 pt-4">
                   <span className="text-lg font-medium text-accent">{formatMoney(price)}</span>
                   <span className="text-xs text-muted-foreground">{p.capsule_count} cápsulas</span>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="min-h-11 min-w-0 px-2"
+                    aria-label={`Adicionar ${p.name} ao carrinho`}
                     disabled={!available || cartLoading}
                     onClick={() => buy(p, false)}
                   >
@@ -350,7 +369,7 @@ function ProductsPage() {
                     )}
                     Adicionar
                   </Button>
-                  <Button className="flex-1" disabled={!available || cartLoading} onClick={() => buy(p, true)}>
+                  <Button className="min-h-11 min-w-0 px-2" aria-label={`Comprar ${p.name}`} disabled={!available || cartLoading} onClick={() => buy(p, true)}>
                     Comprar
                   </Button>
                 </div>

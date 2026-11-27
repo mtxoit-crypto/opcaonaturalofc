@@ -1,4 +1,4 @@
-import { checkoutEndpoint } from "@/lib/site";
+import { checkoutEndpoint, isStripeCheckoutUrl } from "@/lib/site";
 import { useRef, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
@@ -78,7 +78,7 @@ function CartPage() {
         }),
       });
       const payload = (await response.json()) as { url?: string; sessionId?: string; error?: string };
-      if (!response.ok || !payload.url) {
+      if (!response.ok || !isStripeCheckoutUrl(payload.url)) {
         throw new Error(payload.error || "Não foi possível iniciar o checkout.");
       }
       try {

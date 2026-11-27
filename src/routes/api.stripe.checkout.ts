@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LOVABLE_STOREFRONT_ORIGIN, SITE_ORIGIN } from "@/lib/site";
+import { isStripeCheckoutUrl, LOVABLE_STOREFRONT_ORIGIN, SITE_ORIGIN } from "@/lib/site";
 import { stripeModeForSecret } from "@/lib/stripe-webhook";
 
 type CartRequest = {
@@ -261,7 +261,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
             url?: string;
             error?: { message?: string };
           };
-          if (!stripeResponse.ok || !session.url || !session.id) {
+          if (!stripeResponse.ok || !isStripeCheckoutUrl(session.url) || !session.id) {
             console.error(
               "Stripe Checkout Session creation failed",
               stripeResponse.status,

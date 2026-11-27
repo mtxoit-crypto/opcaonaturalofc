@@ -36,3 +36,10 @@ export function whatsappLink(
 
 /** Imagem social: foto real do catálogo até existir um OG dedicado. */
 export const DEFAULT_OG_IMAGE = absoluteUrl("/produtos/ginseng.png");
+
+export function isStripeCheckoutUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const url = URL.canParse(value) ? new URL(value) : null;
+  return Boolean(url && url.origin === "https://checkout.stripe.com" &&
+    !url.username && !url.password && url.pathname.startsWith("/c/pay/"));
+}
