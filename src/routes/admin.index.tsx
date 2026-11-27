@@ -2,14 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, ExternalLink, ImagePlus, Pencil, Search, Trash2 } from "lucide-react";
+import { ArrowUpRight, ClipboardList, Copy, ExternalLink, ImagePlus, Package, Pencil, Search, Star, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { adminProductsQuery, formatPrice, productPhoto, type Product } from "@/lib/products";
 import { isDatabaseProductId } from "@/lib/media";
 import { isPaidOrder } from "@/lib/orders";
 import { storeSettingsQuery, type StoreSettings } from "@/lib/store";
-import { adminKitsQuery } from "@/lib/kits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,7 @@ import { AdminMedia } from "@/components/AdminMedia";
 import { AdminMembers } from "@/components/AdminMembers";
 import { AdminKits } from "@/components/AdminKits";
 import { AdminReviews } from "@/components/AdminReviews";
-import { AdminShell, AdminTabs, type AdminTab } from "@/components/AdminShell";
+import { AdminShell, type AdminTab } from "@/components/AdminShell";
 import { AdminStock } from "@/components/AdminStock";
 import { hasNumericInventory, isLowStock, productInventoryQuery } from "@/lib/inventory";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -148,7 +147,6 @@ function AdminPage() {
   const productsState = useQuery(adminProductsQuery(isAdmin));
   const inventoryState = useQuery(productInventoryQuery(isAdmin));
   const products = productsState.data;
-  const { data: kits } = useQuery(adminKitsQuery);
   const { data: settings } = useQuery(storeSettingsQuery);
   const { tab: tabParam, product: productParam, section: sectionParam, q: qParam, filter: filterParam } =
     Route.useSearch();
@@ -166,24 +164,6 @@ function AdminPage() {
   const editorRef = useRef<HTMLDivElement>(null);
   const isDirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(initialForm), [form, initialForm]);
   const activeSection = sectionParam ?? "geral";
-  const databaseProductIds = useMemo(
-    () => (products ?? []).filter((product) => isDatabaseProductId(product.id)).map((product) => product.id),
-    [products],
-  );
-
-  const { data: modelProductIds = [], isError: modelMediaError } = useQuery({
-    queryKey: ["admin-model-media", databaseProductIds],
-    enabled: isAdmin && tab === "visao" && databaseProductIds.length > 0,
-    queryFn: async (): Promise<string[]> => {
-      const { data, error } = await supabase
-        .from("product_media")
-        .select("product_id")
-        .eq("media_type", "model");
-      if (error) throw error;
-      return (data ?? []).map((row) => row.product_id);
-    },
-  });
-
   const { data: adminPix } = useQuery({
     queryKey: ["admin-pix-key", isAdmin],
     enabled: isAdmin,
@@ -207,16 +187,17 @@ function AdminPage() {
     },
   });
 
-  const { data: orderStats } = useQuery({
+  const { data: orderStats, isError: ordersError } = useQuery({
     queryKey: ["admin-order-stats"],
     enabled: isAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase.from("orders").select("id,status,total,payment_status,financial_status");
+      const { data, error } = await supabase.from("orders").select("id,code,status,total,payment_status,financial_status,created_at")
+        .order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       const rows = (data ?? []).filter(isPaidOrder);
       return {
-        total: rows.length,
-        pending: rows.filter((o) => o.status === "pago").length,
+        recent: rows.slice(0, 5),
+        pending: rows.filter((o) => ["novo", "pago", "preparando"].includes(o.status)).length,
         revenue: rows
           .filter((o) => o.status !== "cancelado")
           .reduce((s, o) => s + Number(o.total ?? 0), 0),
@@ -622,125 +603,86 @@ function AdminPage() {
   }
 
   const activeCount = (products ?? []).filter((p) => p.is_active).length;
-  const outOfStockCount = (products ?? []).filter((p) => !p.in_stock).length;
-  const withoutPhotoCount = (products ?? []).filter((p) => !p.image_url).length;
-  const withoutPriceCount = (products ?? []).filter((p) => p.price == null).length;
-  const withoutDescriptionCount = (products ?? []).filter((p) => !p.description?.trim()).length;
-  const numericInventoryRows = inventoryState.data ?? [];
-  const hasNumericStock = numericInventoryRows.some(hasNumericInventory);
-  const lowStockCount = numericInventoryRows.filter(isLowStock).length;
-  const modelProductIdSet = new Set(modelProductIds);
-  const withoutModelCount = (products ?? []).filter((p) => !modelProductIdSet.has(p.id)).length;
+  const lowStock = (inventoryState.data ?? []).filter(isLowStock);
+  const hasNumericStock = (inventoryState.data ?? []).some(hasNumericInventory);
+  const catalogIssues = [
+    { label: "Sem foto", value: products?.filter((product) => !product.image_url).length },
+    { label: "Sem preço válido", value: products?.filter((product) => !(Number(product.price) > 0)).length },
+    { label: "Sem descrição", value: products?.filter((product) => !product.description?.trim()).length },
+  ];
 
   return (
-    <AdminShell title="Painel" hint="Produtos, estoque, pedidos e operação da loja.">
-      <AdminTabs
-        value={tab}
-        onChange={changeTab}
-        tabs={[
-          { id: "visao", label: "Visão geral" },
-          { id: "catalogo", label: "Produtos", count: products?.length ?? 0 },
-          { id: "estoque", label: "Estoque", ...(products ? { count: outOfStockCount } : {}) },
-          { id: "kits", label: "Kits", ...(kits ? { count: kits.length } : {}) },
-          { id: "avaliacoes", label: "Avaliações", ...(pendingReviews != null ? { count: pendingReviews } : {}) },
-          { id: "clientes", label: "Clientes" },
-          { id: "cupons", label: "Cupons" },
-          { id: "midia", label: "Mídias" },
-          { id: "configuracoes", label: "Configurações" },
-          { id: "equipe", label: "Equipe" },
-          { id: "auditoria", label: "Auditoria" },
-        ]}
-      />
-
+    <AdminShell title={tab === "visao" ? "Visão geral" : "Painel da loja"}>
       {tab === "visao" ? (
-        <div className="mt-5">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { t: "Produtos no ar", n: products ? String(activeCount) : "—", go: "catalogo" },
-            { t: "Kits", n: kits ? String(kits.length) : "—", go: "kits" },
-            { t: "Pedidos em aberto", n: String(orderStats?.pending ?? "—"), href: "/admin/pedidos" },
-            { t: "Avaliações pendentes", n: String(pendingReviews ?? "—"), go: "avaliacoes" },
-            {
-              t: "Estoque baixo",
-              n: hasNumericStock ? String(lowStockCount) : "—",
-              go: "estoque",
-            },
-          ].map((c) =>
-            c.href ? (
-              <Link to="/admin/pedidos" key={c.t} className="surface-card block p-4 hover:bg-sand">
-                <p className="text-xs text-muted-foreground">{c.t}</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{c.n}</p>
-              </Link>
-            ) : (
-              <button
-                key={c.t}
-                type="button"
-                className="surface-card p-4 text-left hover:bg-sand"
-                onClick={() => changeTab(c.go ?? "visao")}
-              >
-                <p className="text-xs text-muted-foreground">{c.t}</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{c.n}</p>
-              </button>
-            ),
-          )}
-          </div>
-          {inventoryState.isError ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              A contagem de estoque baixo ficará disponível quando a migração numérica estiver aplicada.
-            </p>
-          ) : inventoryState.isSuccess && !hasNumericStock ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Nenhuma quantidade numérica foi configurada; a contagem não usa o sinal booleano.
-            </p>
-          ) : null}
-          <section className="mt-6">
-            <h2 className="text-base font-semibold tracking-tight">Qualidade do catálogo</h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { t: "Sem foto", n: products ? withoutPhotoCount : "—", go: "catalogo" },
-                { t: "Sem preço", n: products ? withoutPriceCount : "—", go: "catalogo" },
-                { t: "Sem descrição", n: products ? withoutDescriptionCount : "—", go: "catalogo" },
-                {
-                  t: "Sem modelo 3D",
-                  n: !products || modelMediaError ? "—" : withoutModelCount,
-                  go: "midia",
-                },
-              ].map((card) => (
-                <button
-                  key={card.t}
-                  type="button"
-                  className="surface-card p-4 text-left hover:bg-sand"
-                  onClick={() => changeTab(card.go)}
-                >
-                  <p className="text-xs text-muted-foreground">{card.t}</p>
-                  <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{card.n}</p>
-                </button>
-              ))}
-            </div>
-            {modelMediaError ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                A consulta de modelos 3D não está disponível agora.
-              </p>
-            ) : null}
-          </section>
-          <div className="surface-card mt-3 flex flex-wrap items-end justify-between gap-3 p-4">
+        <div className="mt-6 space-y-6">
+          <section className="grid gap-6 rounded-2xl bg-primary p-6 text-primary-foreground sm:p-8 xl:grid-cols-[1fr_auto] xl:items-end">
             <div>
-              <p className="text-xs text-muted-foreground">Faturamento (sem testes/cancelados)</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">
-                {orderStats ? formatPrice(orderStats.revenue) : "—"}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {orderStats?.total ?? "—"} pedidos no total
+              <h2 className="font-sans text-2xl font-semibold tracking-tight">Operação da loja</h2>
+              <p className="mt-2 max-w-md text-sm text-primary-foreground/80">
+                Acompanhe pedidos pagos, revise o catálogo e atualize as fotos e os vídeos dos produtos.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => changeTab("catalogo")}>
-                Abrir catálogo
-              </Button>
-              <Button size="sm" variant="outline" asChild>
-                <Link to="/admin/pedidos">Pedidos</Link>
-              </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" asChild><Link to="/admin/pedidos">Abrir pedidos <ArrowUpRight /></Link></Button>
+              <Button variant="secondary" onClick={() => changeTab("midia")}><ImagePlus /> Enviar mídia</Button>
             </div>
+          </section>
+
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            {[
+              { label: "Produtos ativos", value: products ? activeCount : "—", icon: Package, tab: "catalogo" },
+              { label: "Estoque baixo", value: hasNumericStock ? lowStock.length : "—", icon: Package, tab: "estoque" },
+              { label: "Avaliações pendentes", value: pendingReviews ?? "—", icon: Star, tab: "avaliacoes" },
+            ].map(({ label, value, icon: Icon, tab: target }) => (
+              <button key={target} type="button" onClick={() => changeTab(target)} className="surface-card p-4 text-left transition-colors hover:bg-secondary">
+                <Icon className="mb-3 size-4 text-primary" aria-hidden />
+                <span className="block text-2xl font-semibold tabular-nums">{value}</span>
+                <span className="block text-sm text-muted-foreground">{label}</span>
+              </button>
+            ))}
+            <Link to="/admin/pedidos" className="surface-card p-4 transition-colors hover:bg-secondary">
+              <ClipboardList className="mb-3 size-4 text-primary" aria-hidden />
+              <span className="block text-2xl font-semibold tabular-nums">{orderStats?.pending ?? "—"}</span>
+              <span className="block text-sm text-muted-foreground">Pagos a preparar</span>
+            </Link>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <section className="surface-card p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-sans text-base font-semibold">Pedidos pagos recentes</h2>
+                <Link to="/admin/pedidos" className="text-sm font-medium text-primary underline-offset-4 hover:underline">Ver todos</Link>
+              </div>
+              {ordersError ? <p role="alert" className="mt-4 text-sm text-muted-foreground">Não foi possível carregar os pedidos.</p>
+                : !orderStats ? <p className="mt-4 text-sm text-muted-foreground">Carregando pedidos…</p>
+                : orderStats.recent.length === 0 ? <p className="mt-4 text-sm text-muted-foreground">Nenhum pedido pago registrado.</p>
+                : (
+                  <ul className="mt-3 divide-y divide-border">
+                    {orderStats.recent.map((order) => (
+                      <li key={order.id} className="flex items-center justify-between gap-3 py-3 text-sm">
+                        <div><p className="font-medium">{order.code}</p><p className="capitalize text-muted-foreground">{order.status}</p></div>
+                        <span className="tabular-nums">{formatPrice(Number(order.total))}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              {orderStats && orderStats.recent.length > 0 ? (
+                <p className="mt-3 border-t pt-3 text-sm text-muted-foreground">
+                  Valor pago sem cancelamentos, nos últimos 100 pedidos <strong className="ml-1 text-foreground">{formatPrice(orderStats.revenue)}</strong>
+                </p>
+              ) : null}
+            </section>
+            <section className="surface-card p-5">
+              <h2 className="font-sans text-base font-semibold">Revisão do catálogo</h2>
+              <ul className="mt-3 divide-y divide-border">
+                {catalogIssues.map(({ label, value }) => (
+                  <li key={label} className="flex justify-between gap-3 py-2.5 text-sm">
+                    <span>{label}</span><span className="font-medium tabular-nums">{value ?? "—"}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button className="mt-3" size="sm" variant="outline" onClick={() => changeTab("catalogo")}>Editar produtos</Button>
+            </section>
           </div>
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  ArrowUpRight,
   Boxes,
   ClipboardList,
   Images,
@@ -14,7 +15,9 @@ import {
   UserRoundCog,
   Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { AdminMfaGate } from "@/components/AdminMfaGate";
 
 export type AdminTab =
@@ -69,13 +72,47 @@ export function AdminShell({
 }) {
   return (
     <AdminMfaGate>
-      <div className="min-h-[70dvh] border-t border-border/50 bg-sand/50">
+      <div className="min-h-screen bg-sand/50">
+        <header className="border-b bg-card">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 lg:px-5">
+            <Link to="/admin" className="flex items-center gap-3 text-primary">
+              <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <LayoutDashboard className="size-4" aria-hidden />
+              </span>
+              <span className="font-semibold">
+                Opção Natural{" "}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">Admin</span>
+              </span>
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                Ver loja <ArrowUpRight className="size-4" aria-hidden />
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  const { error } = await supabase.auth.signOut({ scope: "local" });
+                  if (error) toast.error("Não foi possível sair. Tente novamente.");
+                }}
+              >
+                Sair
+              </Button>
+            </div>
+          </div>
+        </header>
         <div className="mx-auto grid max-w-7xl min-w-0 gap-6 px-4 py-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:px-5 lg:py-8">
-          <aside className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+          <nav
+            aria-label="Administração da loja"
+            className="flex self-start gap-1 overflow-x-auto rounded-2xl border bg-card p-2 lg:flex-col lg:overflow-visible"
+          >
             {links.map((link) => (
               <AdminNavLink key={`${link.to}-${link.label}`} link={link} />
             ))}
-          </aside>
+          </nav>
           <div className="min-w-0">
             <h1 className="font-sans text-2xl font-semibold tracking-tight">{title}</h1>
             {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
@@ -119,38 +156,5 @@ function AdminNavLink({ link }: { link: AdminNavLink }) {
       <Icon className="size-4" />
       {link.label}
     </Link>
-  );
-}
-
-export function AdminTabs({
-  tabs,
-  value,
-  onChange,
-}: {
-  tabs: { id: string; label: string; count?: number }[];
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className="mt-5 flex gap-0 overflow-x-auto border-b border-border">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          onClick={() => onChange(t.id)}
-          className={cn(
-            "shrink-0 border-b-2 px-3 py-2.5 text-sm transition-[color,border-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]",
-            value === t.id
-              ? "border-primary text-foreground"
-              : "border-transparent text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {t.label}
-          {typeof t.count === "number" ? (
-            <span className="ml-1.5 tabular-nums text-muted-foreground">{t.count}</span>
-          ) : null}
-        </button>
-      ))}
-    </div>
   );
 }

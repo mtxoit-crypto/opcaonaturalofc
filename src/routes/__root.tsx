@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorRouteComponent,
@@ -128,6 +129,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isAdminPage = useRouterState({
+    select: ({ location }) => /^\/admin(?:\/|$)/.test(location.pathname),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -136,16 +140,16 @@ function RootComponent() {
         <a href="#conteudo" className="skip-link">
           Ir para o conteúdo
         </a>
-        <SiteHeader />
+        {isAdminPage ? null : <SiteHeader />}
         <main id="conteudo" className="min-w-0 flex-1 overflow-x-clip">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
-        <SiteFooter />
+        {isAdminPage ? null : <SiteFooter />}
       </div>
       <Toaster />
-      <AIChatbot />
-      <WhatsAppFloat />
+      {isAdminPage ? null : <AIChatbot />}
+      {isAdminPage ? null : <WhatsAppFloat />}
       </MotionConfig>
     </QueryClientProvider>
 
