@@ -1,6 +1,16 @@
 /** URL pública atual do Worker; substitua quando o domínio próprio estiver configurado. */
 export const SITE_ORIGIN = "https://opcaonaturalofc.mtxoit.workers.dev";
 
+export const LOVABLE_STOREFRONT_ORIGIN = "https://opcaonaturalofc.lovable.app";
+
+export function checkoutEndpoint() {
+  const path = "/api/stripe/checkout";
+  return typeof window !== "undefined" && window.location.origin === LOVABLE_STOREFRONT_ORIGIN
+    ? SITE_ORIGIN + path
+    : path;
+}
+
+
 export function absoluteUrl(path = "/") {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const normalized = path.startsWith("/") ? path : `/${path}`;

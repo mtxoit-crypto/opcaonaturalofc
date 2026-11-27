@@ -1,3 +1,4 @@
+import { checkoutEndpoint } from "@/lib/site";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -21,7 +22,7 @@ function CheckoutSuccessPage() {
     queryKey: ["stripe-order-confirmed", sessionId],
     enabled: Boolean(sessionId),
     queryFn: async () => {
-      const response = await fetch(`/api/stripe/checkout?session_id=${encodeURIComponent(sessionId!)}`, { cache: "no-store" });
+      const response = await fetch(`${checkoutEndpoint()}?session_id=${encodeURIComponent(sessionId!)}`, { cache: "no-store" });
       return response.ok && (await response.json()).confirmed === true;
     },
     refetchInterval: (query) => query.state.data || query.state.dataUpdateCount >= 12 ? false : 5000,

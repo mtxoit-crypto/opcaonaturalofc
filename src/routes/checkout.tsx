@@ -1,3 +1,4 @@
+import { checkoutEndpoint } from "@/lib/site";
 import { useRef, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
@@ -46,7 +47,7 @@ function CartPage() {
   const { data: available } = useQuery({
     queryKey: ["stripe-checkout-available"],
     queryFn: async () => {
-      const response = await fetch("/api/stripe/checkout", { cache: "no-store" });
+      const response = await fetch(checkoutEndpoint(), { cache: "no-store" });
       return response.ok && (await response.json()).available === true;
     },
   });
@@ -67,7 +68,7 @@ function CartPage() {
       const cartItems = items.map(({ slug, quantity }) => ({ slug, quantity }));
       const cart = JSON.stringify([postalCode, cartItems]);
       if (attempt.current.cart !== cart) attempt.current = { cart, key: crypto.randomUUID() };
-      const response = await fetch("/api/stripe/checkout", {
+      const response = await fetch(checkoutEndpoint(), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

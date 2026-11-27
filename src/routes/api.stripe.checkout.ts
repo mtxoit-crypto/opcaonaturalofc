@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SITE_ORIGIN } from "@/lib/site";
+import { LOVABLE_STOREFRONT_ORIGIN, SITE_ORIGIN } from "@/lib/site";
 import { stripeModeForSecret } from "@/lib/stripe-webhook";
 
 type CartRequest = {
@@ -17,8 +17,17 @@ type ProductRow = {
   is_active: boolean;
 };
 
-function json(data: Record<string, unknown>, status = 200) {
-  return Response.json(data, { status, headers: { "cache-control": "no-store" } });
+function checkoutHeaders(request: Request) {
+  const headers = new Headers({ "cache-control": "no-store", vary: "Origin" });
+  if (new URL(request.url).origin === SITE_ORIGIN &&
+    request.headers.get("origin") === LOVABLE_STOREFRONT_ORIGIN) {
+    headers.set("access-control-allow-origin", LOVABLE_STOREFRONT_ORIGIN);
+  }
+  return headers;
+}
+
+function json(request: Request, data: Record<string, unknown>, status = 200) {
+  return Response.json(data, { status, headers: checkoutHeaders(request) });
 }
 
 async function readJsonLimited(request: Request, maxBytes: number): Promise<unknown> {
@@ -67,45 +76,48 @@ async function checkoutStatus(request: Request) {
 export const Route = createFileRoute("/api/stripe/checkout")({
   server: {
     handlers: {
+      OPTIONS: ({ request }) => {
+        const headers = checkoutHeaders(request);
+        if (!headers.has("access-control-allow-origin")) return new Response(null, { status: 403, headers });
+        headers.set("access-control-allow-methods", "GET, POST, OPTIONS");
+        headers.set("access-control-allow-headers", "Content-Type");
+        return new Response(null, { status: 204, headers });
+      },
       GET: async ({ request }) => {
         const session = new URL(request.url).searchParams.get("session_id");
-        if (session === null) return json(await checkoutStatus(request));
-        if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json({ confirmed: false }, 400);
+        if (session === null) return json(request, await checkoutStatus(request));
+        if (!/^cs_(live|test)_[A-Za-z0-9]{16,200}$/.test(session)) return json(request, { confirmed: false }, 400);
         try {
           const { checkoutDatabase } = await import("@/lib/checkout-database.server");
-          return json({ confirmed: (await checkoutDatabase({ operation: "confirm", session })) === true });
+          return json(request, { confirmed: (await checkoutDatabase({ operation: "confirm", session })) === true });
         } catch {
-          return json({ confirmed: false }, 503);
+          return json(request, { confirmed: false }, 503);
         }
       },
       POST: async ({ request }) => {
         const origin = request.headers.get("origin");
-        if (!origin) return json({ error: "Origem inválida." }, 403);
-        try {
-          if (new URL(origin).origin !== new URL(request.url).origin) {
-            return json({ error: "Origem inválida." }, 403);
-          }
-        } catch {
-          return json({ error: "Origem inválida." }, 403);
+        const serverOrigin = new URL(request.url).origin;
+        if (!origin || (origin !== serverOrigin && !checkoutHeaders(request).has("access-control-allow-origin"))) {
+          return json(request, { error: "Origem inválida." }, 403);
         }
         if (
           request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() !==
           "application/json"
         ) {
-          return json({ error: "Formato de pedido inválido." }, 415);
+          return json(request, { error: "Formato de pedido inválido." }, 415);
         }
         const contentLength = Number(request.headers.get("content-length") ?? 0);
-        if (contentLength > 16_000) return json({ error: "Pedido muito grande." }, 413);
+        if (contentLength > 16_000) return json(request, { error: "Pedido muito grande." }, 413);
 
         let input: CartRequest;
         try {
           input = (await readJsonLimited(request, 16_000)) as CartRequest;
         } catch (error) {
-          if (error instanceof RangeError) return json({ error: "Pedido muito grande." }, 413);
-          return json({ error: "Não foi possível ler o pedido." }, 400);
+          if (error instanceof RangeError) return json(request, { error: "Pedido muito grande." }, 413);
+          return json(request, { error: "Não foi possível ler o pedido." }, 400);
         }
 
-        if (!input || typeof input !== "object") return json({ error: "Pedido inválido." }, 400);
+        if (!input || typeof input !== "object") return json(request, { error: "Pedido inválido." }, 400);
         const cep = typeof input.cep === "string" ? input.cep.replace(/\D/g, "") : "";
         if (
           !/^\d{8}$/.test(cep) ||
@@ -113,18 +125,18 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           input.items.length === 0 ||
           input.items.length > 10
         ) {
-          return json({ error: "Carrinho ou CEP inválido." }, 400);
+          return json(request, { error: "Carrinho ou CEP inválido." }, 400);
         }
         if (
           typeof input.idempotencyKey !== "string" ||
           !/^[0-9a-f-]{36}$/i.test(input.idempotencyKey)
         ) {
-          return json({ error: "Identificador de checkout inválido." }, 400);
+          return json(request, { error: "Identificador de checkout inválido." }, 400);
         }
         const quantities = new Map<string, number>();
         for (const entry of input.items) {
           if (!entry || typeof entry !== "object")
-            return json({ error: "Item inválido no carrinho." }, 400);
+            return json(request, { error: "Item inválido no carrinho." }, 400);
           const row = entry as { slug?: unknown; quantity?: unknown };
           if (
             typeof row.slug !== "string" ||
@@ -134,16 +146,16 @@ export const Route = createFileRoute("/api/stripe/checkout")({
             row.quantity < 1 ||
             row.quantity > 99
           ) {
-            return json({ error: "Item inválido no carrinho." }, 400);
+            return json(request, { error: "Item inválido no carrinho." }, 400);
           }
           quantities.set(row.slug, Math.min(99, (quantities.get(row.slug) ?? 0) + row.quantity));
         }
         if (quantities.size > 10)
-          return json({ error: "O carrinho pode ter até 10 produtos diferentes." }, 400);
+          return json(request, { error: "O carrinho pode ter até 10 produtos diferentes." }, 400);
 
         const stripeSecret = process.env["STRIPE_SECRET_KEY"];
         if (!(await checkoutStatus(request)).available) {
-          return json({ error: "Checkout Stripe não está configurado pela loja." }, 503);
+          return json(request, { error: "Checkout Stripe não está configurado pela loja." }, 503);
         }
         try {
           const { checkoutDatabase } = await import("@/lib/checkout-database.server");
@@ -164,14 +176,14 @@ export const Route = createFileRoute("/api/stripe/checkout")({
               product.price === null ||
               Number(product.price) <= 0
             ) {
-              return json({ error: "Um produto do carrinho não está disponível." }, 409);
+              return json(request, { error: "Um produto do carrinho não está disponível." }, 409);
             }
             if (product.stock_quantity === null || product.stock_quantity < quantity) {
-              return json({ error: `${product.name} está sem estoque suficiente.` }, 409);
+              return json(request, { error: `${product.name} está sem estoque suficiente.` }, 409);
             }
             const unitAmount = Math.round(Number(product.price) * 100);
             if (!Number.isSafeInteger(unitAmount) || unitAmount < 1)
-              return json({ error: "Preço inválido no catálogo." }, 409);
+              return json(request, { error: "Preço inválido no catálogo." }, 409);
             lines.push({ product, quantity, unitAmount });
           }
 
@@ -179,7 +191,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
             (candidate) => Number(cep) >= candidate.cep_start && Number(cep) <= candidate.cep_end,
           );
           if (!zone)
-            return json({ error: "Ainda não temos entrega cadastrada para este CEP." }, 422);
+            return json(request, { error: "Ainda não temos entrega cadastrada para este CEP." }, 422);
           const subtotalCents = lines.reduce(
             (sum, line) => sum + line.unitAmount * line.quantity,
             0,
@@ -190,7 +202,7 @@ export const Route = createFileRoute("/api/stripe/checkout")({
               ? 0
               : Math.round(Number(zone.fee) * 100);
           if (!Number.isSafeInteger(subtotalCents + shippingCents))
-            return json({ error: "Total do pedido inválido." }, 409);
+            return json(request, { error: "Total do pedido inválido." }, 409);
 
           const metadataCart = lines
             .map(({ product, quantity }) => `${product.id}:${quantity}`)
@@ -199,9 +211,9 @@ export const Route = createFileRoute("/api/stripe/checkout")({
           params.set("mode", "payment");
           params.set(
             "success_url",
-            `${new URL(request.url).origin}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+            `${origin}/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}`,
           );
-          params.set("cancel_url", `${new URL(request.url).origin}/checkout?cancelled=1`);
+          params.set("cancel_url", `${origin}/checkout?cancelled=1`);
           params.set("shipping_address_collection[allowed_countries][0]", "BR");
           params.set("phone_number_collection[enabled]", "true");
           params.set("payment_method_types[0]", "card");
@@ -256,14 +268,15 @@ export const Route = createFileRoute("/api/stripe/checkout")({
               session.error?.message,
             );
             return json(
+              request,
               { error: "A Stripe não conseguiu abrir o pagamento. Tente novamente." },
               502,
             );
           }
-          return json({ url: session.url, sessionId: session.id });
+          return json(request, { url: session.url, sessionId: session.id });
         } catch (error) {
           console.error("Stripe checkout request failed", error);
-          return json({ error: "Não foi possível abrir o pagamento agora." }, 503);
+          return json(request, { error: "Não foi possível abrir o pagamento agora." }, 503);
         }
       },
     },
